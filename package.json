@@ -1,0 +1,12 @@
+{
+  "name": "chillpoint",
+  "version": "1.0.0",
+  "description": "Come hangout and play some board games",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "devDependencies": {
+    "typescript": "^3.7.5"
+  }
+}

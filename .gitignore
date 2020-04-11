@@ -1,3 +1,5 @@
 
 node_modules
 website/javascript
+
+/package-lock.json

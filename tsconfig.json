@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "pretty": true,
+        "lib": ["DOM", "ES2020"],
+        "module": "AMD",
+        "target": "es5",
+        "rootDir": "source",
+        "outDir": "website/javascript",
+        "outFile": "website/javascript/Chillpoint.Entry.js",
+
+        "sourceMap": true,
+        "noEmitOnError": true,
+        
+        "strictNullChecks": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "strictPropertyInitialization": true,
+        "noUnusedLocals": true,
+
+        "alwaysStrict": true,
+        "preserveConstEnums": true,
+        "newLine": "lf",
+
+        "types": [],
+    },
+}
