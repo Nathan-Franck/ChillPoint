@@ -1,16 +1,7 @@
-import { HtmlBuilder, Style } from './Util.HtmlBuilder';
+import { HtmlBuilder } from './Util.HtmlBuilder';
+import { ChillpointStyles as Styles } from './Chillpoint.Styles';
 
 export namespace ChillpointEntry {
-
-    export namespace Styles {
-        export const centered: Style = {
-            display: "grid",
-            justifyItems: "center",
-            alignItems: "center",
-            textAlign: "center",
-            fontFamily: "lato",
-        };
-    }
 
     export function initializeClient() {
         console.log("hey! we're in!");
