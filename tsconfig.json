@@ -5,8 +5,8 @@
         "module": "AMD",
         "target": "es5",
         "rootDir": "source",
-        "outDir": "website/javascript",
-        "outFile": "website/javascript/Chillpoint.Entry.js",
+        "outDir": "website/js",
+        "outFile": "website/js/Chillpoint.Entry.js",
 
         "sourceMap": true,
         "noEmitOnError": true,
