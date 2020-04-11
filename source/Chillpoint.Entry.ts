@@ -6,12 +6,13 @@ export namespace ChillpointEntry {
         HtmlBuilder.createChild(document.body, {
             type: "div",
             style: {
-                color: "green",
+                backgroundColor: "green",
                 width: "50",
                 height: "50",
+                borderRadius: "5px",    
             },
             attributes: {
-                innerHTML: "we're in boys",
+                innerHTML: "Chill Point",
             }
         });
     }
