@@ -15,7 +15,6 @@
         "noImplicitAny": true,
         "noImplicitThis": true,
         "strictPropertyInitialization": true,
-        "noUnusedLocals": true,
 
         "alwaysStrict": true,
         "preserveConstEnums": true,
