@@ -10,47 +10,64 @@ export namespace GLRenderer {
                 return new Error("Canvas rendering context is invalid");
             }
 
-            const glProgram = Shaders.generateShader(gl, Shaders.validateEnvironment({
+            const glProgram = Shaders.generateShader(gl, {
                 textures: {
-                    "texture_sampler": await GLTexture.load(gl, "./images/grass.jpg"),
+                    "grass": await GLTexture.load(gl, "./images/grass.jpg"),
                 },
                 buffers: {
-                    "position": GLTexture.createBuffer(gl, new Float32Array([
-                        -1, 1, 1,
-                        -1, -1, 1,
-                        1, -1, 1,
-                        1, -1, 1,
+                    "world_position": GLTexture.createBuffer(gl, new Float32Array([
+                        0, 1, 1,
+                        0, 0, 1,
+                        1, 0, 1,
+                        1, 0, 1,
                         1, 1, 1,
-                        -1, 1, 1,
+                        0, 1, 1,
+                    ])),
+                    "texture_coord": GLTexture.createBuffer(gl, new Float32Array([
+                        0, 1,
+                        0, 0,
+                        1, 0,
+                        1, 0,
+                        1, 1,
+                        0, 1,
                     ])),
                 },
                 globals: {
+                    "grass": { type: "uniform", data: "sampler2D" },
+                    "world_position": { type: "attribute", data: "vec3" },
+                    "texture_coord": { type: "attribute", data: "vec2" },
+
                     "camera_size": {
                         type: "const",
-                        x: 15,
-                        y: 15 * window.innerWidth / window.innerHeight,
+                        x: 6,
+                        y: 6 * window.innerWidth / window.innerHeight,
                     },
                     "camera_position": { type: "const", x: 0, y: 0 },
                     "x_vector": { type: "const", x: 1, y: 0.5 },
                     "y_vector": { type: "const", x: 0, y: 1 },
                     "z_vector": { type: "const", x: -1, y: 0.5 },
-                    "position": { type: "attribute", data: "vec3" },
-                    "texture_coord": { type: "varying", data: "vec2" },
-                    "texture_sampler": { type: "uniform", data: "sampler2D" },
+                    "occlusion_color": { type: "const", x: 0.0, y: 0.0, z: 0.0 },
+
+                    "uv": { type: "varying", data: "vec2" },
+                    "color": { type: "varying", data: "vec3" },
                 }
-            }), `                
+            }, `                
                 void main(void) {
-                    vec2 ortho_position = position.x * x_vector + position.y * y_vector + position.z * z_vector;
+                    vec2 ortho_position =
+                        world_position.x * x_vector +
+                        world_position.y * y_vector +
+                        world_position.z * z_vector;
                     vec4 final_position = vec4((
                         ortho_position -
                         camera_position
                     ) / camera_size, 0.0, 1.0);
                     gl_Position = final_position;
-                    texture_coord = position.xy;
+                    uv = texture_coord.xy;
+                    color = mix(occlusion_color, vec3(1.0, 1.0, 1.0), world_position.y);
                 }
             `, `
                 void main(void) {
-                    gl_FragColor = texture2D(texture_sampler, texture_coord);
+                    gl_FragColor = texture2D(grass, uv) * vec4(color, 0.0);
                 }    
             `);
 

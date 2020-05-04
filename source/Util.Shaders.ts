@@ -2,10 +2,13 @@ import { Scripting } from "./Util.Scripting";
 import { GLTexture } from "./GLTexture";
 
 export type GLSLType = "float" | "vec2" | "vec3" | "vec4";
+export type GLSLConstType = Float | Vec2 | Vec3 | Vec4;
 export type GLSLUniformType = "sampler2D";
 export type Float = { value: number };
 export type Vec2 = { x: number, y: number };
-export type Const<T extends Float | Vec2> = {
+export type Vec3 = { x: number, y: number, z: number };
+export type Vec4 = { x: number, y: number, z: number, w: number };
+export type Const<T extends GLSLConstType> = {
     type: "const",
 } & T;
 export type Varying<T extends GLSLType> = {
@@ -28,10 +31,10 @@ export const typeToStride: { [key in GLSLType]: number } = {
 };
 
 export type ShaderGlobals<Textures, Buffers, T> = {
-    [key in keyof T]: Const<Float | Vec2> | Varying<GLSLType> | Attribute<GLSLType> | Uniform<GLSLUniformType>
+    [key in keyof T]: Const<GLSLConstType> | Varying<GLSLType> | Attribute<GLSLType> | Uniform<GLSLUniformType>
 } & {
-    [key in keyof Textures]: Uniform<"sampler2D">
-} & {
+        [key in keyof Textures]: Uniform<"sampler2D">
+    } & {
         [key in keyof Buffers]: Attribute<GLSLType>
     };
 
@@ -39,13 +42,21 @@ export namespace Shaders {
 
     export function constText(key: string, element: Const<any>) {
         return `const highp ${
-            "value" in element ?
-                "float" :
-                "vec2"
+            "w" in element ?
+                "vec4" :
+                "z" in element ?
+                    "vec3" :
+                    "y" in element ?
+                        "vec2" :
+                        "float"
             } ${key} = ${
-            "value" in element ?
-                element.value.toFixed(1) :
-                `vec2(${element.x.toFixed(1)}, ${element.y.toFixed(1)})`
+            "w" in element ?
+                `vec4(${element.x.toFixed(1)}, ${element.y.toFixed(1)}, ${element.z.toFixed(1)}, ${element.w.toFixed(1)})` :
+                "z" in element ?
+                    `vec3(${element.x.toFixed(1)}, ${element.y.toFixed(1)}, ${element.z.toFixed(1)})` :
+                    "y" in element ?
+                        `vec2(${element.x.toFixed(1)}, ${element.y.toFixed(1)})` :
+                        element.value.toFixed(1)
             };`
     }
     export function varyingText(key: string, element: Varying<any>) {
@@ -112,14 +123,16 @@ export namespace Shaders {
                 return new Error("Vertex/Fragment shader not properly initialized");
             }
 
-            gl.shaderSource(vertShader, `
+            const vertFullSource = `
                 ${Shaders.toVertText(environment.globals)}
                 ${vertSource}
-            `);
-            gl.shaderSource(fragShader, `
+            `;
+            const fragFullSource = `
                 ${Shaders.toFragText(environment.globals)}
                 ${fragSource}
-            `);
+            `;
+            gl.shaderSource(vertShader, vertFullSource);
+            gl.shaderSource(fragShader, fragFullSource);
 
             [vertShader, fragShader].forEach(shader => {
                 gl.compileShader(shader);
