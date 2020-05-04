@@ -27,11 +27,13 @@ export const typeToStride: { [key in GLSLType]: number } = {
     vec4: 4,
 };
 
-export type ShaderGlobals<Textures, Buffers, T> = T & {
+export type ShaderGlobals<Textures, Buffers, T> = {
+    [key in keyof T]: Const<Float | Vec2> | Varying<GLSLType> | Attribute<GLSLType> | Uniform<GLSLUniformType>
+} & {
     [key in keyof Textures]: Uniform<"sampler2D">
 } & {
-    [key in keyof Buffers]: Attribute<GLSLType>   
-};
+        [key in keyof Buffers]: Attribute<GLSLType>
+    };
 
 export namespace Shaders {
 
@@ -87,5 +89,69 @@ export namespace Shaders {
         globals: ShaderGlobals<Textures, Buffers, T>,
     }) {
         return params;
+    }
+
+    export function generateShader<Textures, Buffers, T>(
+        gl: WebGL2RenderingContext,
+        environment: {
+            textures: Textures,
+            buffers: Buffers,
+            globals: ShaderGlobals<Textures, Buffers, T>,
+        },
+        vertSource: string,
+        fragSource: string,
+    ) {
+        // ✨🎨 Create fragment shader object
+        const glProgram = gl.createProgram();
+        {
+            const vertShader = gl.createShader(gl.VERTEX_SHADER);
+            const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+            if (vertShader == null ||
+                fragShader == null ||
+                glProgram == null) {
+                return new Error("Vertex/Fragment shader not properly initialized");
+            }
+
+            gl.shaderSource(vertShader, `
+                ${Shaders.toVertText(environment.globals)}
+                ${vertSource}
+            `);
+            gl.shaderSource(fragShader, `
+                ${Shaders.toFragText(environment.globals)}
+                ${fragSource}
+            `);
+
+            [vertShader, fragShader].forEach(shader => {
+                gl.compileShader(shader);
+                gl.attachShader(glProgram, shader);
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.error(gl.getShaderInfoLog(shader));
+                }
+            });
+
+            gl.linkProgram(glProgram);
+        }
+
+        { // 🦗 Texture to display
+            Scripting.getKeys(environment.textures).forEach((key, index) => {
+                gl.activeTexture(gl.TEXTURE0 + index);
+                gl.bindTexture(gl.TEXTURE_2D, environment.textures[key]);
+
+                const uniformLocation = gl.getUniformLocation(glProgram, key as string);
+                gl.uniform1i(uniformLocation, index);
+            });
+        }
+
+        { // 👇 Set the points of the triangle to a buffer, assign to shader attribute
+            Scripting.getKeys(environment.buffers).forEach(key => {
+                gl.bindBuffer(gl.ARRAY_BUFFER, environment.buffers[key]);
+                const attributeLocation = gl.getAttribLocation(glProgram, key as string);
+                const dataType = environment.globals[key].data;
+                gl.vertexAttribPointer(attributeLocation, typeToStride[dataType], gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(attributeLocation);
+            });
+        }
+
+        return glProgram;
     }
 }
