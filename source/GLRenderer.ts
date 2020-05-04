@@ -1,16 +1,16 @@
 export namespace GLRenderer {
     export function start(canvas: HTMLCanvasElement) {
         {
-            var gl = canvas.getContext('webgl2');
+            const gl = canvas.getContext('webgl2');
             if (gl == null) {
                 return new Error("Canvas rendering context is invalid");
             }
             
             // ✨🎨 Create fragment shader object
-            var shaderProgram = gl.createProgram();
+            const shaderProgram = gl.createProgram();
             {
-                var vertShader = gl.createShader(gl.VERTEX_SHADER);
-                var fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+                const vertShader = gl.createShader(gl.VERTEX_SHADER);
+                const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
                 if (vertShader == null ||
                     fragShader == null ||
                     shaderProgram == null) {
@@ -18,10 +18,10 @@ export namespace GLRenderer {
                 }
                 gl.shaderSource(vertShader, `
                     attribute vec3 position;
-                    const float camera_size = 30;
+                    const float camera_size = 30.0;
                     const vec2 camera_position = vec2(0.0, 0.0);
                     const vec2 x_vector = vec2(1.0, 0.5);
-                    const vec2 y_vector = vec2(0, 1.0);
+                    const vec2 y_vector = vec2(0.0, 1.0);
                     const vec2 z_vector = vec2(-1.0, 0.5);
                     void main(void) {
                         vec2 ortho_position = position.x * x_vector + position.y * y_vector + position.z * z_vector;
@@ -30,15 +30,22 @@ export namespace GLRenderer {
                             camera_position +
                             vec2(camera_size, camera_size) * 0.5
                         ) / camera_size, 0.0, 1.0);
-                    }`);
+                    }
+                `);
                 gl.shaderSource(fragShader, `
                     void main(void) {
                         gl_FragColor = vec4(0.0, 1, 0.0, 1);
-                    }`);
-                gl.compileShader(vertShader);
-                gl.compileShader(fragShader);
-                gl.attachShader(shaderProgram, vertShader);
-                gl.attachShader(shaderProgram, fragShader);
+                    }
+                `);
+
+                [vertShader, fragShader].forEach(shader => {
+                    gl.compileShader(shader);
+                    gl.attachShader(shaderProgram, shader);
+                    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                        console.error(gl.getShaderInfoLog(shader));
+                    }
+                });
+
                 gl.linkProgram(shaderProgram);
             }
    
