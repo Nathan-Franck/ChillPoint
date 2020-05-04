@@ -27,10 +27,13 @@ export const typeToStride: { [key in GLSLType]: number } = {
     vec4: 4,
 };
 
+export type ShaderGlobals<Textures, Buffers, T> = T & {
+    [key in keyof Textures]: Uniform<"sampler2D">
+} & {
+    [key in keyof Buffers]: Attribute<GLSLType>   
+};
+
 export namespace Shaders {
-    type Globals = {
-        [key in string]: Const<any> | Varying<any> | Attribute<any> | Uniform<any>
-    };
 
     export function constText(key: string, element: Const<any>) {
         return `const highp ${
@@ -50,31 +53,39 @@ export namespace Shaders {
         return `${element.type} ${element.data} ${key}; `
     }
 
-    export function toVertText(props: Globals) {
+    export function toVertText<Textures, Buffers, T>(props: ShaderGlobals<Textures, Buffers, T>) {
         return Scripting.getKeys(props).reduce((text, key) => {
             const element = props[key];
             return `${text}\n ${
                 element.type == "const" ?
-                    constText(key, element) :
+                    constText(key as string, element) :
                     element.type == "varying" ?
-                        varyingText(key, element) :
-                        uniformAttributeText(key, element)
+                        varyingText(key as string, element) :
+                        uniformAttributeText(key as string, element)
                 }`;
         }, "");
     }
 
-    export function toFragText(props: Globals) {
+    export function toFragText<Textures, Buffers, T>(props: ShaderGlobals<Textures, Buffers, T>) {
         return Scripting.getKeys(props).reduce((text, key) => {
             const element = props[key];
             return `${text}${
                 element.type == "const" ?
-                    constText(key, element) :
+                    constText(key as string, element) :
                     element.type == "varying" ?
-                        varyingText(key, element) :
+                        varyingText(key as string, element) :
                         element.type == "uniform" ?
-                            uniformAttributeText(key, element) :
+                            uniformAttributeText(key as string, element) :
                             ""
                 }\n`;
         }, "");
+    }
+
+    export function validateEnvironment<Textures, Buffers, T>(params: {
+        textures: Textures,
+        buffers: Buffers,
+        globals: ShaderGlobals<Textures, Buffers, T>,
+    }) {
+        return params;
     }
 }
