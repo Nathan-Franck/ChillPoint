@@ -19,11 +19,18 @@ export namespace GLRenderer {
                         return new Error("Vertex/Fragment shader not properly initialized");
                 }
 
+                const props = {
+                    "camera_size": 15.0,
+                };
                 gl.shaderSource(vertShader, `
                     attribute vec3 position;
                     varying highp vec2 texture_coord;
 
-                    const float camera_size = 30.0;
+                    const vec2 camera_size = vec2(${
+                        (props.camera_size * window.innerWidth / window.innerHeight).toFixed(2)
+                    }, ${
+                        props.camera_size.toFixed(2)
+                    });
                     const vec2 camera_position = vec2(0.0, 0.0);
                     const vec2 x_vector = vec2(1.0, 0.5);
                     const vec2 y_vector = vec2(0.0, 1.0);
@@ -33,8 +40,7 @@ export namespace GLRenderer {
                         vec2 ortho_position = position.x * x_vector + position.y * y_vector + position.z * z_vector;
                         vec4 final_position = vec4((
                             ortho_position -
-                            camera_position +
-                            vec2(camera_size, camera_size) * 0.5
+                            camera_position
                         ) / camera_size, 0.0, 1.0);
                         gl_Position = final_position;
                         texture_coord = position.xy;
