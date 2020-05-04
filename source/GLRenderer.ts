@@ -7,7 +7,7 @@ export namespace GLRenderer {
             if (gl == null) {
                 return new Error("Canvas rendering context is invalid");
             }
-            
+
             // ✨🎨 Create fragment shader object
             const shaderProgram = gl.createProgram();
             {
@@ -16,25 +16,39 @@ export namespace GLRenderer {
                 if (vertShader == null ||
                     fragShader == null ||
                     shaderProgram == null) {
-                        return new Error("Vertex/Fragment shader not properly initialized");
+                    return new Error("Vertex/Fragment shader not properly initialized");
                 }
 
-                const props = {
-                    "camera_size": 15.0,
+                type Prop = [
+                    "const" | "attribute" | "varying",
+                    number | { x: number, y: number },
+                ]
+                type PropKey = "camera_size" | "camera_position" | "x_vector" | "y_vector" | "z_vector";
+
+                const props: { [key in PropKey]: Prop } = {
+                    camera_size: ["const", { x: 15, y: 15 * window.innerWidth / window.innerHeight }],
+                    camera_position: ["const", { x: 0, y: 0 }],
+                    x_vector: ["const", { x: 1, y: 0.5 }],
+                    y_vector: ["const", { x: 0, y: 1 }],
+                    z_vector: ["const", { x: -1, y: 0.5 }],
                 };
+                const propText = (Object.keys(props) as PropKey[]).reduce((text, key) => {
+                    const [type, value] = props[key];
+                    return `${text}\n${type} ${
+                        typeof value == "number" ?
+                            "float" :
+                            "vec2"
+                    } ${key} = ${
+                        typeof value == "number" ?
+                            value.toFixed(2) :
+                            `vec2(${value.x}, ${value.y})`
+                        };`
+                }, "");
+
                 gl.shaderSource(vertShader, `
                     attribute vec3 position;
                     varying highp vec2 texture_coord;
-
-                    const vec2 camera_size = vec2(${
-                        (props.camera_size * window.innerWidth / window.innerHeight).toFixed(2)
-                    }, ${
-                        props.camera_size.toFixed(2)
-                    });
-                    const vec2 camera_position = vec2(0.0, 0.0);
-                    const vec2 x_vector = vec2(1.0, 0.5);
-                    const vec2 y_vector = vec2(0.0, 1.0);
-                    const vec2 z_vector = vec2(-1.0, 0.5);
+                    ${propText}
 
                     void main(void) {
                         vec2 ortho_position = position.x * x_vector + position.y * y_vector + position.z * z_vector;
@@ -71,7 +85,7 @@ export namespace GLRenderer {
                 gl.bindTexture(gl.TEXTURE_2D, await GLTexture.load(gl, "./images/grass.jpg"));
                 gl.uniform1i(gl.getUniformLocation(shaderProgram, "texture_sampler"), 0);
             }
-   
+
             { // 👇 Set the points of the triangle to a buffer, assign to shader attribute
                 var vertex_buffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
@@ -90,7 +104,7 @@ export namespace GLRenderer {
 
             { // 🙏 Set up gl context for rendering
                 gl.clearColor(0, 0, 0, 0);
-                gl.enable(gl.DEPTH_TEST); 
+                gl.enable(gl.DEPTH_TEST);
                 gl.clear(gl.COLOR_BUFFER_BIT);
                 gl.viewport(0, 0, canvas.width, canvas.height);
             }
