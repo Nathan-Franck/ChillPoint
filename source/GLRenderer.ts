@@ -16,14 +16,42 @@ export namespace GLRenderer {
                 },
                 buffers: {
                     "world_position": GLTexture.createBuffer(gl, new Float32Array([
+                        0, 1, 0,
+                        0, 0, 0,
+                        1, 0, 0,
+                        1, 0, 0,
+                        1, 1, 0,
+                        0, 1, 0,
+                        
                         0, 1, 1,
                         0, 0, 1,
-                        1, 0, 1,
-                        1, 0, 1,
+                        0, 0, 0,
+                        0, 0, 0,
+                        0, 1, 0,
+                        0, 1, 1,
+                        
                         1, 1, 1,
                         0, 1, 1,
+                        0, 1, 0,
+                        0, 1, 0,
+                        1, 1, 0,
+                        1, 1, 1,
                     ])),
                     "texture_coord": GLTexture.createBuffer(gl, new Float32Array([
+                        0, 1,
+                        0, 0,
+                        1, 0,
+                        1, 0,
+                        1, 1,
+                        0, 1,
+
+                        0, 1,
+                        0, 0,
+                        1, 0,
+                        1, 0,
+                        1, 1,
+                        0, 1,
+
                         0, 1,
                         0, 0,
                         1, 0,
@@ -81,7 +109,7 @@ export namespace GLRenderer {
     
             // ✏ Draw the buffer
             gl.useProgram(glProgram);
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            gl.drawArrays(gl.TRIANGLES, 0, 18);
         }
     }
 }
