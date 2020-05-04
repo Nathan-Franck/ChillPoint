@@ -23,6 +23,10 @@ export namespace ChillpointEntry {
                 top: 0,
                 zIndex: 0,
             },
+            attributes: {
+                width: window.innerWidth,
+                height: window.innerHeight,
+            },
         }); 
         GLRenderer.start(canvas);
         

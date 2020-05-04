@@ -1,5 +1,7 @@
+import { GLTexture } from "./GLTexture";
+
 export namespace GLRenderer {
-    export function start(canvas: HTMLCanvasElement) {
+    export async function start(canvas: HTMLCanvasElement) {
         {
             const gl = canvas.getContext('webgl2');
             if (gl == null) {
@@ -16,25 +18,34 @@ export namespace GLRenderer {
                     shaderProgram == null) {
                         return new Error("Vertex/Fragment shader not properly initialized");
                 }
+
                 gl.shaderSource(vertShader, `
                     attribute vec3 position;
+                    varying highp vec2 texture_coord;
+
                     const float camera_size = 30.0;
                     const vec2 camera_position = vec2(0.0, 0.0);
                     const vec2 x_vector = vec2(1.0, 0.5);
                     const vec2 y_vector = vec2(0.0, 1.0);
                     const vec2 z_vector = vec2(-1.0, 0.5);
+
                     void main(void) {
                         vec2 ortho_position = position.x * x_vector + position.y * y_vector + position.z * z_vector;
-                        gl_Position = vec4((
+                        vec4 final_position = vec4((
                             ortho_position -
                             camera_position +
                             vec2(camera_size, camera_size) * 0.5
                         ) / camera_size, 0.0, 1.0);
+                        gl_Position = final_position;
+                        texture_coord = position.xy;
                     }
                 `);
+
                 gl.shaderSource(fragShader, `
+                    varying highp vec2 texture_coord;
+                    uniform sampler2D  texture_sampler;
                     void main(void) {
-                        gl_FragColor = vec4(0.0, 1, 0.0, 1);
+                        gl_FragColor = texture2D(texture_sampler, texture_coord);
                     }
                 `);
 
@@ -47,6 +58,12 @@ export namespace GLRenderer {
                 });
 
                 gl.linkProgram(shaderProgram);
+            }
+
+            { // 🦗 Texture to display
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, await GLTexture.load(gl, "./images/grass.jpg"));
+                gl.uniform1i(gl.getUniformLocation(shaderProgram, "texture_sampler"), 0);
             }
    
             { // 👇 Set the points of the triangle to a buffer, assign to shader attribute
