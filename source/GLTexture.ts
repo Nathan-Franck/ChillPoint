@@ -1,7 +1,10 @@
 export namespace GLTexture {
 	export async function load(gl: WebGL2RenderingContext, url: string) {
-		return await new Promise<WebGLTexture | null>((resolve) => {
+		return await new Promise<WebGLTexture>((resolve) => {
 			const texture = gl.createTexture();
+			if (texture == null) {
+				throw new Error("Texture is null, this is not expected!");
+			}
 			gl.bindTexture(gl.TEXTURE_2D, texture);
 	
 			const textureSettings = {
@@ -24,5 +27,15 @@ export namespace GLTexture {
 			};
 			image.src = url;
 		});
+	}
+
+	export function createBuffer(gl: WebGLRenderingContext, data: Float32Array) {
+		const buffer = gl.createBuffer();
+		if (buffer == null) {
+			throw new Error("Buffer is null, this is not expected!");
+		}
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+		gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+		return buffer;
 	}
 }
