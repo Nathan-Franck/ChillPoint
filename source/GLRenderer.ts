@@ -1,4 +1,6 @@
 import { GLTexture } from "./GLTexture";
+import { Scripting } from "./Util.Scripting";
+import { Shaders } from "./Util.Shaders";
 
 export namespace GLRenderer {
     export async function start(canvas: HTMLCanvasElement) {
@@ -19,36 +21,24 @@ export namespace GLRenderer {
                     return new Error("Vertex/Fragment shader not properly initialized");
                 }
 
-                type Prop = [
-                    "const" | "attribute" | "varying",
-                    number | { x: number, y: number },
-                ]
-                type PropKey = "camera_size" | "camera_position" | "x_vector" | "y_vector" | "z_vector";
+                const props = Shaders.globals({
+                    const: {
+                        camera_size: { x: 15, y: 15 * window.innerWidth / window.innerHeight },
+                        camera_position: { x: 0, y: 0 },
+                        x_vector: { x: 1, y: 0.5 },
+                        y_vector: { x: 0, y: 1 },
+                        z_vector: { x: -1, y: 0.5 },
+                    },
+                    varying: {},
+                    attribute: {},
+                });
 
-                const props: { [key in PropKey]: Prop } = {
-                    camera_size: ["const", { x: 15, y: 15 * window.innerWidth / window.innerHeight }],
-                    camera_position: ["const", { x: 0, y: 0 }],
-                    x_vector: ["const", { x: 1, y: 0.5 }],
-                    y_vector: ["const", { x: 0, y: 1 }],
-                    z_vector: ["const", { x: -1, y: 0.5 }],
-                };
-                const propText = (Object.keys(props) as PropKey[]).reduce((text, key) => {
-                    const [type, value] = props[key];
-                    return `${text}\n${type} ${
-                        typeof value == "number" ?
-                            "float" :
-                            "vec2"
-                    } ${key} = ${
-                        typeof value == "number" ?
-                            value.toFixed(2) :
-                            `vec2(${value.x}, ${value.y})`
-                        };`
-                }, "");
+                const propText = 
 
                 gl.shaderSource(vertShader, `
                     attribute vec3 position;
                     varying highp vec2 texture_coord;
-                    ${propText}
+                    ${Shaders.toText(props)}
 
                     void main(void) {
                         vec2 ortho_position = position.x * x_vector + position.y * y_vector + position.z * z_vector;
