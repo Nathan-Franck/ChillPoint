@@ -22,24 +22,26 @@ export namespace GLRenderer {
                 }
 
                 const props = Shaders.globals({
-                    const: {
-                        camera_size: { x: 15, y: 15 * window.innerWidth / window.innerHeight },
-                        camera_position: { x: 0, y: 0 },
-                        x_vector: { x: 1, y: 0.5 },
-                        y_vector: { x: 0, y: 1 },
-                        z_vector: { x: -1, y: 0.5 },
+                    camera_size: {
+                        type: "const",
+                        x: 15,
+                        y: 15 * window.innerWidth / window.innerHeight,
                     },
-                    varying: {},
-                    attribute: {},
+                    camera_position: { type: "const", x: 0, y: 0 },
+                    x_vector: { type: "const", x: 1, y: 0.5 },
+                    y_vector: { type: "const", x: 0, y: 1 },
+                    z_vector: { type: "const", x: -1, y: 0.5 },
+                    position: { type: "attribute", data: "vec3" },
+                    texture_coord: { type: "varying", data: "vec2" },
+                    texture_sampler: { type: "uniform", data: "sampler2D" },
                 });
 
-                const propText = 
+                const vertGlobalsText = Shaders.toVertText(props);
+                const fragGlobalsText = Shaders.toFragText(props);
 
                 gl.shaderSource(vertShader, `
-                    attribute vec3 position;
-                    varying highp vec2 texture_coord;
-                    ${Shaders.toText(props)}
-
+                    ${vertGlobalsText}
+                    
                     void main(void) {
                         vec2 ortho_position = position.x * x_vector + position.y * y_vector + position.z * z_vector;
                         vec4 final_position = vec4((
@@ -52,8 +54,8 @@ export namespace GLRenderer {
                 `);
 
                 gl.shaderSource(fragShader, `
-                    varying highp vec2 texture_coord;
-                    uniform sampler2D  texture_sampler;
+                    ${fragGlobalsText}
+
                     void main(void) {
                         gl_FragColor = texture2D(texture_sampler, texture_coord);
                     }
