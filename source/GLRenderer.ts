@@ -1,5 +1,5 @@
 import { GLTexture } from "./GLTexture";
-import { Shaders, Vec2 } from "./Util.Shaders";
+import { Shaders, Vec2, Vec3 } from "./Util.Shaders";
 import { Vec3Math } from "./VecMath";
 
 export namespace GLRenderer {
@@ -47,16 +47,28 @@ export namespace GLRenderer {
                     z: heights[coord.x + coord.y * chunk_width] * 0.5,
                 }));
 
-                const diff_a = Vec3Math.subtract(new_vertices[1], new_vertices[0]);
-                const diff_b = Vec3Math.subtract(new_vertices[2], new_vertices[0]);
-                const normal = Vec3Math.normalize(Vec3Math.cross(diff_a, diff_b));
-                const shade = Math.max(-Vec3Math.dot(normal, sun_direction), 0);
+                const shades = [
+                    [new_vertices[0], new_vertices[1], new_vertices[2]],
+                    [new_vertices[3], new_vertices[4], new_vertices[5]],
+                ].map(verts => {
+                    const diff_a = Vec3Math.subtract(verts[1], verts[0]);
+                    const diff_b = Vec3Math.subtract(verts[2], verts[0]);
+                    const normal = Vec3Math.normalize(Vec3Math.cross(diff_a, diff_b));
+                    return Math.max(-Vec3Math.dot(normal, sun_direction), 0);
+                });
 
                 vertices.set(
                     new_vertices.map(coord => [coord.x, coord.y, coord.z]).flat(1),
                     height_index * square_positions.length * 3);
                 color.set(
-                    square_positions.map(vec => [shade, shade, shade]).flat(1),
+                    [
+                        shades[0], shades[0], shades[0],
+                        shades[0], shades[0], shades[0],
+                        shades[0], shades[0], shades[0],
+                        shades[1], shades[1], shades[1],
+                        shades[1], shades[1], shades[1],
+                        shades[1], shades[1], shades[1],
+                    ],
                     height_index * square_positions.length * 3);
             }
 
