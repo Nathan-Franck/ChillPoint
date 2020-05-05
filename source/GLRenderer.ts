@@ -18,20 +18,19 @@ export namespace GLRenderer {
             const heights = new Uint8Array(chunk_size);
             for (let i = 0; i < chunk_size; i++) {
                 heights[i] = Math.floor(Math.random() * 2);
+                //heights[i] = i % 43 == 0 ? 1 : 0;
             }
 
-            const square_positions: Vec2[] = [
-                { x: 1, y: 1 },
-                { x: 0, y: 1 },
-                { x: 0, y: 0 },
+            const coords_offset_per_square = [
                 { x: 0, y: 0 },
                 { x: 1, y: 0 },
+                { x: 0, y: 1 },
                 { x: 1, y: 1 },
-            ];
-            const sun_direction = Vec3Math.normalize({ x: 1, y: 1, z: -1 });
+            ]
+            const sun_direction = Vec3Math.normalize({ x: 1, y: -1, z: -1 });
 
-            const vertices = new Float32Array(vertices_size * square_positions.length * 3);
-            const color = new Float32Array(vertices_size * square_positions.length * 3);
+            const vertices = new Float32Array(vertices_size * 6 * 3);
+            const color = new Float32Array(vertices_size * 6 * 3);
 
             for (let height_index = 0; height_index < chunk_size; height_index++) {
                 const height_coord = {
@@ -39,13 +38,19 @@ export namespace GLRenderer {
                     y: Math.floor(height_index / chunk_width),
                 };
                 
-                const new_vertices = square_positions.map(vec => ({
+                const raw_vertices = coords_offset_per_square.map(vec => ({
                     x: vec.x + height_coord.x,
                     y: vec.y + height_coord.y,
                 })).map(coord => ({
                     ...coord,
                     z: heights[coord.x + coord.y * chunk_width] * 0.5,
                 }));
+
+                const new_vertices = (raw_vertices[0].z != raw_vertices[3].z ? [
+                    0, 1, 2, 2, 1, 3,
+                ] : [
+                    1, 3, 0, 0, 3, 2,
+                ]).map(raw_index => raw_vertices[raw_index]);
 
                 const shades = [
                     [new_vertices[0], new_vertices[1], new_vertices[2]],
@@ -54,12 +59,12 @@ export namespace GLRenderer {
                     const diff_a = Vec3Math.subtract(verts[1], verts[0]);
                     const diff_b = Vec3Math.subtract(verts[2], verts[0]);
                     const normal = Vec3Math.normalize(Vec3Math.cross(diff_a, diff_b));
-                    return Math.max(-Vec3Math.dot(normal, sun_direction), 0);
+                    return Math.max(-Vec3Math.dot(normal, sun_direction), 0) + 0.5;
                 });
 
                 vertices.set(
                     new_vertices.map(coord => [coord.x, coord.y, coord.z]).flat(1),
-                    height_index * square_positions.length * 3);
+                    height_index * 6 * 3);
                 color.set(
                     [
                         shades[0], shades[0], shades[0],
@@ -69,7 +74,7 @@ export namespace GLRenderer {
                         shades[1], shades[1], shades[1],
                         shades[1], shades[1], shades[1],
                     ],
-                    height_index * square_positions.length * 3);
+                    height_index * 6 * 3);
             }
 
 
@@ -112,7 +117,7 @@ export namespace GLRenderer {
                     ) / camera_size, 0.0, 1.0);
                     gl_Position = final_position;
                     uv = world_position.xy;
-                    color = vertex_color * mix(occlusion_color, vec3(1.0, 1.0, 1.0), (world_position.z + 1.0) / 2.0);
+                    color = vertex_color * mix(occlusion_color, vec3(1.0, 1.0, 1.0), (world_position.z + 1.0) / 1.0);
                 }
             `, `
                 void main(void) {
