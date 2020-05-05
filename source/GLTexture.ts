@@ -29,7 +29,7 @@ export namespace GLTexture {
 		});
 	}
 
-	export function createBuffer(gl: WebGLRenderingContext, data: Float32Array) {
+	export function create_buffer(gl: WebGLRenderingContext, data: Float32Array) {
 		const buffer = gl.createBuffer();
 		if (buffer == null) {
 			throw new Error("Buffer is null, this is not expected!");

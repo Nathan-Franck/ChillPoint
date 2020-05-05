@@ -102,7 +102,7 @@ export namespace Shaders {
         return params;
     }
 
-    export function generateShader<Textures, Buffers, T>(
+    export function generate_shader<Textures, Buffers, T>(
         gl: WebGL2RenderingContext,
         environment: {
             textures: Textures,

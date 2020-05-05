@@ -1,6 +1,5 @@
 import { GLTexture } from "./GLTexture";
-import { Scripting } from "./Util.Scripting";
-import { Shaders, Const, Float, Varying, Attribute, Uniform, Vec2, GLSLType, typeToStride, ShaderGlobals } from "./Util.Shaders";
+import { Shaders, Vec2 } from "./Util.Shaders";
 
 export namespace GLRenderer {
     export async function start(canvas: HTMLCanvasElement) {
@@ -10,55 +9,64 @@ export namespace GLRenderer {
                 return new Error("Canvas rendering context is invalid");
             }
 
-            const glProgram = Shaders.generateShader(gl, {
+            const chunk_width = 64;
+            const vertices_width = chunk_width + 1;
+            const chunk_size = chunk_width * chunk_width;
+            const vertices_size = vertices_width * vertices_width;
+
+            const heights = new Uint8Array(chunk_size);
+            for (let i = 0; i < chunk_size; i++) {
+                heights[i] = Math.floor(Math.random() * 2);
+            }
+
+            const square_positions: Vec2[] = [
+                { x: 1, y: 1 },
+                { x: 0, y: 1 },
+                { x: 0, y: 0 },
+                { x: 0, y: 0 },
+                { x: 1, y: 0 },
+                { x: 1, y: 1 },
+            ];
+            const square_texture_coords = [
+                0, 1,
+                0, 0,
+                1, 0,
+                1, 0,
+                1, 1,
+                0, 1,
+            ];
+
+            const vertices = new Float32Array(vertices_size * square_positions.length * 3);
+            const texture_coords = new Float32Array(vertices_size * square_texture_coords.length);
+
+            for (let height_index = 0; height_index < chunk_size; height_index++) {
+                const height_coord = {
+                    x: height_index % chunk_width,
+                    y: Math.floor(height_index / chunk_width),
+                };
+                vertices.set(
+                    square_positions.map(vec => ({
+                        x: vec.x + height_coord.x,
+                        y: vec.y + height_coord.y,
+                    })).map(coord => [
+                        coord.x,
+                        coord.y,
+                        heights[coord.x + coord.y * chunk_width],
+                    ]).flat(1),
+                    height_index * square_positions.length * 3);
+                texture_coords.set(
+                    square_texture_coords,
+                    height_index * square_texture_coords.length);
+            }
+
+
+            const gl_program = Shaders.generate_shader(gl, {
                 textures: {
                     "grass": await GLTexture.load(gl, "./images/grass.jpg"),
                 },
                 buffers: {
-                    "world_position": GLTexture.createBuffer(gl, new Float32Array([
-                        0, 1, 0,
-                        0, 0, 0,
-                        1, 0, 0,
-                        1, 0, 0,
-                        1, 1, 0,
-                        0, 1, 0,
-                        
-                        0, 1, 1,
-                        0, 0, 1,
-                        0, 0, 0,
-                        0, 0, 0,
-                        0, 1, 0,
-                        0, 1, 1,
-                        
-                        1, 1, 1,
-                        0, 1, 1,
-                        0, 1, 0,
-                        0, 1, 0,
-                        1, 1, 0,
-                        1, 1, 1,
-                    ])),
-                    "texture_coord": GLTexture.createBuffer(gl, new Float32Array([
-                        0, 1,
-                        0, 0,
-                        1, 0,
-                        1, 0,
-                        1, 1,
-                        0, 1,
-
-                        0, 1,
-                        0, 0,
-                        1, 0,
-                        1, 0,
-                        1, 1,
-                        0, 1,
-
-                        0, 1,
-                        0, 0,
-                        1, 0,
-                        1, 0,
-                        1, 1,
-                        0, 1,
-                    ])),
+                    "world_position": GLTexture.create_buffer(gl, vertices),
+                    "texture_coord": GLTexture.create_buffer(gl, texture_coords),
                 },
                 globals: {
                     "grass": { type: "uniform", data: "sampler2D" },
@@ -67,13 +75,13 @@ export namespace GLRenderer {
 
                     "camera_size": {
                         type: "const",
-                        x: 6,
-                        y: 6 * window.innerWidth / window.innerHeight,
+                        x: 24 * window.innerWidth / window.innerHeight,
+                        y: 24,
                     },
-                    "camera_position": { type: "const", x: 0, y: 0 },
+                    "camera_position": { type: "const", x: 0, y: 32 },
                     "x_vector": { type: "const", x: 1, y: 0.5 },
-                    "y_vector": { type: "const", x: 0, y: 1 },
-                    "z_vector": { type: "const", x: -1, y: 0.5 },
+                    "y_vector": { type: "const", x: -1, y: 0.5 },
+                    "z_vector": { type: "const", x: 0, y: 1 },
                     "occlusion_color": { type: "const", x: 0.0, y: 0.0, z: 0.0 },
 
                     "uv": { type: "varying", data: "vec2" },
@@ -91,7 +99,7 @@ export namespace GLRenderer {
                     ) / camera_size, 0.0, 1.0);
                     gl_Position = final_position;
                     uv = texture_coord.xy;
-                    color = mix(occlusion_color, vec3(1.0, 1.0, 1.0), world_position.y);
+                    color = mix(occlusion_color, vec3(1.0, 1.0, 1.0), (world_position.z + 1.0) / 2.0);
                 }
             `, `
                 void main(void) {
@@ -106,10 +114,10 @@ export namespace GLRenderer {
                 gl.clear(gl.COLOR_BUFFER_BIT);
                 gl.viewport(0, 0, canvas.width, canvas.height);
             }
-    
+
             // ✏ Draw the buffer
-            gl.useProgram(glProgram);
-            gl.drawArrays(gl.TRIANGLES, 0, 18);
+            gl.useProgram(gl_program);
+            gl.drawArrays(gl.TRIANGLES, 0, vertices.length);
         }
     }
 }
