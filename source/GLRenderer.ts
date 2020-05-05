@@ -1,5 +1,6 @@
 import { GLTexture } from "./GLTexture";
 import { Shaders, Vec2 } from "./Util.Shaders";
+import { Vec3Math } from "./VecMath";
 
 export namespace GLRenderer {
     export async function start(canvas: HTMLCanvasElement) {
@@ -9,7 +10,7 @@ export namespace GLRenderer {
                 return new Error("Canvas rendering context is invalid");
             }
 
-            const chunk_width = 64;
+            const chunk_width = 32;
             const vertices_width = chunk_width + 1;
             const chunk_size = chunk_width * chunk_width;
             const vertices_size = vertices_width * vertices_width;
@@ -27,36 +28,36 @@ export namespace GLRenderer {
                 { x: 1, y: 0 },
                 { x: 1, y: 1 },
             ];
-            const square_texture_coords = [
-                0, 1,
-                0, 0,
-                1, 0,
-                1, 0,
-                1, 1,
-                0, 1,
-            ];
+            const sun_direction = Vec3Math.normalize({ x: 1, y: 1, z: -1 });
 
             const vertices = new Float32Array(vertices_size * square_positions.length * 3);
-            const texture_coords = new Float32Array(vertices_size * square_texture_coords.length);
+            const color = new Float32Array(vertices_size * square_positions.length * 3);
 
             for (let height_index = 0; height_index < chunk_size; height_index++) {
                 const height_coord = {
                     x: height_index % chunk_width,
                     y: Math.floor(height_index / chunk_width),
                 };
+                
+                const new_vertices = square_positions.map(vec => ({
+                    x: vec.x + height_coord.x,
+                    y: vec.y + height_coord.y,
+                })).map(coord => ({
+                    ...coord,
+                    z: heights[coord.x + coord.y * chunk_width] * 0.5,
+                }));
+
+                const diff_a = Vec3Math.subtract(new_vertices[1], new_vertices[0]);
+                const diff_b = Vec3Math.subtract(new_vertices[2], new_vertices[0]);
+                const normal = Vec3Math.normalize(Vec3Math.cross(diff_a, diff_b));
+                const shade = Math.max(-Vec3Math.dot(normal, sun_direction), 0);
+
                 vertices.set(
-                    square_positions.map(vec => ({
-                        x: vec.x + height_coord.x,
-                        y: vec.y + height_coord.y,
-                    })).map(coord => [
-                        coord.x,
-                        coord.y,
-                        heights[coord.x + coord.y * chunk_width],
-                    ]).flat(1),
+                    new_vertices.map(coord => [coord.x, coord.y, coord.z]).flat(1),
                     height_index * square_positions.length * 3);
-                texture_coords.set(
-                    square_texture_coords,
-                    height_index * square_texture_coords.length);
+                color.set(
+                    square_positions.map(vec => [shade, shade, shade]).flat(1),
+                    height_index * square_positions.length * 3);
             }
 
 
@@ -66,19 +67,19 @@ export namespace GLRenderer {
                 },
                 buffers: {
                     "world_position": GLTexture.create_buffer(gl, vertices),
-                    "texture_coord": GLTexture.create_buffer(gl, texture_coords),
+                    "vertex_color": GLTexture.create_buffer(gl, color),
                 },
                 globals: {
                     "grass": { type: "uniform", data: "sampler2D" },
                     "world_position": { type: "attribute", data: "vec3" },
-                    "texture_coord": { type: "attribute", data: "vec2" },
+                    "vertex_color": { type: "attribute", data: "vec3" },
 
                     "camera_size": {
                         type: "const",
-                        x: 24 * window.innerWidth / window.innerHeight,
-                        y: 24,
+                        x: 16 * window.innerWidth / window.innerHeight,
+                        y: 16,
                     },
-                    "camera_position": { type: "const", x: 0, y: 32 },
+                    "camera_position": { type: "const", x: 0, y: 16 },
                     "x_vector": { type: "const", x: 1, y: 0.5 },
                     "y_vector": { type: "const", x: -1, y: 0.5 },
                     "z_vector": { type: "const", x: 0, y: 1 },
@@ -98,8 +99,8 @@ export namespace GLRenderer {
                         camera_position
                     ) / camera_size, 0.0, 1.0);
                     gl_Position = final_position;
-                    uv = texture_coord.xy;
-                    color = mix(occlusion_color, vec3(1.0, 1.0, 1.0), (world_position.z + 1.0) / 2.0);
+                    uv = world_position.xy;
+                    color = vertex_color * mix(occlusion_color, vec3(1.0, 1.0, 1.0), (world_position.z + 1.0) / 2.0);
                 }
             `, `
                 void main(void) {
