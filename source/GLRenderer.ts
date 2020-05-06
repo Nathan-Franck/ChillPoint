@@ -1,5 +1,5 @@
 import { GLTexture } from "./GLTexture";
-import { Shaders, Vec2, Vec3 } from "./Util.Shaders";
+import { Shaders, Vec2, Vec3, ShaderGlobals, Const } from "./Util.Shaders";
 import { Vec3Math } from "./VecMath";
 
 export namespace GLRenderer {
@@ -11,13 +11,13 @@ export namespace GLRenderer {
             }
 
             const chunk_width = 32;
-            const vertices_width = chunk_width + 1;
+            const heights_width = chunk_width + 1;
             const chunk_size = chunk_width * chunk_width;
-            const vertices_size = vertices_width * vertices_width;
+            const heights_size = heights_width * heights_width;
 
-            const heights = new Uint8Array(chunk_size);
+            const heights = new Uint8Array(heights_size);
             for (let i = 0; i < chunk_size; i++) {
-                heights[i] = Math.floor(Math.random() * 2);
+                heights[i] = Math.floor(Math.random() * 3);
                 //heights[i] = i % 43 == 0 ? 1 : 0;
             }
 
@@ -29,13 +29,13 @@ export namespace GLRenderer {
             ]
             const sun_direction = Vec3Math.normalize({ x: 1, y: -1, z: -1 });
 
-            const vertices = new Float32Array(vertices_size * 6 * 3);
-            const color = new Float32Array(vertices_size * 6 * 3);
+            const vertices = new Float32Array(chunk_size * 6 * 3);
+            const color = new Float32Array(chunk_size * 6 * 3);
 
             for (let height_index = 0; height_index < chunk_size; height_index++) {
                 const height_coord = {
-                    x: height_index % chunk_width,
-                    y: Math.floor(height_index / chunk_width),
+                    x: height_index % heights_width,
+                    y: Math.floor(height_index / heights_width),
                 };
                 
                 const raw_vertices = coords_offset_per_square.map(vec => ({
@@ -43,7 +43,7 @@ export namespace GLRenderer {
                     y: vec.y + height_coord.y,
                 })).map(coord => ({
                     ...coord,
-                    z: heights[coord.x + coord.y * chunk_width] * 0.5,
+                    z: heights[coord.x + coord.y * heights_width] * 0.5,
                 }));
 
                 const new_vertices = (raw_vertices[0].z != raw_vertices[3].z ? [
@@ -59,7 +59,7 @@ export namespace GLRenderer {
                     const diff_a = Vec3Math.subtract(verts[1], verts[0]);
                     const diff_b = Vec3Math.subtract(verts[2], verts[0]);
                     const normal = Vec3Math.normalize(Vec3Math.cross(diff_a, diff_b));
-                    return Math.max(-Vec3Math.dot(normal, sun_direction), 0) + 0.5;
+                    return Math.max(-Vec3Math.dot(normal, sun_direction), 0) + 0.25;
                 });
 
                 vertices.set(
@@ -77,8 +77,19 @@ export namespace GLRenderer {
                     height_index * 6 * 3);
             }
 
+            const camera_globals = {
+                "camera_size": <Const<Vec2>>{
+                    type: "const",
+                    x: 16 * window.innerWidth / window.innerHeight,
+                    y: 16,
+                },
+                "camera_position": <Const<Vec2>>{ type: "const", x: 0, y: 16 },
+                "x_vector": <Const<Vec2>>{ type: "const", x: 1, y: 0.5 },
+                "y_vector": <Const<Vec2>>{ type: "const", x: -1, y: 0.5 },
+                "z_vector": <Const<Vec2>>{ type: "const", x: 0, y: 1 },
+            };
 
-            const gl_program = Shaders.generate_shader(gl, {
+            const ground_material = Shaders.generate_material(gl, {
                 textures: {
                     "grass": await GLTexture.load(gl, "./images/grass.jpg"),
                 },
@@ -87,20 +98,11 @@ export namespace GLRenderer {
                     "vertex_color": GLTexture.create_buffer(gl, color),
                 },
                 globals: {
+                    ...camera_globals,
+
                     "grass": { type: "uniform", data: "sampler2D" },
                     "world_position": { type: "attribute", data: "vec3" },
                     "vertex_color": { type: "attribute", data: "vec3" },
-
-                    "camera_size": {
-                        type: "const",
-                        x: 16 * window.innerWidth / window.innerHeight,
-                        y: 16,
-                    },
-                    "camera_position": { type: "const", x: 0, y: 16 },
-                    "x_vector": { type: "const", x: 1, y: 0.5 },
-                    "y_vector": { type: "const", x: -1, y: 0.5 },
-                    "z_vector": { type: "const", x: 0, y: 1 },
-                    "occlusion_color": { type: "const", x: 0.0, y: 0.0, z: 0.0 },
 
                     "uv": { type: "varying", data: "vec2" },
                     "color": { type: "varying", data: "vec3" },
@@ -114,10 +116,10 @@ export namespace GLRenderer {
                     vec4 final_position = vec4((
                         ortho_position -
                         camera_position
-                    ) / camera_size, 0.0, 1.0);
+                    ) / camera_size, -world_position.z, 1.0);
                     gl_Position = final_position;
                     uv = world_position.xy;
-                    color = vertex_color * mix(occlusion_color, vec3(1.0, 1.0, 1.0), (world_position.z + 1.0) / 1.0);
+                    color = vertex_color;
                 }
             `, `
                 void main(void) {
@@ -125,6 +127,48 @@ export namespace GLRenderer {
                 }    
             `);
 
+            const water_material = Shaders.generate_material(gl, {
+                textures: {
+                    "water": await GLTexture.load(gl, "./images/water.jpg"),
+                    "foam": await GLTexture.load(gl, "./images/foam.jpg"),
+                },
+                buffers: {
+                    "terrain_position": GLTexture.create_buffer(gl, vertices),
+                },
+                globals: {
+                    ...camera_globals,
+
+                    "water": { type: "uniform", data: "sampler2D" },
+                    "foam": { type: "uniform", data: "sampler2D" },
+                    "terrain_position": { type: "attribute", data: "vec3" },
+
+                    "water_height": { type: "const", value: 0.25 },
+
+                    "uv": { type: "varying", data: "vec2" },
+                    "blend": { type: "varying", data: "float"},
+                }
+            }, `                
+                void main(void) {
+                    vec2 ortho_position =
+                        terrain_position.x * x_vector +
+                        terrain_position.y * y_vector +
+                        water_height * z_vector;
+                    vec4 final_position = vec4((
+                        ortho_position -
+                        camera_position
+                    ) / camera_size, -water_height, 1.0);
+                    gl_Position = final_position;
+                    uv = terrain_position.xy;
+                    blend = clamp((water_height - terrain_position.z) * 4.0, 0.0, 1.0);
+                }
+            `, `
+                void main(void) {
+                    gl_FragColor = vec4(mix(
+                        texture2D(foam, uv).y * vec3(2.0,2.0, 2.0),
+                        texture2D(water, uv).y * vec3(0.5, 0.7, 0.9),
+                        blend), 1.0);
+                }       
+            `);
 
             { // 🙏 Set up gl context for rendering
                 gl.clearColor(0, 0, 0, 0);
@@ -134,8 +178,8 @@ export namespace GLRenderer {
             }
 
             // ✏ Draw the buffer
-            gl.useProgram(gl_program);
-            gl.drawArrays(gl.TRIANGLES, 0, vertices.length);
+            Shaders.render_material(gl, ground_material, vertices.length);
+            Shaders.render_material(gl, water_material, vertices.length);
         }
     }
 }
