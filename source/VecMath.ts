@@ -37,6 +37,19 @@ export namespace VecMath {
             y: -vec.y,
         };
     }
+    export function to_index(vec: Vec2, width: number): number {
+        return vec.x + vec.y * width;
+    }
+    export function to_index_bounded(vec: Vec2, width: number): number | null {
+        if (vec.x < 0 || vec.x >= width || vec.y < 0 || vec.y >= width) {
+            return null;
+        }
+        const index = to_index(vec, width);
+        if (index < 0 || index >= width * width) {
+            console.log("What");
+        }
+        return index;
+    }
 }
 export namespace Vec3Math {
     export function scale(vec: Vec3, rate: number): Vec3 {

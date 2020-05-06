@@ -1,6 +1,6 @@
 import { GLTexture } from "./GLTexture";
 import { Shaders, Vec2, Vec3, ShaderGlobals, Const } from "./Util.Shaders";
-import { Vec3Math } from "./VecMath";
+import { Vec3Math, VecMath } from "./VecMath";
 
 export namespace GLRenderer {
     export async function start(canvas: HTMLCanvasElement) {
@@ -15,11 +15,41 @@ export namespace GLRenderer {
             const chunk_size = chunk_width * chunk_width;
             const heights_size = heights_width * heights_width;
 
-            const heights = new Uint8Array(heights_size);
-            for (let i = 0; i < chunk_size; i++) {
-                heights[i] = Math.floor(Math.random() * 3);
-                //heights[i] = i % 43 == 0 ? 1 : 0;
+            let heights = new Array(heights_size);
+            for (let i = 0; i < heights_size; i++) {
+                heights[i] = Math.floor(Math.pow(Math.random(), 4) * 5);
+                //heights[i] = i % 43 == 0 ? 2 : 0;
             }
+            // 🌊 Erosion
+            const erosion_samples = [
+                { x: -1, y: -1 },
+                { x: 0, y: -1 },
+                { x: 1, y: -1 },
+                { x: -1, y: 0 },
+                { x: 1, y: 0 },
+                { x: -1, y: 1 },
+                { x: 0, y: 1 },
+                { x: 1, y: 1 },
+            ];
+            for (let i = 0; i < 4; i++) {
+                heights = heights.map((height, height_index) => ({
+                    height,
+                    x: height_index % heights_width,
+                    y: Math.floor(height_index / heights_width),
+                })).map(height_info => {
+                    const other_height = erosion_samples.reduce<number>((height, sample) => {
+                        const height_index = VecMath.to_index_bounded(
+                            VecMath.add(sample, height_info),
+                            heights_width)
+                        if (height_index == null) {
+                            return height;
+                        }
+                        return Math.max(height, heights[height_index]);
+                    }, 0);
+                    return height_info.height + Math.min(Math.max(other_height - height_info.height- 1, 0) , 1);
+                });
+            }
+            heights = heights.map(height => Math.min(height, 3));
 
             const coords_offset_per_square = [
                 { x: 0, y: 0 },
@@ -37,20 +67,20 @@ export namespace GLRenderer {
                     x: height_index % heights_width,
                     y: Math.floor(height_index / heights_width),
                 };
-                
+
                 const raw_vertices = coords_offset_per_square.map(vec => ({
                     x: vec.x + height_coord.x,
                     y: vec.y + height_coord.y,
                 })).map(coord => ({
                     ...coord,
-                    z: heights[coord.x + coord.y * heights_width] * 0.5,
+                    z: heights[VecMath.to_index(coord, heights_width)] * 0.5,
                 }));
 
                 const new_vertices = (raw_vertices[0].z != raw_vertices[3].z ? [
                     0, 1, 2, 2, 1, 3,
                 ] : [
-                    1, 3, 0, 0, 3, 2,
-                ]).map(raw_index => raw_vertices[raw_index]);
+                        1, 3, 0, 0, 3, 2,
+                    ]).map(raw_index => raw_vertices[raw_index]);
 
                 const shades = [
                     [new_vertices[0], new_vertices[1], new_vertices[2]],
@@ -77,11 +107,12 @@ export namespace GLRenderer {
                     height_index * 6 * 3);
             }
 
+            // 📷 Camera
             const camera_globals = {
                 "camera_size": <Const<Vec2>>{
                     type: "const",
-                    x: 16 * window.innerWidth / window.innerHeight,
-                    y: 16,
+                    x: 12 * window.innerWidth / window.innerHeight,
+                    y: 12,
                 },
                 "camera_position": <Const<Vec2>>{ type: "const", x: 0, y: 16 },
                 "x_vector": <Const<Vec2>>{ type: "const", x: 1, y: 0.5 },
@@ -89,6 +120,7 @@ export namespace GLRenderer {
                 "z_vector": <Const<Vec2>>{ type: "const", x: 0, y: 1 },
             };
 
+            // 🐢 Ground
             const ground_material = Shaders.generate_material(gl, {
                 textures: {
                     "grass": await GLTexture.load(gl, "./images/grass.jpg"),
@@ -116,7 +148,7 @@ export namespace GLRenderer {
                     vec4 final_position = vec4((
                         ortho_position -
                         camera_position
-                    ) / camera_size, -world_position.z, 1.0);
+                    ) / camera_size, -world_position.z * 0.25, 1.0);
                     gl_Position = final_position;
                     uv = world_position.xy;
                     color = vertex_color;
@@ -127,6 +159,7 @@ export namespace GLRenderer {
                 }    
             `);
 
+            // 🌊 Water
             const water_material = Shaders.generate_material(gl, {
                 textures: {
                     "water": await GLTexture.load(gl, "./images/water.jpg"),
@@ -142,21 +175,21 @@ export namespace GLRenderer {
                     "foam": { type: "uniform", data: "sampler2D" },
                     "terrain_position": { type: "attribute", data: "vec3" },
 
-                    "water_height": { type: "const", value: 0.25 },
+                    "water_height": { type: "const", value: 0.75 },
 
                     "uv": { type: "varying", data: "vec2" },
-                    "blend": { type: "varying", data: "float"},
+                    "blend": { type: "varying", data: "float" },
                 }
             }, `                
                 void main(void) {
                     vec2 ortho_position =
                         terrain_position.x * x_vector +
                         terrain_position.y * y_vector +
-                        water_height * z_vector;
+                        max(terrain_position.z, water_height) * z_vector;
                     vec4 final_position = vec4((
                         ortho_position -
                         camera_position
-                    ) / camera_size, -water_height, 1.0);
+                    ) / camera_size, -water_height * 0.25, 1.0);
                     gl_Position = final_position;
                     uv = terrain_position.xy;
                     blend = clamp((water_height - terrain_position.z) * 4.0, 0.0, 1.0);
@@ -177,7 +210,7 @@ export namespace GLRenderer {
                 gl.viewport(0, 0, canvas.width, canvas.height);
             }
 
-            // ✏ Draw the buffer
+            // 🎨 Draw materials
             Shaders.render_material(gl, ground_material, vertices.length);
             Shaders.render_material(gl, water_material, vertices.length);
         }

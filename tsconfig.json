@@ -3,7 +3,7 @@
         "pretty": true,
         "lib": ["DOM", "ES2020"],
         "module": "AMD",
-        "target": "es5",
+        "target": "ES2019",
         "rootDir": "source",
         "outDir": "website/js",
         "outFile": "website/js/Chillpoint.Entry.js",
