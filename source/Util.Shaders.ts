@@ -122,14 +122,9 @@ export namespace Shaders {
         // ✨🎨 Create fragment shader object
         const program = gl.createProgram();
         {
-            const vertShader = gl.createShader(gl.VERTEX_SHADER);
-            const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-            if (vertShader == null ||
-                fragShader == null ||
-                program == null) {
+            if (program == null) {
                 throw new Error("Vertex/Fragment shader not properly initialized");
             }
-
             const vertFullSource = `
                 ${Shaders.toVertText(environment.globals)}
                 ${vertSource}
@@ -138,14 +133,24 @@ export namespace Shaders {
                 ${Shaders.toFragText(environment.globals)}
                 ${fragSource}
             `;
-            gl.shaderSource(vertShader, vertFullSource);
-            gl.shaderSource(fragShader, fragFullSource);
-
-            [vertShader, fragShader].forEach(shader => {
+            [vertFullSource, fragFullSource].forEach((source, index) => {
+                const shader = gl.createShader(index == 0 ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);
+                if (shader == null) {
+                    throw new Error("Vertex/Fragment shader not properly initialized");
+                }
+                gl.shaderSource(shader, source);
                 gl.compileShader(shader);
                 gl.attachShader(program, shader);
                 if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                    console.error(gl.getShaderInfoLog(shader));
+                    const split_info = gl.getShaderInfoLog(shader)?.split("ERROR:");
+                    if (split_info != null) {
+                        const errors = split_info.slice(1, split_info?.length);
+                        for (let error of errors) {
+                            const location = error.split(":")[1];
+                            console.log(source.split("\n")[parseInt(location) - 1])
+                            console.error(error);
+                        }
+                    }
                 }
             });
 
@@ -184,7 +189,7 @@ export namespace Shaders {
                 gl.enableVertexAttribArray(attributeLocation);
             });
         }
-        
+
         gl.drawArrays(gl.TRIANGLES, 0, triangle_length);
     }
 }

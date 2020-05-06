@@ -95,27 +95,41 @@ export namespace GLRenderer {
                     new_vertices.map(coord => [coord.x, coord.y, coord.z]).flat(1),
                     height_index * 6 * 3);
                 color.set([
-                        shades[0], shades[0], shades[0],
-                        shades[0], shades[0], shades[0],
-                        shades[0], shades[0], shades[0],
-                        shades[1], shades[1], shades[1],
-                        shades[1], shades[1], shades[1],
-                        shades[1], shades[1], shades[1],
-                    ], height_index * 6 * 3);
+                    shades[0], shades[0], shades[0],
+                    shades[0], shades[0], shades[0],
+                    shades[0], shades[0], shades[0],
+                    shades[1], shades[1], shades[1],
+                    shades[1], shades[1], shades[1],
+                    shades[1], shades[1], shades[1],
+                ], height_index * 6 * 3);
             }
 
             // 📷 Camera
-            const camera_globals = {
-                "camera_size": <Const<Vec2>>{
-                    type: "const",
-                    x: 12 * window.innerWidth / window.innerHeight,
-                    y: 12,
+            const camera = {
+                transform_function: `
+                    vec2 camera_transform(vec3 world_position) {
+                        vec2 ortho_position =
+                            world_position.x * x_vector +
+                            world_position.y * y_vector +
+                            world_position.z * z_vector;
+                        return vec2((
+                            ortho_position -
+                            camera_position
+                        ) / camera_size);
+                    }
+                `,
+                globals: {
+                    "camera_size": <Const<Vec2>>{
+                        type: "const",
+                        x: 12 * window.innerWidth / window.innerHeight,
+                        y: 12,
+                    },
+                    "camera_position": <Const<Vec2>>{ type: "const", x: 0, y: 16 },
+                    "x_vector": <Const<Vec2>>{ type: "const", x: 1, y: 0.5 },
+                    "y_vector": <Const<Vec2>>{ type: "const", x: -1, y: 0.5 },
+                    "z_vector": <Const<Vec2>>{ type: "const", x: 0, y: 1 },
                 },
-                "camera_position": <Const<Vec2>>{ type: "const", x: 0, y: 16 },
-                "x_vector": <Const<Vec2>>{ type: "const", x: 1, y: 0.5 },
-                "y_vector": <Const<Vec2>>{ type: "const", x: -1, y: 0.5 },
-                "z_vector": <Const<Vec2>>{ type: "const", x: 0, y: 1 },
-            };
+            }
 
             // 🐢 Ground
             const ground_material = Shaders.generate_material(gl, {
@@ -127,7 +141,7 @@ export namespace GLRenderer {
                     "vertex_color": GLTexture.create_buffer(gl, color),
                 },
                 globals: {
-                    ...camera_globals,
+                    ...camera.globals,
 
                     "grass": { type: "uniform", data: "sampler2D" },
                     "world_position": { type: "attribute", data: "vec3" },
@@ -136,17 +150,11 @@ export namespace GLRenderer {
                     "uv": { type: "varying", data: "vec2" },
                     "color": { type: "varying", data: "vec3" },
                 }
-            }, `                
+            }, `            
+                ${camera.transform_function}
+
                 void main(void) {
-                    vec2 ortho_position =
-                        world_position.x * x_vector +
-                        world_position.y * y_vector +
-                        world_position.z * z_vector;
-                    vec4 final_position = vec4((
-                        ortho_position -
-                        camera_position
-                    ) / camera_size, -world_position.z * 0.25, 1.0);
-                    gl_Position = final_position;
+                    gl_Position = vec4(camera_transform(world_position), world_position.z * -0.25, 1.0);
                     uv = world_position.xy;
                     color = vertex_color;
                 }
@@ -166,7 +174,7 @@ export namespace GLRenderer {
                     "terrain_position": GLTexture.create_buffer(gl, vertices),
                 },
                 globals: {
-                    ...camera_globals,
+                    ...camera.globals,
 
                     "water": { type: "uniform", data: "sampler2D" },
                     "foam": { type: "uniform", data: "sampler2D" },
@@ -177,17 +185,16 @@ export namespace GLRenderer {
                     "uv": { type: "varying", data: "vec2" },
                     "blend": { type: "varying", data: "float" },
                 }
-            }, `                
+            }, `    
+                ${camera.transform_function}
+
                 void main(void) {
-                    vec2 ortho_position =
-                        terrain_position.x * x_vector +
-                        terrain_position.y * y_vector +
-                        max(terrain_position.z, water_height) * z_vector;
-                    vec4 final_position = vec4((
-                        ortho_position -
-                        camera_position
-                    ) / camera_size, -water_height * 0.25, 1.0);
-                    gl_Position = final_position;
+                    gl_Position = vec4(
+                        camera_transform(vec3(
+                            terrain_position.x,
+                            terrain_position.y,
+                            max(terrain_position.z, water_height))
+                    ), water_height * -0.25, 1.0);
                     uv = terrain_position.xy;
                     blend = clamp((water_height - terrain_position.z) * 4.0, 0.0, 1.0);
                 }
