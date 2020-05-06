@@ -46,7 +46,7 @@ export namespace GLRenderer {
                         }
                         return Math.max(height, heights[height_index]);
                     }, 0);
-                    return height_info.height + Math.min(Math.max(other_height - height_info.height- 1, 0) , 1);
+                    return height_info.height + Math.min(Math.max(other_height - height_info.height - 1, 0), 1);
                 });
             }
             heights = heights.map(height => Math.min(height, 3));
@@ -57,7 +57,7 @@ export namespace GLRenderer {
                 { x: 0, y: 1 },
                 { x: 1, y: 1 },
             ]
-            const sun_direction = Vec3Math.normalize({ x: 1, y: -1, z: -1 });
+            const sun_direction = Vec3Math.normalize({ x: 1, y: -1, z: -2 });
 
             const vertices = new Float32Array(chunk_size * 6 * 3);
             const color = new Float32Array(chunk_size * 6 * 3);
@@ -76,11 +76,10 @@ export namespace GLRenderer {
                     z: heights[VecMath.to_index(coord, heights_width)] * 0.5,
                 }));
 
-                const new_vertices = (raw_vertices[0].z != raw_vertices[3].z ? [
-                    0, 1, 2, 2, 1, 3,
-                ] : [
-                        1, 3, 0, 0, 3, 2,
-                    ]).map(raw_index => raw_vertices[raw_index]);
+                const new_vertices = (raw_vertices[0].z != raw_vertices[3].z ?
+                    [0, 1, 2, 2, 1, 3] :
+                    [1, 3, 0, 0, 3, 2]
+                ).map(raw_index => raw_vertices[raw_index]);
 
                 const shades = [
                     [new_vertices[0], new_vertices[1], new_vertices[2]],
@@ -89,22 +88,20 @@ export namespace GLRenderer {
                     const diff_a = Vec3Math.subtract(verts[1], verts[0]);
                     const diff_b = Vec3Math.subtract(verts[2], verts[0]);
                     const normal = Vec3Math.normalize(Vec3Math.cross(diff_a, diff_b));
-                    return Math.max(-Vec3Math.dot(normal, sun_direction), 0) + 0.25;
+                    return Math.max(-Vec3Math.dot(normal, sun_direction), 0) + 0.1;
                 });
 
                 vertices.set(
                     new_vertices.map(coord => [coord.x, coord.y, coord.z]).flat(1),
                     height_index * 6 * 3);
-                color.set(
-                    [
+                color.set([
                         shades[0], shades[0], shades[0],
                         shades[0], shades[0], shades[0],
                         shades[0], shades[0], shades[0],
                         shades[1], shades[1], shades[1],
                         shades[1], shades[1], shades[1],
                         shades[1], shades[1], shades[1],
-                    ],
-                    height_index * 6 * 3);
+                    ], height_index * 6 * 3);
             }
 
             // 📷 Camera
