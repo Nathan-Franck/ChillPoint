@@ -1,6 +1,7 @@
 import { HtmlBuilder } from './Util.HtmlBuilder';
 import { ChillpointStyles as Styles } from './Chillpoint.Styles';
-import { GLRenderer } from './GLRenderer';
+import { Terrain } from './Util.Terrain';
+import { Camera } from './Util.Camera';
 
 export namespace ChillpointEntry {
     export function initializeClient() {
@@ -13,22 +14,9 @@ export namespace ChillpointEntry {
                 overflowY: "hidden",
             },
         });
-        const canvas = HtmlBuilder.createChild(body, {
-            type: "canvas",
-            style: {
-                width: "100%",
-                height: "100%",
-                position: "absolute",
-                left: 0,
-                top: 0,
-                zIndex: 0,
-            },
-            attributes: {
-                width: window.innerWidth,
-                height: window.innerHeight,
-            },
-        }); 
-        GLRenderer.start(canvas);
+
+        Terrain.render(body, Camera.default_camera, 32);
+        Meeples.render(body, Camera.default_camera);
         
         const uiOutline = HtmlBuilder.createChild(body, {
             type: "div",

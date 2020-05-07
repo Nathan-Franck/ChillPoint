@@ -1,4 +1,4 @@
-export namespace GLTexture {
+export namespace Texture {
 	export async function load(gl: WebGL2RenderingContext, url: string) {
 		return await new Promise<WebGLTexture>((resolve) => {
 			const texture = gl.createTexture();

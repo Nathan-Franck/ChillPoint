@@ -1,16 +1,38 @@
-import { GLTexture } from "./GLTexture";
-import { Shaders, Vec2, Vec3, ShaderGlobals, Const } from "./Util.Shaders";
+import { Texture } from "./Util.Texture";
+import { Shaders } from "./Util.Shaders";
 import { Vec3Math, VecMath } from "./VecMath";
+import { HtmlBuilder } from "./Util.HtmlBuilder";
+import { Camera } from "./Util.Camera";
 
-export namespace GLRenderer {
-    export async function start(canvas: HTMLCanvasElement) {
+export namespace Terrain {
+    export async function render(
+        parent: HTMLElement, 
+        camera: Camera.Type,
+        chunk_width: number,
+    ) {
         {
+            const canvas = HtmlBuilder.createChild(parent, {
+                type: "canvas",
+                style: {
+                    width: "100%",
+                    height: "100%",
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    zIndex: 0,
+                },
+                attributes: {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+
+                },
+            }); 
             const gl = canvas.getContext('webgl2');
             if (gl == null) {
                 return new Error("Canvas rendering context is invalid");
             }
 
-            const chunk_width = 32;
+            //const chunk_width = 32;
             const heights_width = chunk_width + 1;
             const chunk_size = chunk_width * chunk_width;
             const heights_size = heights_width * heights_width;
@@ -56,7 +78,7 @@ export namespace GLRenderer {
                 { x: 1, y: 0 },
                 { x: 0, y: 1 },
                 { x: 1, y: 1 },
-            ]
+            ];
             const sun_direction = Vec3Math.normalize({ x: 1, y: -1, z: -2 });
 
             const vertices = new Float32Array(chunk_size * 6 * 3);
@@ -104,41 +126,14 @@ export namespace GLRenderer {
                 ], height_index * 6 * 3);
             }
 
-            // 📷 Camera
-            const camera = {
-                transform_function: `
-                    vec2 camera_transform(vec3 world_position) {
-                        vec2 ortho_position =
-                            world_position.x * x_vector +
-                            world_position.y * y_vector +
-                            world_position.z * z_vector;
-                        return vec2((
-                            ortho_position -
-                            camera_position
-                        ) / camera_size);
-                    }
-                `,
-                globals: {
-                    "camera_size": <Const<Vec2>>{
-                        type: "const",
-                        x: 12 * window.innerWidth / window.innerHeight,
-                        y: 12,
-                    },
-                    "camera_position": <Const<Vec2>>{ type: "const", x: 0, y: 16 },
-                    "x_vector": <Const<Vec2>>{ type: "const", x: 1, y: 0.5 },
-                    "y_vector": <Const<Vec2>>{ type: "const", x: -1, y: 0.5 },
-                    "z_vector": <Const<Vec2>>{ type: "const", x: 0, y: 1 },
-                },
-            }
-
             // 🐢 Ground
             const ground_material = Shaders.generate_material(gl, {
                 textures: {
-                    "grass": await GLTexture.load(gl, "./images/grass.jpg"),
+                    "grass": await Texture.load(gl, "./images/grass.jpg"),
                 },
                 buffers: {
-                    "world_position": GLTexture.create_buffer(gl, vertices),
-                    "vertex_color": GLTexture.create_buffer(gl, color),
+                    "world_position": Texture.create_buffer(gl, vertices),
+                    "vertex_color": Texture.create_buffer(gl, color),
                 },
                 globals: {
                     ...camera.globals,
@@ -151,7 +146,7 @@ export namespace GLRenderer {
                     "color": { type: "varying", data: "vec3" },
                 }
             }, `            
-                ${camera.transform_function}
+                ${camera.includes}
 
                 void main(void) {
                     gl_Position = vec4(camera_transform(world_position), world_position.z * -0.25, 1.0);
@@ -160,18 +155,18 @@ export namespace GLRenderer {
                 }
             `, `
                 void main(void) {
-                    gl_FragColor = texture2D(grass, uv) * vec4(color, 0.0);
+                    gl_FragColor = vec4(texture2D(grass, uv).rgb * color, 1.0);
                 }    
             `);
 
             // 🌊 Water
             const water_material = Shaders.generate_material(gl, {
                 textures: {
-                    "water": await GLTexture.load(gl, "./images/water.jpg"),
-                    "foam": await GLTexture.load(gl, "./images/foam.jpg"),
+                    "water": await Texture.load(gl, "./images/water.jpg"),
+                    "foam": await Texture.load(gl, "./images/foam.jpg"),
                 },
                 buffers: {
-                    "terrain_position": GLTexture.create_buffer(gl, vertices),
+                    "terrain_position": Texture.create_buffer(gl, vertices),
                 },
                 globals: {
                     ...camera.globals,
@@ -186,7 +181,7 @@ export namespace GLRenderer {
                     "blend": { type: "varying", data: "float" },
                 }
             }, `    
-                ${camera.transform_function}
+                ${camera.includes}
 
                 void main(void) {
                     gl_Position = vec4(
@@ -197,7 +192,7 @@ export namespace GLRenderer {
                     ), water_height * -0.25, 1.0);
                     uv = terrain_position.xy;
                     blend = clamp((water_height - terrain_position.z) * 4.0, 0.0, 1.0);
-                }
+                }    
             `, `
                 void main(void) {
                     gl_FragColor = vec4(mix(

@@ -1,5 +1,4 @@
 import { Scripting } from "./Util.Scripting";
-import { GLTexture } from "./GLTexture";
 
 export type GLSLType = "float" | "vec2" | "vec3" | "vec4";
 export type GLSLConstType = Float | Vec2 | Vec3 | Vec4;
