@@ -33,13 +33,17 @@ export namespace Meeples {
         // 💀 framework by which animations and mesh can be constructed on
         type Joint = "chest" | "hip" | "head" | "shoulder"
         //  | "elbow" | "wrist" | "finger" | "knee" | "ankle" | "toe";
-        type Bone<T> = {
+        type BoneInfo<T> = {
             parent: T | null,
             relative_position: Vec3,
             debug_color: Vec3,
+            mirrored?: true,
+        };
+        type Bone<T> = BoneInfo<T> & {
+            joint: T,
         };
         const skeleton: {
-            [key in Joint]: Bone<Joint>
+            [key in Joint]: BoneInfo<Joint>
         } = {
             chest: {
                 parent: null,
@@ -48,23 +52,24 @@ export namespace Meeples {
             },
             hip: {
                 parent: "chest",
-                relative_position: { x: 0, y: -1, z: 0 },
-                debug_color: { x: 1, y: 1, z: 1 },
+                relative_position: { x: 0.25, y: 0, z: -1 },
+                debug_color: { x: 0, y: 0, z: 1 },
+                mirrored: true,
             },
             head: {
                 parent: "chest",
-                relative_position: { x: 0, y: 0.25, z: 0 },
-                debug_color: { x: 1, y: 1, z: 1 },
+                relative_position: { x: 0, y: 0, z: 0.5 },
+                debug_color: { x: 1, y: 0, z: 0 },
             },
             shoulder: {
                 parent: "chest",
                 relative_position: { x: .5, y: 0, z: 0 },
-                debug_color: { x: 1, y: 1, z: 1 },
+                debug_color: { x: 0, y: 1, z: 0 },
+                mirrored: true,
             },
         };
 
         //🏀 Quick mockup for where skeleton joints should display
-
         const box_points = [
             { x: -1, y: -1, z: -1 },
             { x: 1, y: -1, z: -1 },
@@ -115,14 +120,15 @@ export namespace Meeples {
             ],
         };
 
-        const world_positions = new Float32Array(Object.values(skeleton).length * 6 * 6 * 3);
-        const vertex_colors = new Float32Array(Object.values(skeleton).length * 6 * 6 * 3);
-
         const processed_bones =
             (Object.entries(skeleton) as [Joint, Bone<Joint>][]).
-                map<[Joint, Vec3]>(([key, bone]) => {
+                map(([joint, bone]) => {
                     if (bone.parent == null) {
-                        return [key, bone.relative_position];
+                        return {
+                            joint,
+                            mirrored: bone.mirrored,
+                            absolute_position: bone.relative_position
+                        };
                     }
                     let parent_joint = skeleton[bone.parent];
                     let absolute_position = Vec3Math.add(
@@ -134,8 +140,33 @@ export namespace Meeples {
                             parent_joint.relative_position);
                         parent_joint = skeleton[parent_joint.parent];
                     }
-                    return [key, absolute_position];
-                });
+                    return {
+                        joint,
+                        absolute_position,
+                        mirrored: bone.mirrored,
+                    };
+                }).reduce<[Joint, Vec3][]>((processed_bones, bone) => {
+                    if (bone.mirrored) {
+                        return [...processed_bones, [
+                            bone.joint,
+                            bone.absolute_position,
+                        ], [
+                            bone.joint,
+                            {
+                                ...bone.absolute_position,
+                                x: -bone.absolute_position.x,
+                            },
+                        ],
+                        ];
+                    }
+                    return [...processed_bones, [
+                        bone.joint,
+                        bone.absolute_position,
+                    ]];
+                }, []);
+
+        const world_positions = new Float32Array(processed_bones.length * 6 * 6 * 3);
+        const vertex_colors = new Float32Array(processed_bones.length * 6 * 6 * 3);
 
         processed_bones.forEach(([key, position], index) => {
             const offset = index * 6 * 6 * 3;
@@ -144,7 +175,7 @@ export namespace Meeples {
                     quad_to_triangles.
                         map(quad_index =>
                             Vec3Math.add(
-                                quad[quad_index],
+                                Vec3Math.scale(quad[quad_index], .1),
                                 position)).
                         map(vec => ([vec.x, vec.y, vec.z])).
                         flat(1)).
@@ -182,6 +213,7 @@ export namespace Meeples {
                 gl_FragColor = vec4(color, 1.0);
             }    
         `);
+
         { // 🙏 Set up gl context for rendering
             gl.clearColor(0, 0, 0, 0);
             gl.enable(gl.DEPTH_TEST);

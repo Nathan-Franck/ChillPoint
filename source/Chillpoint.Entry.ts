@@ -16,7 +16,7 @@ export namespace ChillpointEntry {
             },
         });
 
-        // Terrain.render(body, Camera.default_camera, 32);
+        Terrain.render(body, Camera.default_camera, 32);
         Meeples.render(body, Camera.default_camera);
         
         const uiOutline = HtmlBuilder.createChild(body, {
