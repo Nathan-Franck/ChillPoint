@@ -30,7 +30,7 @@ export namespace Camera {
                 x: 12 * window.innerWidth / window.innerHeight,
                 y: 12,
             },
-            "camera_position": { type: "const", x: 0, y: 16 },
+            "camera_position": { type: "const", x: 0, y: 0 },
             "x_vector": { type: "const", x: 1, y: 0.5 },
             "y_vector": { type: "const", x: -1, y: 0.5 },
             "z_vector": { type: "const", x: 0, y: 1 },

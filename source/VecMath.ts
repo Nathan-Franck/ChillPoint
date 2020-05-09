@@ -59,6 +59,13 @@ export namespace Vec3Math {
             z: vec.z * rate,
         };
     }
+    export function add(vecA: Vec3, vecB: Vec3): Vec3 {
+        return {
+            x: vecA.x + vecB.x,
+            y: vecA.y + vecB.y,
+            z: vecA.z + vecB.z,
+        };
+    }
     export function subtract(vecA: Vec3, vecB: Vec3): Vec3 {
         return {
             x: vecA.x - vecB.x,
