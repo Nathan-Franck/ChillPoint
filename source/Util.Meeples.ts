@@ -30,7 +30,7 @@ export namespace Meeples {
             return new Error("Canvas rendering context is invalid");
         }
 
-        // 💀 framework by which animations and mesh can be constructed on
+        // 💀 Skeleton framework by which animations and mesh can be constructed on
         type Joint = "chest" | "hip" | "head" | "shoulder"  | "elbow" | "wrist" | "finger" | "knee" | "ankle" | "toe";
         type BoneInfo<T> = {
             parent: T | null,
@@ -57,7 +57,13 @@ export namespace Meeples {
             shoulder: {
                 parent: "chest",
                 relative_position: { x: .5, y: 0, z: 0 },
-                debug_color: { x: 0, y: 1, z: 0 },
+                debug_color: { x: 0, y: 0, z: 1 },
+                mirrored: true,
+            },
+            hip: {
+                parent: "chest",
+                relative_position: { x: 0.25, y: 0, z: -1 },
+                debug_color: { x: 0, y: 0, z: 1 },
                 mirrored: true,
             },
             elbow: {
@@ -78,12 +84,6 @@ export namespace Meeples {
                 debug_color: { x: 0, y: 1, z: 0 },
                 mirrored: true,
             },
-            hip: {
-                parent: "chest",
-                relative_position: { x: 0.25, y: 0, z: -1 },
-                debug_color: { x: 0, y: 0, z: 1 },
-                mirrored: true,
-            },
             knee: {
                 parent: "hip",
                 relative_position: { x: 0, y: 0, z: -1 },
@@ -93,7 +93,7 @@ export namespace Meeples {
             ankle: {
                 parent: "knee",
                 relative_position: { x: 0, y: 0, z: -1 },
-                debug_color: { x: 0, y: 1, z: 1 },
+                debug_color: { x: 1, y: 0, z: 1 },
                 mirrored: true,
             },
             toe: {
@@ -103,6 +103,52 @@ export namespace Meeples {
                 mirrored: true,
             },
         };
+
+        // 🏭 Convert base-definition of skeleton into renderable bones
+        const processed_bones =
+            (Object.entries(skeleton) as [Joint, Bone<Joint>][]).
+                map(([joint, bone]) => {
+                    if (bone.parent == null) {
+                        return {
+                            joint,
+                            mirrored: bone.mirrored,
+                            absolute_position: bone.relative_position
+                        };
+                    }
+                    let parent_joint = skeleton[bone.parent];
+                    let absolute_position = Vec3Math.add(
+                        bone.relative_position,
+                        parent_joint.relative_position);
+                    while (parent_joint.parent != null) {
+                        parent_joint = skeleton[parent_joint.parent];
+                        absolute_position = Vec3Math.add(
+                            absolute_position,
+                            parent_joint.relative_position);
+                    }
+                    return {
+                        joint,
+                        absolute_position,
+                        mirrored: bone.mirrored,
+                    };
+                }).reduce<[Joint, Vec3][]>((processed_bones, bone) => {
+                    if (bone.mirrored) {
+                        return [...processed_bones, [
+                            bone.joint,
+                            bone.absolute_position,
+                        ], [
+                            bone.joint,
+                            {
+                                ...bone.absolute_position,
+                                x: -bone.absolute_position.x,
+                            },
+                        ],
+                        ];
+                    }
+                    return [...processed_bones, [
+                        bone.joint,
+                        bone.absolute_position,
+                    ]];
+                }, []);
 
         //🏀 Quick mockup for where skeleton joints should display
         const box_points = [
@@ -154,51 +200,6 @@ export namespace Meeples {
                 { x: 1, y: 1, z: -1 },
             ],
         };
-
-        const processed_bones =
-            (Object.entries(skeleton) as [Joint, Bone<Joint>][]).
-                map(([joint, bone]) => {
-                    if (bone.parent == null) {
-                        return {
-                            joint,
-                            mirrored: bone.mirrored,
-                            absolute_position: bone.relative_position
-                        };
-                    }
-                    let parent_joint = skeleton[bone.parent];
-                    let absolute_position = Vec3Math.add(
-                        bone.relative_position,
-                        parent_joint.relative_position);
-                    while (parent_joint.parent != null) {
-                        parent_joint = skeleton[parent_joint.parent];
-                        absolute_position = Vec3Math.add(
-                            absolute_position,
-                            parent_joint.relative_position);
-                    }
-                    return {
-                        joint,
-                        absolute_position,
-                        mirrored: bone.mirrored,
-                    };
-                }).reduce<[Joint, Vec3][]>((processed_bones, bone) => {
-                    if (bone.mirrored) {
-                        return [...processed_bones, [
-                            bone.joint,
-                            bone.absolute_position,
-                        ], [
-                            bone.joint,
-                            {
-                                ...bone.absolute_position,
-                                x: -bone.absolute_position.x,
-                            },
-                        ],
-                        ];
-                    }
-                    return [...processed_bones, [
-                        bone.joint,
-                        bone.absolute_position,
-                    ]];
-                }, []);
 
         const world_positions = new Float32Array(processed_bones.length * 6 * 6 * 3);
         const vertex_colors = new Float32Array(processed_bones.length * 6 * 6 * 3);
