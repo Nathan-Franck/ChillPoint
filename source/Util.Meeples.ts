@@ -31,8 +31,7 @@ export namespace Meeples {
         }
 
         // 💀 framework by which animations and mesh can be constructed on
-        type Joint = "chest" | "hip" | "head" | "shoulder"
-        //  | "elbow" | "wrist" | "finger" | "knee" | "ankle" | "toe";
+        type Joint = "chest" | "hip" | "head" | "shoulder"  | "elbow" | "wrist" | "finger" | "knee" | "ankle" | "toe";
         type BoneInfo<T> = {
             parent: T | null,
             relative_position: Vec3,
@@ -50,12 +49,6 @@ export namespace Meeples {
                 relative_position: { x: 0, y: 0, z: 0 },
                 debug_color: { x: 1, y: 1, z: 1 },
             },
-            hip: {
-                parent: "chest",
-                relative_position: { x: 0.25, y: 0, z: -1 },
-                debug_color: { x: 0, y: 0, z: 1 },
-                mirrored: true,
-            },
             head: {
                 parent: "chest",
                 relative_position: { x: 0, y: 0, z: 0.5 },
@@ -65,6 +58,48 @@ export namespace Meeples {
                 parent: "chest",
                 relative_position: { x: .5, y: 0, z: 0 },
                 debug_color: { x: 0, y: 1, z: 0 },
+                mirrored: true,
+            },
+            elbow: {
+                parent: "shoulder",
+                relative_position: { x: .5, y: 0, z: 0 },
+                debug_color: { x: 0, y: 1, z: 0 },
+                mirrored: true,
+            },
+            wrist: {
+                parent: "elbow",
+                relative_position: { x: .5, y: 0, z: 0 },
+                debug_color: { x: 0, y: 1, z: 0 },
+                mirrored: true,
+            },
+            finger: {
+                parent: "wrist",
+                relative_position: { x: .5, y: 0, z: 0 },
+                debug_color: { x: 0, y: 1, z: 0 },
+                mirrored: true,
+            },
+            hip: {
+                parent: "chest",
+                relative_position: { x: 0.25, y: 0, z: -1 },
+                debug_color: { x: 0, y: 0, z: 1 },
+                mirrored: true,
+            },
+            knee: {
+                parent: "hip",
+                relative_position: { x: 0, y: 0, z: -1 },
+                debug_color: { x: 1, y: 0, z: 1 },
+                mirrored: true,
+            },
+            ankle: {
+                parent: "knee",
+                relative_position: { x: 0, y: 0, z: -1 },
+                debug_color: { x: 0, y: 1, z: 1 },
+                mirrored: true,
+            },
+            toe: {
+                parent: "ankle",
+                relative_position: { x: 0, y: 0.25, z: 0 },
+                debug_color: { x: 1, y: 0, z: 1 },
                 mirrored: true,
             },
         };
@@ -135,10 +170,10 @@ export namespace Meeples {
                         bone.relative_position,
                         parent_joint.relative_position);
                     while (parent_joint.parent != null) {
+                        parent_joint = skeleton[parent_joint.parent];
                         absolute_position = Vec3Math.add(
                             absolute_position,
                             parent_joint.relative_position);
-                        parent_joint = skeleton[parent_joint.parent];
                     }
                     return {
                         joint,
