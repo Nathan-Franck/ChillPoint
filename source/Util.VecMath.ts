@@ -62,6 +62,16 @@ export namespace Num {
 	export let sin = Math.sin;
 	export let sqrt = Math.sqrt;
 	export let tan = Math.tan;
+	
+    export function flattenangle(angle: number, rate: number): number {
+        if (rate <= 0) return angle;
+        while (angle < 0) angle += 360;
+        while (angle > 360) angle -= 360;
+        var offset = angle > 90 ? 180 : 0;
+        return (
+            (angle - offset) *
+            (1 - rate) + offset);
+    }
 }
 
 //
@@ -208,7 +218,7 @@ export namespace Vec3 {
 		];
 	}
 
-	export function applyquat(a: Vec3, b: Quat) {
+	export function applyquat(a: Vec3, b: Quat): Vec3 {
 		let
 			ax = a[0], ay = a[1], az = a[2],
 			bx = b[0], by = b[1], bz = b[2], bw = b[3];

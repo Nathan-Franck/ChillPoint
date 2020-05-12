@@ -1,7 +1,7 @@
 import { Shaders } from "./Util.Shaders";
 import { Texture } from "./Util.Texture";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
-import { Vec3, Vec4, Quat } from "./Util.VecMath";
+import { Vec3, Vec4, Quat, Num } from "./Util.VecMath";
 
 export class SmoothCurve {
     constructor(private values: number[]) { }
@@ -106,80 +106,85 @@ export namespace Forest {
                 }
                 // Tangental branches
                 for (
-                    const splitIndex = 0;
+                    let splitIndex = 0;
                     splitIndex < split_amount;
                     splitIndex++
                 ) {
                     const splitHeight = splitIndex * depth_definition.HeightSpread / split_amount;
-                    const growth = Mathf.Clamp01(
-                        depth_definition.HeightToGrowth.Evaluate(splitHeight * gen_item.node.growth));
-                    generation_queue.Enqueue(new GenQueueItem {
-                        parentIndex = -1,
-                        node = new Node() {
-                        position = gen_item.node.position +
-                        gen_item.node.rotation * Vector3.up *
-                        gen_item.node.size * gen_item.node.growth * (1 - splitHeight),
-                        rotation = gen_item.node.rotation *
-                        Quaternion.AngleAxis(
-                            depth_definition.BranchRoll +
-                            Utils.FlattenAngle(
-                                splitIndex * 360.0f * 0.618f, depth_definition.Flatness),
-                            Vector3.up) *
-                        Quaternion.AngleAxis(
-                            depth_definition.BranchPitch, Vector3.forward),
-                        size = gen_item.node.size *
-                        depth_definition.Size,
-                        growth = growth,
-                        splitDepth = splitDepth
-                    }});
+                    const growth = Num.clamp(
+                        depth_definition.HeightToGrowth.sample(splitHeight * gen_item.node.growth), 0, 1);
+                    generation_queue.push({
+                        parentIndex: -1,
+                        node: {
+                            position: Vec3.add(gen_item.node.position,
+                                Vec3.applyquat(
+                                    [0, 0, gen_item.node.size * gen_item.node.growth * (1 - splitHeight)],
+                                    gen_item.node.rotation)),
+                            rotation: Quat.mul(
+                                Quat.mul(gen_item.node.rotation,
+                                    Quat.axisang(
+                                        [0, 0, 1],
+                                        depth_definition.BranchRoll +
+                                        Num.flattenangle(
+                                            splitIndex * 360.0 * 0.618, depth_definition.Flatness),
+                                    )),
+                                Quat.axisang(
+                                    [1, 0, 0],
+                                    depth_definition.BranchPitch)),
+                            size: gen_item.node.size *
+                                depth_definition.Size,
+                            growth: growth,
+                            split_depth
+                        }
+                    });
+                }
             }
         }
-    }
-    return output;
-}
-
-export async function render(
-    parent: HTMLElement,
-    camera: Camera.Type,
-) {
-    const canvas = HtmlBuilder.createChild(parent, {
-        type: "canvas",
-        style: {
-            width: "100%",
-            height: "100%",
-            position: "absolute",
-            left: 0,
-            top: 0,
-            zIndex: 0,
-        },
-        attributes: {
-            width: window.innerWidth,
-            height: window.innerHeight,
-        },
-    });
-    const gl = canvas.getContext('webgl2');
-    if (gl == null) {
-        return new Error("Canvas rendering context is invalid");
+        return output;
     }
 
-    // 🌳 Beautiful trees ---
-
-
-    const meeple_material = Shaders.generate_material(gl, {
-        textures: {},
-        buffers: {
-            "world_position": Texture.create_buffer(gl, world_positions),
-            "vertex_color": Texture.create_buffer(gl, vertex_colors),
-        },
-        globals: {
-            ...camera.globals,
-
-            "world_position": { type: "attribute", data: "vec3" },
-            "vertex_color": { type: "attribute", data: "vec3" },
-
-            "color": { type: "constying", data: "vec3" },
+    export async function render(
+        parent: HTMLElement,
+        camera: Camera.Type,
+    ) {
+        const canvas = HtmlBuilder.createChild(parent, {
+            type: "canvas",
+            style: {
+                width: "100%",
+                height: "100%",
+                position: "absolute",
+                left: 0,
+                top: 0,
+                zIndex: 0,
+            },
+            attributes: {
+                width: window.innerWidth,
+                height: window.innerHeight,
+            },
+        });
+        const gl = canvas.getContext('webgl2');
+        if (gl == null) {
+            return new Error("Canvas rendering context is invalid");
         }
-    }, `            
+
+        // 🌳 Beautiful trees ---
+
+
+        const meeple_material = Shaders.generate_material(gl, {
+            textures: {},
+            buffers: {
+                "world_position": Texture.create_buffer(gl, world_positions),
+                "vertex_color": Texture.create_buffer(gl, vertex_colors),
+            },
+            globals: {
+                ...camera.globals,
+
+                "world_position": { type: "attribute", data: "vec3" },
+                "vertex_color": { type: "attribute", data: "vec3" },
+
+                "color": { type: "constying", data: "vec3" },
+            }
+        }, `            
             ${camera.includes}
 
             void main(void) {
@@ -192,13 +197,13 @@ export async function render(
             }    
         `);
 
-    { // 🙏 Set up gl context for rendering
-        gl.clearColor(0, 0, 0, 0);
-        gl.enable(gl.DEPTH_TEST);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.viewport(0, 0, canvas.width, canvas.height);
-    }
+        { // 🙏 Set up gl context for rendering
+            gl.clearColor(0, 0, 0, 0);
+            gl.enable(gl.DEPTH_TEST);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.viewport(0, 0, canvas.width, canvas.height);
+        }
 
-    // 🎨 Draw materials
-    Shaders.render_material(gl, meeple_material, world_positions.length);
-}
+        // 🎨 Draw materials
+        Shaders.render_material(gl, meeple_material, world_positions.length);
+    }
