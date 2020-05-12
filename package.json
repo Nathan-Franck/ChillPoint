@@ -8,5 +8,8 @@
   },
   "devDependencies": {
     "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "three": "^0.116.1"
   }
 }

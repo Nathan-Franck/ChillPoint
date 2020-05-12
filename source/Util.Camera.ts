@@ -1,4 +1,5 @@
-import { Const, Vec2 } from "./Util.Shaders"
+import { Const } from "./Util.Shaders"
+import { Vec2 } from "./Util.VecMath"
 
 export namespace Camera {
     export type Type = {
@@ -27,13 +28,15 @@ export namespace Camera {
         globals: {
             "camera_size": {
                 type: "const",
-                x: 12 * window.innerWidth / window.innerHeight,
-                y: 12,
+                data: [
+                    12 * window.innerWidth / window.innerHeight,
+                    12
+                ],
             },
-            "camera_position": { type: "const", x: 0, y: 0 },
-            "x_vector": { type: "const", x: 1, y: 0.5 },
-            "y_vector": { type: "const", x: -1, y: 0.5 },
-            "z_vector": { type: "const", x: 0, y: 1 },
+            "camera_position": { type: "const", data: [0, 0] },
+            "x_vector": { type: "const", data: [1, 0.5] },
+            "y_vector": { type: "const", data: [-1, 0.5] },
+            "z_vector": { type: "const", data: [0, 1] },
         },
     }
 }

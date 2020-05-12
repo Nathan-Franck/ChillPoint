@@ -1,15 +1,14 @@
 import { Scripting } from "./Util.Scripting";
+import { Vec2, Vec3, Vec4 } from "./Util.VecMath";
 
 export type GLSLType = "float" | "vec2" | "vec3" | "vec4";
-export type GLSLConstType = Float | Vec2 | Vec3 | Vec4;
+export type GLSLConstType = Single | Vec2 | Vec3 | Vec4;
 export type GLSLUniformType = "sampler2D";
-export type Float = { value: number };
-export type Vec2 = { x: number, y: number };
-export type Vec3 = { x: number, y: number, z: number };
-export type Vec4 = { x: number, y: number, z: number, w: number };
+export type Single = [number];
 export type Const<T extends GLSLConstType> = {
     type: "const",
-} & T;
+    data: T,
+};
 export type Varying<T extends GLSLType> = {
     type: "varying",
     data: T,
@@ -22,7 +21,7 @@ export type Uniform<T extends GLSLUniformType> = {
     type: "uniform",
     data: T,
 };
-export const typeToStride: { [key in GLSLType]: number } = {
+export const type_to_stride: { [key in GLSLType]: number } = {
     float: 1,
     vec2: 2,
     vec3: 3,
@@ -39,61 +38,52 @@ export type ShaderGlobals<Textures, Buffers, T> = {
 
 export namespace Shaders {
 
-    export function constText(key: string, element: Const<any>) {
-        return `const highp ${
-            "w" in element ?
-                "vec4" :
-                "z" in element ?
-                    "vec3" :
-                    "y" in element ?
-                        "vec2" :
-                        "float"
-            } ${key} = ${
-            "w" in element ?
-                `vec4(${element.x.toFixed(1)}, ${element.y.toFixed(1)}, ${element.z.toFixed(1)}, ${element.w.toFixed(1)})` :
-                "z" in element ?
-                    `vec3(${element.x.toFixed(1)}, ${element.y.toFixed(1)}, ${element.z.toFixed(1)})` :
-                    "y" in element ?
-                        `vec2(${element.x.toFixed(1)}, ${element.y.toFixed(1)})` :
-                        element.value.toFixed(1)
-            };`
+    export function const_text(key: string, element: Const<GLSLConstType>) {
+        const { data: value } = element;
+        if (value.length == 1) {
+            return `const highp float ${key} = ${value[0]};`
+        }
+        return `const highp vec${value.length} ${key} = ${
+                `vec${value.length}(${(value as number[]).reduce<string>((output, value, index) =>
+                    `${output}${index > 0 ? ", " : ""}${value}`, "")}`
+            });`
     }
-    export function varyingText(key: string, element: Varying<any>) {
+    export function varying_text(key: string, element: Varying<any>) {
         return `${element.type} highp ${element.data} ${key};`;
     }
-    export function uniformAttributeText(key: string, element: Uniform<any> | Attribute<any>) {
+    export function uniform_attribute_text(key: string, element: Uniform<any> | Attribute<any>) {
         return `${element.type} ${element.data} ${key}; `
     }
 
-    export function toVertText<Textures, Buffers, T>(props: ShaderGlobals<Textures, Buffers, T>) {
+    export function to_vert_text<Textures, Buffers, T>(props: ShaderGlobals<Textures, Buffers, T>) {
         return Scripting.getKeys(props).reduce((text, key) => {
             const element = props[key];
             return `${text}\n ${
                 element.type == "const" ?
-                    constText(key as string, element) :
+                    const_text(key as string, element) :
                     element.type == "varying" ?
-                        varyingText(key as string, element) :
-                        uniformAttributeText(key as string, element)
+                        varying_text(key as string, element) :
+                        uniform_attribute_text(key as string, element)
                 }`;
         }, "");
     }
 
-    export function toFragText<Textures, Buffers, T>(props: ShaderGlobals<Textures, Buffers, T>) {
+    export function to_frag_text<Textures, Buffers, T>(props: ShaderGlobals<Textures, Buffers, T>) {
         return Scripting.getKeys(props).reduce((text, key) => {
             const element = props[key];
             return `${text}${
                 element.type == "const" ?
-                    constText(key as string, element) :
+                    const_text(key as string, element) :
                     element.type == "varying" ?
-                        varyingText(key as string, element) :
+                        varying_text(key as string, element) :
                         element.type == "uniform" ?
-                            uniformAttributeText(key as string, element) :
+                            uniform_attribute_text(key as string, element) :
                             ""
                 }\n`;
         }, "");
     }
 
-    export function validateEnvironment<Textures, Buffers, T>(params: {
+    export function validate_environment<Textures, Buffers, T>(params: {
         textures: Textures,
         buffers: Buffers,
         globals: ShaderGlobals<Textures, Buffers, T>,
@@ -125,11 +115,11 @@ export namespace Shaders {
                 throw new Error("Vertex/Fragment shader not properly initialized");
             }
             const vertFullSource = `
-                ${Shaders.toVertText(environment.globals)}
+                ${Shaders.to_vert_text(environment.globals)}
                 ${vertSource}
             `;
             const fragFullSource = `
-                ${Shaders.toFragText(environment.globals)}
+                ${Shaders.to_frag_text(environment.globals)}
                 ${fragSource}
             `;
             [vertFullSource, fragFullSource].forEach((source, index) => {
@@ -184,7 +174,7 @@ export namespace Shaders {
                 gl.bindBuffer(gl.ARRAY_BUFFER, material.buffers[key]);
                 const attributeLocation = gl.getAttribLocation(material.program, key as string);
                 const dataType = material.globals[key].data;
-                gl.vertexAttribPointer(attributeLocation, typeToStride[dataType], gl.FLOAT, false, 0, 0);
+                gl.vertexAttribPointer(attributeLocation, type_to_stride[dataType], gl.FLOAT, false, 0, 0);
                 gl.enableVertexAttribArray(attributeLocation);
             });
         }

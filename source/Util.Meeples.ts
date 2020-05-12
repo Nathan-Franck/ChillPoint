@@ -1,9 +1,9 @@
 
 import { Texture } from "./Util.Texture";
-import { Shaders, Vec2, Vec3 } from "./Util.Shaders";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { Camera } from "./Util.Camera";
-import { Vec3Math } from "./VecMath";
+import { Vec3 } from "./Util.VecMath";
+import { Shaders } from "./Util.Shaders";
 
 export namespace Meeples {
     export async function render(
@@ -46,60 +46,60 @@ export namespace Meeples {
         } = {
             chest: {
                 parent: null,
-                relative_position: { x: 0, y: 0, z: 0 },
-                debug_color: { x: 1, y: 1, z: 1 },
+                relative_position: [ 0, 0, 0 ],
+                debug_color: [ 1, 1, 1 ],
             },
             head: {
                 parent: "chest",
-                relative_position: { x: 0, y: 0, z: 0.5 },
-                debug_color: { x: 1, y: 0, z: 0 },
+                relative_position: [ 0, 0, 0.],
+                debug_color: [ 1, 0, 0 ],
             },
             shoulder: {
                 parent: "chest",
-                relative_position: { x: .5, y: 0, z: 0 },
-                debug_color: { x: 0, y: 0, z: 1 },
+                relative_position: [ .5, 0, 0 ],
+                debug_color: [ 0, 0, 1 ],
                 mirrored: true,
             },
             hip: {
                 parent: "chest",
-                relative_position: { x: 0.25, y: 0, z: -1 },
-                debug_color: { x: 0, y: 0, z: 1 },
+                relative_position: [ 0.25, 0, -1 ],
+                debug_color: [ 0, 0, 1 ],
                 mirrored: true,
             },
             elbow: {
                 parent: "shoulder",
-                relative_position: { x: .5, y: 0, z: 0 },
-                debug_color: { x: 0, y: 1, z: 0 },
+                relative_position: [ .5, 0, 0 ],
+                debug_color: [ 0, 1, 0 ],
                 mirrored: true,
             },
             wrist: {
                 parent: "elbow",
-                relative_position: { x: .5, y: 0, z: 0 },
-                debug_color: { x: 0, y: 1, z: 0 },
+                relative_position: [ .5, 0, 0 ],
+                debug_color: [ 0, 1, 0 ],
                 mirrored: true,
             },
             finger: {
                 parent: "wrist",
-                relative_position: { x: .5, y: 0, z: 0 },
-                debug_color: { x: 0, y: 1, z: 0 },
+                relative_position: [ .5, 0, 0 ],
+                debug_color: [ 0, 1, 0 ],
                 mirrored: true,
             },
             knee: {
                 parent: "hip",
-                relative_position: { x: 0, y: 0, z: -1 },
-                debug_color: { x: 1, y: 0, z: 1 },
+                relative_position: [ 0, 0, -1 ],
+                debug_color: [ 1, 0, 1 ],
                 mirrored: true,
             },
             ankle: {
                 parent: "knee",
-                relative_position: { x: 0, y: 0, z: -1 },
-                debug_color: { x: 1, y: 0, z: 1 },
+                relative_position: [ 0, 0, -1 ],
+                debug_color: [ 1, 0, 1 ],
                 mirrored: true,
             },
             toe: {
                 parent: "ankle",
-                relative_position: { x: 0, y: 0.25, z: 0 },
-                debug_color: { x: 1, y: 0, z: 1 },
+                relative_position: [ 0, 0.25, 0 ],
+                debug_color: [ 1, 0, 1 ],
                 mirrored: true,
             },
         };
@@ -116,12 +116,12 @@ export namespace Meeples {
                         };
                     }
                     let parent_joint = skeleton[bone.parent];
-                    let absolute_position = Vec3Math.add(
+                    let absolute_position = Vec3.add(
                         bone.relative_position,
                         parent_joint.relative_position);
                     while (parent_joint.parent != null) {
                         parent_joint = skeleton[parent_joint.parent];
-                        absolute_position = Vec3Math.add(
+                        absolute_position = Vec3.add(
                             absolute_position,
                             parent_joint.relative_position);
                     }
@@ -137,10 +137,11 @@ export namespace Meeples {
                             bone.absolute_position,
                         ], [
                             bone.joint,
-                            {
-                                ...bone.absolute_position,
-                                x: -bone.absolute_position.x,
-                            },
+                            [
+                                bone.absolute_position[0],
+                                bone.absolute_position[1],
+                                -bone.absolute_position,
+                            ],
                         ],
                         ];
                     }
@@ -151,53 +152,43 @@ export namespace Meeples {
                 }, []);
 
         //🏀 Quick mockup for where skeleton joints should display
-        const box_points = [
-            { x: -1, y: -1, z: -1 },
-            { x: 1, y: -1, z: -1 },
-            { x: -1, y: 1, z: -1 },
-            { x: 1, y: 1, z: -1 },
-            { x: -1, y: -1, z: 1 },
-            { x: 1, y: -1, z: 1 },
-            { x: -1, y: 1, z: 1 },
-            { x: 1, y: 1, z: 1 },
-        ];
         const quad_to_triangles = [0, 1, 2, 2, 1, 3];
         const box_quads = {
-            left: [
-                { x: 1, y: -1, z: -1 },
-                { x: 1, y: 1, z: -1 },
-                { x: 1, y: -1, z: 1 },
-                { x: 1, y: 1, z: 1 },
+            left: <Vec3[]>[
+                [ 1, -1, -1 ],
+                [ 1, 1, -1 ],
+                [ 1, -1, 1 ],
+                [ 1, 1, 1 ],
             ],
-            right: [
-                { x: -1, y: -1, z: -1 },
-                { x: -1, y: 1, z: -1 },
-                { x: -1, y: -1, z: 1 },
-                { x: -1, y: 1, z: 1 },
+            right: <Vec3[]>[
+                [ -1, -1, -1 ],
+                [ -1, 1, -1 ],
+                [ -1, -1, 1 ],
+                [ -1, 1, 1 ],
             ],
-            top: [
-                { x: -1, y: 1, z: -1 },
-                { x: 1, y: 1, z: -1 },
-                { x: -1, y: 1, z: 1 },
-                { x: 1, y: 1, z: 1 },
+            top: <Vec3[]>[
+                [ -1, 1, -1 ],
+                [ 1, 1, -1 ],
+                [ -1, 1, 1 ],
+                [ 1, 1, 1 ],
             ],
-            bottom: [
-                { x: -1, y: -1, z: -1 },
-                { x: 1, y: -1, z: -1 },
-                { x: -1, y: -1, z: 1 },
-                { x: 1, y: -1, z: 1 },
+            bottom: <Vec3[]>[
+                [ -1, -1, -1 ],
+                [ 1, -1, -1 ],
+                [ -1, -1, 1 ],
+                [ 1, -1, 1 ],
             ],
-            front: [
-                { x: -1, y: -1, z: 1 },
-                { x: 1, y: -1, z: 1 },
-                { x: -1, y: 1, z: 1 },
-                { x: 1, y: 1, z: 1 },
+            front: <Vec3[]>[
+                [ -1, -1, 1 ],
+                [ 1, -1, 1 ],
+                [ -1, 1, 1 ],
+                [ 1, 1, 1 ],
             ],
-            back: [
-                { x: -1, y: -1, z: -1 },
-                { x: 1, y: -1, z: -1 },
-                { x: -1, y: 1, z: -1 },
-                { x: 1, y: 1, z: -1 },
+            back: <Vec3[]>[
+                [ -1, -1, -1 ],
+                [ 1, -1, -1 ],
+                [ -1, 1, -1 ],
+                [ 1, 1, -1 ],
             ],
         };
 
@@ -210,10 +201,9 @@ export namespace Meeples {
                 map(quad =>
                     quad_to_triangles.
                         map(quad_index =>
-                            Vec3Math.add(
-                                Vec3Math.scale(quad[quad_index], .1),
+                            Vec3.add(
+                                Vec3.scale(quad[quad_index], .1),
                                 position)).
-                        map(vec => ([vec.x, vec.y, vec.z])).
                         flat(1)).
                 flat(1);
             world_positions.set(new_vertices, offset);
@@ -234,7 +224,7 @@ export namespace Meeples {
 
                 "world_position": { type: "attribute", data: "vec3" },
                 "vertex_color": { type: "attribute", data: "vec3" },
-
+                  
                 "color": { type: "varying", data: "vec3" },
             }
         }, `            

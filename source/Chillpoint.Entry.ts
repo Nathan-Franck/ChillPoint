@@ -14,10 +14,12 @@ export namespace ChillpointEntry {
                 overflowX: "hidden",
                 overflowY: "hidden",
             },
+            
         });
 
         Terrain.render(body, Camera.default_camera, 32);
         Meeples.render(body, Camera.default_camera);
+        //Forest.render(body, Camera.default_camera, 32);
         
         const uiOutline = HtmlBuilder.createChild(body, {
             type: "div",
