@@ -51,7 +51,7 @@ export namespace Meeples {
             },
             head: {
                 parent: "chest",
-                relative_position: [ 0, 0, 0.],
+                relative_position: [ 0, 0, 0.5 ],
                 debug_color: [ 1, 0, 0 ],
             },
             shoulder: {
@@ -137,10 +137,9 @@ export namespace Meeples {
                             bone.absolute_position,
                         ], [
                             bone.joint,
-                            [
-                                bone.absolute_position[0],
-                                bone.absolute_position[1],
-                                -bone.absolute_position,
+                            <Vec3>[
+                                -bone.absolute_position[0],
+                                ...bone.absolute_position.slice(1, 3),
                             ],
                         ],
                         ];

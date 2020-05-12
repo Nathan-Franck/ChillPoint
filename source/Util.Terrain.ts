@@ -74,11 +74,11 @@ export namespace Terrain {
         }
         heights = heights.map(height => Math.min(height, 3));
 
-        const coords_offset_per_square = [
-            { x: 0, y: 0 },
-            { x: 1, y: 0 },
-            { x: 0, y: 1 },
-            { x: 1, y: 1 },
+        const coords_offset_per_square: Vec2[] = [
+            [ 0, 0 ],
+            [ 1, 0 ],
+            [ 0, 1 ],
+            [ 1, 1 ],
         ];
         const sun_direction = Vec3.normal([ 1, -1, -2 ]);
 
@@ -86,17 +86,15 @@ export namespace Terrain {
         const color = new Float32Array(chunk_size * 6 * 3);
 
         for (let height_index = 0; height_index < chunk_size; height_index++) {
-            const height_coord = {
-                x: height_index % heights_width,
-                y: Math.floor(height_index / heights_width),
-            };
+            const height_coord: Vec2 = [
+                height_index % heights_width,
+                Math.floor(height_index / heights_width),
+            ];
 
-            const raw_vertices = coords_offset_per_square.map<Vec2>(vec => ([
-                vec.x + height_coord.x,
-                vec.y + height_coord.y,
-            ])).map(coord => (<Vec3>[
-                coord[0],
-                coord[1],
+            const raw_vertices = coords_offset_per_square.map<Vec2>(vec => Vec2.add(
+                vec, height_coord
+            )).map(coord => (<Vec3>[
+                ...coord.slice(0, 2),
                 heights[Indexing.to_index(coord, heights_width)] * 0.5,
             ]));
 
