@@ -3,6 +3,7 @@ import { ChillpointStyles as Styles } from './Chillpoint.Styles';
 import { Terrain } from './Util.Terrain';
 import { Camera } from './Util.Camera';
 import { Meeples } from './Util.Meeples';
+import { Forest } from './Util.Forest';
 
 export namespace ChillpointEntry {
     export function initializeClient() {
@@ -14,16 +15,17 @@ export namespace ChillpointEntry {
                 overflowX: "hidden",
                 overflowY: "hidden",
             },
-            
+
         });
 
         Terrain.render(body, Camera.default_camera, 32);
         Meeples.render(body, Camera.default_camera);
-        //Forest.render(body, Camera.default_camera, 32);
+        Forest.render(body, Camera.default_camera);
         
-        const uiOutline = HtmlBuilder.createChild(body, {
+        const uiOutline = HtmlBuilder.create_child(body, {
             type: "div",
             style: {
+
                 width: "100%",
                 height: "100%",
                 position: "absolute",
@@ -38,7 +40,7 @@ export namespace ChillpointEntry {
             },
         });
 
-        const header = HtmlBuilder.createChild(uiOutline, {
+        const header = HtmlBuilder.create_child(uiOutline, {
             type: "div",
             style: {
                 gridArea: "h",
@@ -53,7 +55,7 @@ export namespace ChillpointEntry {
                 padding: "0.5em",
             },
         });
-        HtmlBuilder.createChild(header, {
+        HtmlBuilder.create_child(header, {
             type: "div",
             style: {
                 ...Styles.text,
@@ -64,7 +66,7 @@ export namespace ChillpointEntry {
             },
         });
 
-        const footer = HtmlBuilder.createChild(uiOutline, {
+        const footer = HtmlBuilder.create_child(uiOutline, {
             type: "div",
             style: {
                 gridArea: "f",
@@ -74,21 +76,21 @@ export namespace ChillpointEntry {
             },
         });
 
-        const warning = HtmlBuilder.createChild(uiOutline, {
+        const warning = HtmlBuilder.create_child(uiOutline, {
             type: "div",
             style: {
                 gridArea: "w",
             },
         });
 
-        const app = HtmlBuilder.createChild(uiOutline, {
+        const app = HtmlBuilder.create_child(uiOutline, {
             type: "div",
             style: {
                 gridArea: "a",
             },
         });
 
-        const socials = HtmlBuilder.createChild(uiOutline, {
+        const socials = HtmlBuilder.create_child(uiOutline, {
             type: "div",
             style: {
                 gridArea: "s",

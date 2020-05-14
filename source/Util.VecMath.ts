@@ -63,7 +63,7 @@ export namespace Num {
 	export let sqrt = Math.sqrt;
 	export let tan = Math.tan;
 	
-    export function flattenangle(angle: number, rate: number): number {
+    export function flatten_angle(angle: number, rate: number): number {
         if (rate <= 0) return angle;
         while (angle < 0) angle += 360;
         while (angle > 360) angle -= 360;
@@ -218,7 +218,7 @@ export namespace Vec3 {
 		];
 	}
 
-	export function applyquat(a: Vec3, b: Quat): Vec3 {
+	export function apply_quat(a: Vec3, b: Quat): Vec3 {
 		let
 			ax = a[0], ay = a[1], az = a[2],
 			bx = b[0], by = b[1], bz = b[2], bw = b[3];
@@ -466,7 +466,7 @@ export namespace Vec4 {
 //
 
 export namespace Quat {
-	export function axisang(axis: Vec3, ang: number): Quat {
+	export function axis_angle(axis: Vec3, ang: number): Quat {
 		return naxisang(Vec3.normal(axis), ang);
 	}
 

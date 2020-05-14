@@ -11,7 +11,7 @@ export namespace Terrain {
         camera: Camera.Type,
         chunk_width: number,
     ) {
-        const canvas = HtmlBuilder.createChild(parent, {
+        const canvas = HtmlBuilder.create_child(parent, {
             type: "canvas",
             style: {
                 width: "100%",

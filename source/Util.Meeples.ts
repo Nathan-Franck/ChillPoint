@@ -10,7 +10,7 @@ export namespace Meeples {
         parent: HTMLElement,
         camera: Camera.Type,
     ) {
-        const canvas = HtmlBuilder.createChild(parent, {
+        const canvas = HtmlBuilder.create_child(parent, {
             type: "canvas",
             style: {
                 width: "100%",
