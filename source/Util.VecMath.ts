@@ -207,7 +207,7 @@ export namespace Vec3 {
 	}
 
 	export function apply_mat4(a: Vec3, b: Mat4): Vec3 {
-		let ax = a[0], ay = a[1], az = a[2];
+	let ax = a[0], ay = a[1], az = a[2];
 		let w = b[3] * ax + b[7] * ay + b[11] * az + b[15];
 		if (w == 0)
 			w = 1;

@@ -138,16 +138,17 @@ export namespace Forest {
                                 [0, 0, gen_item.size * gen_item.growth * (1 - splitHeight)],
                                 gen_item.rotation)),
                         rotation: Quat.mul(
-                            Quat.mul(gen_item.rotation,
+                            gen_item.rotation,
+                            Quat.mul(
                                 Quat.axis_angle(
                                     [0, 0, 1],
                                     depth_definition.branch_roll +
                                     Num.flatten_angle(
                                         splitIndex * 360.0 * 0.618, depth_definition.flatness),
-                                )),
-                            Quat.axis_angle(
-                                [1, 0, 0],
-                                depth_definition.branch_pitch)),
+                                ),
+                                Quat.axis_angle(
+                                    [0, 1, 0],
+                                    depth_definition.branch_pitch))),
                         size: gen_item.size *
                             depth_definition.size,
                         growth: growth,
@@ -160,14 +161,14 @@ export namespace Forest {
     }
 
     const normals: Vec3[] = [
-        [0.5, 0, 0.5],
-        [-0.5, 0, 0.5],
-        [-0.5, 0, -0.5],
-        [0.5, 0, -0.5],
-        [0.5, 0, 0.5],
-        [-0.5, 0, 0.5],
-        [-0.5, 0, -0.5],
-        [0.5, 0, -0.5],
+        [0.5, 0.5, 0],
+        [-0.5, 0.5, 0],
+        [-0.5, -0.5, 0],
+        [0.5, -0.5, 0],
+        [0.5, 0.5, 0],
+        [-0.5, 0.5, 0],
+        [-0.5, -0.5, 0],
+        [0.5, -0.5, 0],
     ];
 
     const triangles = [
@@ -200,14 +201,14 @@ export namespace Forest {
             const parent_size = Num.lerp(child.size, parent.size, parent.growth) * settings.thickness;
             const child_size = Num.lerp(grandchild.size, child.size, child.growth) * settings.thickness;
             const vertices: Vec3[] = [
-                [0.5 * parent_size, 0, 0.5 * parent_size], // 0
-                [-0.5 * parent_size, 0, 0.5 * parent_size], // 1
-                [-0.5 * parent_size, 0, -0.5 * parent_size], // 2
-                [0.5 * parent_size, 0, -0.5 * parent_size], // 3
-                [0.5 * child_size, height, 0.5 * child_size], // 4
-                [-0.5 * child_size, height, 0.5 * child_size], // 5
-                [-0.5 * child_size, height, -0.5 * child_size], // 6
-                [0.5 * child_size, height, -0.5 * child_size], // 7
+                [0.5 * parent_size, 0.5 * parent_size, 0], // 0
+                [-0.5 * parent_size, 0.5 * parent_size, 0], // 1
+                [-0.5 * parent_size, -0.5 * parent_size, 0], // 2
+                [0.5 * parent_size, -0.5 * parent_size, 0], // 3
+                [0.5 * child_size, 0.5 * child_size, height], // 4
+                [-0.5 * child_size, 0.5 * child_size, height], // 5
+                [-0.5 * child_size, -0.5 * child_size, height], // 6
+                [0.5 * child_size, -0.5 * child_size, height], // 7
             ];
             const vertex_offset = node_index * 8 * 3;
             mesh.vertices.set(
@@ -220,14 +221,12 @@ export namespace Forest {
                         ))),
                 vertex_offset);
             mesh.normals.set(
-                normals.flatMap(vertex =>
+                normals.flatMap(normal =>
                     Vec3.normal(
-                        Vec3.apply_mat4(
-                            vertex,
-                            Mat4.rot_trans(
-                                parent.rotation,
-                                parent.position,
-                            )))),
+                        Vec3.apply_quat(
+                            normal,
+                            parent.rotation,
+                        ))),
                 vertex_offset);
             mesh.triangles.set(
                 triangles.map(i => i + vertex_offset),
@@ -261,7 +260,7 @@ export namespace Forest {
         }
 
         // 🌳 Beautiful trees ---
-        const settings: Settings & MeshSettings = {
+        const diciduous: Settings & MeshSettings = {
             start_size: 4,
             start_growth: 1,
             thickness: 0.05,
@@ -308,8 +307,13 @@ export namespace Forest {
             }]
         };
 
-        const skeleton = generate_structure(settings);
-        const mesh = generate_tapered_mesh(skeleton, settings)
+        // const simple: Settings & MeshSettings = {
+        //     // 🍚 Get something displaying a bit more predictably to work out vector math issues
+        //     // 🤔 Probably something to do with rotation being off
+        // }
+
+        const skeleton = generate_structure(diciduous);
+        const mesh = generate_tapered_mesh(skeleton, diciduous)
         console.log("eya");
 
         const tree_material = Shaders.generate_material(gl, {
