@@ -94,6 +94,7 @@ export namespace Shaders {
     export type Material<Textures, Buffers, T> = {
         program: WebGLProgram,
         textures: Textures,
+        element_buffer?: WebGLBuffer,
         buffers: Buffers,
         globals: ShaderGlobals<Textures, Buffers, T>,
     };
@@ -102,6 +103,7 @@ export namespace Shaders {
         gl: WebGL2RenderingContext,
         environment: {
             textures: Textures,
+            element_buffer?: WebGLBuffer,
             buffers: Buffers,
             globals: ShaderGlobals<Textures, Buffers, T>,
         },
@@ -155,7 +157,7 @@ export namespace Shaders {
     export function render_material<Textures, Buffers, T>(
         gl: WebGL2RenderingContext,
         material: Material<Textures, Buffers, T>,
-        triangle_length: number,
+        element_length: number,
     ) {
         gl.useProgram(material.program);
 
@@ -170,6 +172,7 @@ export namespace Shaders {
         }
 
         { // 👇 Set the points of the triangle to a buffer, assign to shader attribute
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, material.element_buffer || null);
             Scripting.getKeys(material.buffers).forEach(key => {
                 gl.bindBuffer(gl.ARRAY_BUFFER, material.buffers[key]);
                 const attributeLocation = gl.getAttribLocation(material.program, key as string);
@@ -179,6 +182,10 @@ export namespace Shaders {
             });
         }
 
-        gl.drawArrays(gl.TRIANGLES, 0, triangle_length);
+        if (material.element_buffer != null) {
+            gl.drawElements(gl.TRIANGLES, element_length, gl.UNSIGNED_SHORT, 0);
+        } else {
+            gl.drawArrays(gl.TRIANGLES, 0, element_length);
+        }
     }
 }

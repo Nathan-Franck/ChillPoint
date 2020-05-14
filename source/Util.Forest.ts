@@ -1,7 +1,7 @@
 import { Shaders } from "./Util.Shaders";
 import { Texture } from "./Util.Texture";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
-import { Vec3, Quat, Num } from "./Util.VecMath";
+import { Vec3, Quat, Num, Mat4 } from "./Util.VecMath";
 import { Camera } from "./Util.Camera";
 
 export type SmoothCurve = {
@@ -159,6 +159,83 @@ export namespace Forest {
         return output;
     }
 
+    const normals: Vec3[] = [
+        [0.5, 0, 0.5],
+        [-0.5, 0, 0.5],
+        [-0.5, 0, -0.5],
+        [0.5, 0, -0.5],
+        [0.5, 0, 0.5],
+        [-0.5, 0, 0.5],
+        [-0.5, 0, -0.5],
+        [0.5, 0, -0.5],
+    ];
+
+    const triangles = [
+        0, 1, 2, 2, 3, 0, // Bottom
+        6, 5, 4, 4, 7, 6, // Top
+        2, 1, 5, 5, 6, 2, // Left
+        0, 3, 4, 4, 3, 7, // Right
+        3, 2, 6, 6, 7, 3, // Back
+        1, 0, 4, 4, 5, 1, // Forward
+    ];
+
+    export function generate_tapered_mesh(
+        skeleton: Skeleton,
+        settings: MeshSettings,
+    ) {
+        const mesh = {
+            vertices: new Float32Array(skeleton.nodes.length * 8 * 3),
+            normals: new Float32Array(skeleton.nodes.length * 8 * 3),
+            triangles: new Uint16Array(skeleton.nodes.length * 6 * 6),
+        };
+        skeleton.nodes.forEach((parent, node_index) => {
+            const child_index = skeleton.node_to_primary_child_index[node_index];
+            const child = child_index == null ? parent :
+                skeleton.nodes[child_index];
+            const grandchild_index = child_index == null ? null :
+                skeleton.node_to_primary_child_index[child_index];
+            const grandchild = grandchild_index == null ? child :
+                skeleton.nodes[grandchild_index];
+            const height = parent.size * parent.growth;
+            const parent_size = Num.lerp(child.size, parent.size, parent.growth) * settings.thickness;
+            const child_size = Num.lerp(grandchild.size, child.size, child.growth) * settings.thickness;
+            const vertices: Vec3[] = [
+                [0.5 * parent_size, 0, 0.5 * parent_size], // 0
+                [-0.5 * parent_size, 0, 0.5 * parent_size], // 1
+                [-0.5 * parent_size, 0, -0.5 * parent_size], // 2
+                [0.5 * parent_size, 0, -0.5 * parent_size], // 3
+                [0.5 * child_size, height, 0.5 * child_size], // 4
+                [-0.5 * child_size, height, 0.5 * child_size], // 5
+                [-0.5 * child_size, height, -0.5 * child_size], // 6
+                [0.5 * child_size, height, -0.5 * child_size], // 7
+            ];
+            const vertex_offset = node_index * 8 * 3;
+            mesh.vertices.set(
+                vertices.flatMap(vertex =>
+                    Vec3.apply_mat4(
+                        vertex,
+                        Mat4.rot_trans(
+                            parent.rotation,
+                            parent.position,
+                        ))),
+                vertex_offset);
+            mesh.normals.set(
+                normals.flatMap(vertex =>
+                    Vec3.normal(
+                        Vec3.apply_mat4(
+                            vertex,
+                            Mat4.rot_trans(
+                                parent.rotation,
+                                parent.position,
+                            )))),
+                vertex_offset);
+            mesh.triangles.set(
+                triangles.map(i => i + vertex_offset),
+                node_index * 6 * 6);
+        });
+        return mesh;
+    }
+
     export async function render(
         parent: HTMLElement,
         camera: Camera.Type,
@@ -232,43 +309,45 @@ export namespace Forest {
         };
 
         const skeleton = generate_structure(settings);
+        const mesh = generate_tapered_mesh(skeleton, settings)
         console.log("eya");
 
-        // const tree_material = Shaders.generate_material(gl, {
-        //     textures: {},
-        //     buffers: {
-        //         "world_position": Texture.create_buffer(gl, world_positions),
-        //         "vertex_color": Texture.create_buffer(gl, vertex_colors),
-        //     },
-        //     globals: {
-        //         ...camera.globals,
+        const tree_material = Shaders.generate_material(gl, {
+            textures: {},
+            element_buffer: Texture.create_element_buffer(gl, mesh.triangles),
+            buffers: {
+                "world_position": Texture.create_buffer(gl, mesh.vertices),
+                "vertex_color": Texture.create_buffer(gl, mesh.normals),
+            },
+            globals: {
+                ...camera.globals,
 
-        //         "world_position": { type: "attribute", data: "vec3" },
-        //         "vertex_color": { type: "attribute", data: "vec3" },
+                "world_position": { type: "attribute", data: "vec3" },
+                "vertex_color": { type: "attribute", data: "vec3" },
 
-        //         "color": { type: "varying", data: "vec3" },
-        //     }
-        // }, `            
-        //     ${camera.includes}
+                "color": { type: "varying", data: "vec3" },
+            }
+        }, `            
+            ${camera.includes}
 
-        //     void main(void) {
-        //         gl_Position = vec4(camera_transform(world_position), world_position.z * -0.25, 1.0);
-        //         color = vertex_color;
-        //     }
-        // `, `
-        //     void main(void) {
-        //         gl_FragColor = vec4(color, 1.0);
-        //     }    
-        // `);
+            void main(void) {
+                gl_Position = vec4(camera_transform(world_position), world_position.z * -0.25, 1.0);
+                color = vertex_color;
+            }
+        `, `
+            void main(void) {
+                gl_FragColor = vec4(color, 1.0);
+            }    
+        `);
 
-        // { // 🙏 Set up gl context for rendering
-        //     gl.clearColor(0, 0, 0, 0);
-        //     gl.enable(gl.DEPTH_TEST);
-        //     gl.clear(gl.COLOR_BUFFER_BIT);
-        //     gl.viewport(0, 0, canvas.width, canvas.height);
-        // }
+        { // 🙏 Set up gl context for rendering
+            gl.clearColor(0, 0, 0, 0);
+            gl.enable(gl.DEPTH_TEST);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.viewport(0, 0, canvas.width, canvas.height);
+        }
 
-        // // 🎨 Draw materials
-        // Shaders.render_material(gl, tree_material, world_positions.length);
+        // 🎨 Draw materials
+        Shaders.render_material(gl, tree_material, mesh.triangles.length);
     }
 }

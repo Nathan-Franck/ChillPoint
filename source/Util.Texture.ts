@@ -29,6 +29,16 @@ export namespace Texture {
 		});
 	}
 
+	export function create_element_buffer(gl: WebGLRenderingContext, data: Uint16Array) {
+		const buffer = gl.createBuffer();
+		if (buffer == null) {
+			throw new Error("Buffer is null, this is not expected!");
+		}
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
+		return buffer;
+	}
+
 	export function create_buffer(gl: WebGLRenderingContext, data: Float32Array) {
 		const buffer = gl.createBuffer();
 		if (buffer == null) {

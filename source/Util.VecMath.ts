@@ -62,16 +62,16 @@ export namespace Num {
 	export let sin = Math.sin;
 	export let sqrt = Math.sqrt;
 	export let tan = Math.tan;
-	
-    export function flatten_angle(angle: number, rate: number): number {
-        if (rate <= 0) return angle;
-        while (angle < 0) angle += 360;
-        while (angle > 360) angle -= 360;
-        var offset = angle > 90 ? 180 : 0;
-        return (
-            (angle - offset) *
-            (1 - rate) + offset);
-    }
+
+	export function flatten_angle(angle: number, rate: number): number {
+		if (rate <= 0) return angle;
+		while (angle < 0) angle += 360;
+		while (angle > 360) angle -= 360;
+		var offset = angle > 90 ? 180 : 0;
+		return (
+			(angle - offset) *
+			(1 - rate) + offset);
+	}
 }
 
 //
@@ -206,7 +206,7 @@ export namespace Vec3 {
 		];
 	}
 
-	export function applymat4(a: Vec3, b: Mat4) {
+	export function apply_mat4(a: Vec3, b: Mat4): Vec3 {
 		let ax = a[0], ay = a[1], az = a[2];
 		let w = b[3] * ax + b[7] * ay + b[11] * az + b[15];
 		if (w == 0)
@@ -1626,7 +1626,7 @@ export namespace Mat4 {
 		return out;
 	}
 
-	export function rottrans(out: Mat4, a: Quat, b: Vec3): Mat4 {
+	export function rot_trans(a: Quat, b: Vec3): Mat4 {
 		let ax = a[0], ay = a[1], az = a[2], aw = a[3],
 			ax2 = ax + ax,
 			ay2 = ay + ay,
@@ -1640,23 +1640,24 @@ export namespace Mat4 {
 			awx = aw * ax2,
 			awy = aw * ay2,
 			awz = aw * az2;
-		out[0] = 1 - ayy - azz;
-		out[1] = axy + awz;
-		out[2] = axz - awy;
-		out[3] = 0;
-		out[4] = axy - awz;
-		out[5] = 1 - axx - azz;
-		out[6] = ayz + awx;
-		out[7] = 0;
-		out[8] = axz + awy;
-		out[9] = ayz - awx;
-		out[10] = 1 - axx - ayy;
-		out[11] = 0;
-		out[12] = b[0];
-		out[13] = b[1];
-		out[14] = b[2];
-		out[15] = 1;
-		return out;
+		return [
+			1 - ayy - azz,
+			axy + awz,
+			axz - awy,
+			0,
+			axy - awz,
+			1 - axx - azz,
+			ayz + awx,
+			0,
+			axz + awy,
+			ayz - awx,
+			1 - axx - ayy,
+			0,
+			b[0],
+			b[1],
+			b[2],
+			1,
+		];
 	}
 
 	export function rottransorigin(out: Mat4, a: Quat, b: Vec3, origin: Vec3): Mat4 {
