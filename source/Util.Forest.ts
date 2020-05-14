@@ -80,15 +80,14 @@ export namespace Forest {
             node_to_primary_child_index: [],
         };
 
-        generation_queue.unshift(start_node);
-        while (generation_queue.length > 0) {
-            const gen_item = generation_queue.pop();
-            if (gen_item == null) { throw "💀" }
-            const nodeIndex = output.nodes.length;
+        generation_queue.push(start_node);
+        let gen_item;
+        while ((gen_item = generation_queue.pop()) != null) {
+            const node_index = output.nodes.length;
             output.nodes.push(gen_item);
             output.node_to_primary_child_index.push(undefined);
             if (gen_item.parent_index != null) {
-                output.node_to_primary_child_index[gen_item.parent_index] = nodeIndex;
+                output.node_to_primary_child_index[gen_item.parent_index] = node_index;
             }
 
             // 🐣 Branch spawning
@@ -107,7 +106,7 @@ export namespace Forest {
                         [0, 0, gen_item.size * gen_item.growth],
                         gen_item.rotation);
                     generation_queue.unshift({
-                        parent_index: nodeIndex,
+                        parent_index: node_index,
                         position: Vec3.add(gen_item.position, up),
                         rotation: Quat.mul(gen_item.rotation,
                             Quat.axis_angle(
@@ -132,7 +131,7 @@ export namespace Forest {
                             depth_definition.height_to_growth,
                             splitHeight * gen_item.growth),
                         0, 1);
-                    generation_queue.push({
+                    generation_queue.unshift({
                         position: Vec3.add(gen_item.position,
                             Vec3.apply_quat(
                                 [0, 0, gen_item.size * gen_item.growth * (1 - splitHeight)],
@@ -273,37 +272,37 @@ export namespace Forest {
                 split_amount: 10,
                 flatness: 0,
                 size: 0.3,
-                height_spread: 0.4,
+                height_spread: 0.8,
                 branch_pitch: 50,
                 branch_roll: 90,
                 height_to_growth: {
                     y_values: [0, 1],
                     x_range: [0, 0.25]
                 },
-            }, {
-                name: "Branch-B",
-                split_amount: 6,
-                flatness: 0.6,
-                size: 0.4,
-                height_spread: 0.8,
-                branch_pitch: 60,
-                branch_roll: 90,
-                height_to_growth: {
-                    y_values: [0.5, 0.9, 1],
-                    x_range: [0, 0.5]
-                },
-            }, {
-                name: "Branch-C",
-                split_amount: 6,
-                flatness: 0,
-                size: 0.4,
-                height_spread: 0.8,
-                branch_pitch: 40,
-                branch_roll: 90,
-                height_to_growth: {
-                    y_values: [0.5, 0.9, 1],
-                    x_range: [0, 0.5]
-                },
+            // }, {
+            //     name: "Branch-B",
+            //     split_amount: 6,
+            //     flatness: 0.6,
+            //     size: 0.4,
+            //     height_spread: 0.8,
+            //     branch_pitch: 60,
+            //     branch_roll: 90,
+            //     height_to_growth: {
+            //         y_values: [0.5, 0.9, 1],
+            //         x_range: [0, 0.5]
+            //     },
+            // }, {
+            //     name: "Branch-C",
+            //     split_amount: 6,
+            //     flatness: 0,
+            //     size: 0.4,
+            //     height_spread: 0.8,
+            //     branch_pitch: 40,
+            //     branch_roll: 90,
+            //     height_to_growth: {
+            //         y_values: [0.5, 0.9, 1],
+            //         x_range: [0, 0.5]
+            //     },
             }]
         };
 
