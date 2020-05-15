@@ -228,7 +228,7 @@ export namespace Forest {
                         ))),
                 vertex_offset);
             mesh.triangles.set(
-                triangles.map(i => i + vertex_offset),
+                triangles.map(i => i + node_index * 8),
                 node_index * 6 * 6);
         });
         return mesh;
@@ -279,30 +279,30 @@ export namespace Forest {
                     y_values: [0, 1],
                     x_range: [0, 0.25]
                 },
-            // }, {
-            //     name: "Branch-B",
-            //     split_amount: 6,
-            //     flatness: 0.6,
-            //     size: 0.4,
-            //     height_spread: 0.8,
-            //     branch_pitch: 60,
-            //     branch_roll: 90,
-            //     height_to_growth: {
-            //         y_values: [0.5, 0.9, 1],
-            //         x_range: [0, 0.5]
-            //     },
-            // }, {
-            //     name: "Branch-C",
-            //     split_amount: 6,
-            //     flatness: 0,
-            //     size: 0.4,
-            //     height_spread: 0.8,
-            //     branch_pitch: 40,
-            //     branch_roll: 90,
-            //     height_to_growth: {
-            //         y_values: [0.5, 0.9, 1],
-            //         x_range: [0, 0.5]
-            //     },
+            }, {
+                name: "Branch-B",
+                split_amount: 6,
+                flatness: 0.6,
+                size: 0.4,
+                height_spread: 0.8,
+                branch_pitch: 60 / 180 * Math.PI,
+                branch_roll: 90 / 180 * Math.PI,
+                height_to_growth: {
+                    y_values: [0.5, 0.9, 1],
+                    x_range: [0, 0.5]
+                },
+            }, {
+                name: "Branch-C",
+                split_amount: 6,
+                flatness: 0,
+                size: 0.4,
+                height_spread: 0.8,
+                branch_pitch: 40 / 180 * Math.PI,
+                branch_roll: 90 / 180 * Math.PI,
+                height_to_growth: {
+                    y_values: [0.5, 0.9, 1],
+                    x_range: [0, 0.5]
+                },
             }]
         };
 
@@ -334,7 +334,7 @@ export namespace Forest {
             ${camera.includes}
 
             void main(void) {
-                gl_Position = vec4(camera_transform(world_position), world_position.z * -0.25, 1.0);
+                gl_Position = vec4(camera_transform(world_position), world_position.z * -0.125, 1.0);
                 color = vertex_color;
             }
         `, `
