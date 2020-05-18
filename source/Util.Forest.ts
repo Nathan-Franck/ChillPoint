@@ -146,7 +146,7 @@ export namespace Forest {
                                     [0, 0, 1],
                                     depth_definition.branch_roll +
                                     Num.flatten_angle(
-                                        splitIndex * 360.0 * 0.618, depth_definition.flatness),
+                                        splitIndex * 6.283 * 0.618, depth_definition.flatness),
                                 ),
                                 Quat.axis_angle(
                                     [0, 1, 0],
@@ -226,12 +226,12 @@ export namespace Forest {
             const debug_growth = Math.pow(parent.split_height, 1);
             mesh.normals.set(
                 normals.flatMap(normal =>
-                    ([ debug_growth, debug_growth, debug_growth ])),
-                    // Vec3.normal(
-                    //     Vec3.apply_quat(
-                    //         normal,
-                    //         parent.rotation,
-                    //     ))),
+                    ([debug_growth, debug_growth, debug_growth])),
+                // Vec3.normal(
+                //     Vec3.apply_quat(
+                //         normal,
+                //         parent.rotation,
+                //     ))),
                 vertex_offset);
             mesh.triangles.set(
                 triangles.map(i => i + node_index * 8),
@@ -299,14 +299,14 @@ export namespace Forest {
                 },
             }, {
                 name: "Branch-C",
-                split_amount: 6,
+                split_amount: 10,
                 flatness: 0,
                 size: 0.4,
                 height_spread: 0.8,
                 branch_pitch: 40 / 180 * Math.PI,
                 branch_roll: 90 / 180 * Math.PI,
                 height_to_growth: {
-                    y_values: [0.5, 0.9, 1],
+                    y_values: [0.5, 0.8, 1, 0.8, .5],
                     x_range: [0, 0.5]
                 },
             }]
@@ -325,6 +325,9 @@ export namespace Forest {
             globals: {
                 ...camera.globals,
 
+                "parent_growth": { type: "const", data: [ 1 ], },
+                "child_size": { type: "const", data: [ diciduous.depth_definitions[0].size ], },
+
                 "world_position": { type: "attribute", data: "vec3" },
                 "vertex_color": { type: "attribute", data: "vec3" },
 
@@ -334,11 +337,10 @@ export namespace Forest {
             ${camera.includes}
 
             void main(void) {
-                float grow_amount = 0.3;
-                float z_position = world_position.z - (1.0 - grow_amount);
+                float z_position = world_position.z - (1.0 - parent_growth);
                 float shrink_rate = -min(z_position, 0.0);
-                vec3 shrunk_position = vec3(world_position.xy * mix(1.0, 0.3, shrink_rate), z_position + shrink_rate);
-                gl_Position = vertex_color.r > grow_amount ?
+                vec3 shrunk_position = vec3(world_position.xy * mix(1.0, child_size, shrink_rate), z_position + shrink_rate);
+                gl_Position = vertex_color.r > parent_growth ?
                     vec4(0) :
                     vec4(camera_transform(shrunk_position), shrunk_position.z * -0.125, 1.0);
                 color = vertex_color;

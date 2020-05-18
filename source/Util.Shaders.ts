@@ -41,11 +41,11 @@ export namespace Shaders {
     export function const_text(key: string, element: Const<GLSLConstType>) {
         const { data: value } = element;
         if (value.length == 1) {
-            return `const highp float ${key} = ${value[0]};`
+            return `const highp float ${key} = ${value[0].toFixed(4)};`
         }
         return `const highp vec${value.length} ${key} = ${
                 `vec${value.length}(${(value as number[]).reduce<string>((output, value, index) =>
-                    `${output}${index > 0 ? ", " : ""}${value}`, "")}`
+                    `${output}${index > 0 ? ", " : ""}${value.toFixed(4)}`, "")}`
             });`
     }
     export function varying_text(key: string, element: Varying<any>) {
