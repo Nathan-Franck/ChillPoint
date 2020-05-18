@@ -55,6 +55,7 @@ export namespace Forest {
         size: number,
         position: Vec3,
         rotation: Quat,
+        split_height: number,
         growth: number,
         split_depth: number,
     }
@@ -70,8 +71,9 @@ export namespace Forest {
             size: settings.start_size,
             position: [0, 0, 0],
             rotation: [0, 0, 0, 1],
+            split_height: 0,
             growth: settings.start_growth,
-            split_depth: 0,
+            split_depth: 2,
         };
 
         const generation_queue: GenQueueItem[] = [];
@@ -114,6 +116,7 @@ export namespace Forest {
                                 depth_definition.branch_roll)),
                         size: gen_item.size *
                             depth_definition.size,
+                        split_height: 0,
                         growth: growth,
                         split_depth,
                     });
@@ -125,16 +128,16 @@ export namespace Forest {
                     splitIndex < split_amount;
                     splitIndex++
                 ) {
-                    const splitHeight = splitIndex * depth_definition.height_spread / split_amount;
+                    const split_height = splitIndex / split_amount;
                     const growth = Num.clamp(
                         SmoothCurve.sample(
                             depth_definition.height_to_growth,
-                            splitHeight * gen_item.growth),
+                            split_height * gen_item.growth),
                         0, 1);
                     generation_queue.unshift({
                         position: Vec3.add(gen_item.position,
                             Vec3.apply_quat(
-                                [0, 0, gen_item.size * gen_item.growth * (1 - splitHeight)],
+                                [0, 0, gen_item.size * gen_item.growth * (1 - split_height * depth_definition.height_spread)],
                                 gen_item.rotation)),
                         rotation: Quat.mul(
                             gen_item.rotation,
@@ -150,7 +153,8 @@ export namespace Forest {
                                     depth_definition.branch_pitch))),
                         size: gen_item.size *
                             depth_definition.size,
-                        growth: growth,
+                        growth,
+                        split_height,
                         split_depth
                     });
                 }
@@ -219,13 +223,15 @@ export namespace Forest {
                             parent.position,
                         ))),
                 vertex_offset);
+            const debug_growth = Math.pow(parent.split_height, 1);
             mesh.normals.set(
                 normals.flatMap(normal =>
-                    Vec3.normal(
-                        Vec3.apply_quat(
-                            normal,
-                            parent.rotation,
-                        ))),
+                    ([ debug_growth, debug_growth, debug_growth ])),
+                    // Vec3.normal(
+                    //     Vec3.apply_quat(
+                    //         normal,
+                    //         parent.rotation,
+                    //     ))),
                 vertex_offset);
             mesh.triangles.set(
                 triangles.map(i => i + node_index * 8),
@@ -260,7 +266,7 @@ export namespace Forest {
 
         // 🌳 Beautiful trees ---
         const diciduous: Settings & MeshSettings = {
-            start_size: 4,
+            start_size: 1,
             start_growth: 1,
             thickness: 0.05,
             growth_to_thickness: {
@@ -306,14 +312,8 @@ export namespace Forest {
             }]
         };
 
-        // const simple: Settings & MeshSettings = {
-        //     // 🍚 Get something displaying a bit more predictably to work out vector math issues
-        //     // 🤔 Probably something to do with rotation being off
-        // }
-
         const skeleton = generate_structure(diciduous);
         const mesh = generate_tapered_mesh(skeleton, diciduous)
-        console.log("eya");
 
         const tree_material = Shaders.generate_material(gl, {
             textures: {},
@@ -334,12 +334,16 @@ export namespace Forest {
             ${camera.includes}
 
             void main(void) {
-                gl_Position = vec4(camera_transform(world_position), world_position.z * -0.125, 1.0);
+                float grow_amount = 0.7;
+                vec3 shrunk_position = vec3(world_position.xy, max(world_position.z - (1.0 - grow_amount), 0.0));
+                gl_Position = vertex_color.r > grow_amount ?
+                    vec4(0) :
+                    vec4(camera_transform(shrunk_position), shrunk_position.z * -0.125, 1.0);
                 color = vertex_color;
             }
         `, `
             void main(void) {
-                gl_FragColor = vec4(color, 1.0);
+                gl_FragData[0] = vec4(1.0);
             }    
         `);
 

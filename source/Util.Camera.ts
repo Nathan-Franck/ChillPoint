@@ -29,11 +29,11 @@ export namespace Camera {
             "camera_size": {
                 type: "const",
                 data: [
-                    3 * window.innerWidth / window.innerHeight,
-                    3
+                    2 * window.innerWidth / window.innerHeight,
+                    2
                 ],
             },
-            "camera_position": { type: "const", data: [0, 3] },
+            "camera_position": { type: "const", data: [0, 1] },
             "x_vector": { type: "const", data: [1, 0.5] },
             "y_vector": { type: "const", data: [-1, 0.5] },
             "z_vector": { type: "const", data: [0, 1] },
