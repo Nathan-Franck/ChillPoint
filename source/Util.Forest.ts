@@ -334,8 +334,10 @@ export namespace Forest {
             ${camera.includes}
 
             void main(void) {
-                float grow_amount = 0.4;
-                vec3 shrunk_position = vec3(world_position.xy, max(world_position.z - (1.0 - grow_amount), 0.0));
+                float grow_amount = 0.3;
+                float z_position = world_position.z - (1.0 - grow_amount);
+                float shrink_rate = -min(z_position, 0.0);
+                vec3 shrunk_position = vec3(world_position.xy * mix(1.0, 0.3, shrink_rate), z_position + shrink_rate);
                 gl_Position = vertex_color.r > grow_amount ?
                     vec4(0) :
                     vec4(camera_transform(shrunk_position), shrunk_position.z * -0.125, 1.0);
@@ -343,7 +345,7 @@ export namespace Forest {
             }
         `, `
             void main(void) {
-                gl_FragData[0] = vec4(color + 0.25, 1.0);
+                gl_FragData[0] = vec4(1.0);
             }    
         `);
 
