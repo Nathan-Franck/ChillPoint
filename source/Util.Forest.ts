@@ -73,7 +73,7 @@ export namespace Forest {
             rotation: [0, 0, 0, 1],
             split_height: 0,
             growth: settings.start_growth,
-            split_depth: 2,
+            split_depth: 0,
         };
 
         const generation_queue: GenQueueItem[] = [];
@@ -116,7 +116,7 @@ export namespace Forest {
                                 depth_definition.branch_roll)),
                         size: gen_item.size *
                             depth_definition.size,
-                        split_height: 0,
+                        split_height: split_depth == 1 ? 0 : gen_item.split_height,
                         growth: growth,
                         split_depth,
                     });
@@ -154,7 +154,7 @@ export namespace Forest {
                         size: gen_item.size *
                             depth_definition.size,
                         growth,
-                        split_height,
+                        split_height: split_depth == 1 ? split_height : gen_item.split_height,
                         split_depth
                     });
                 }
@@ -334,7 +334,7 @@ export namespace Forest {
             ${camera.includes}
 
             void main(void) {
-                float grow_amount = 0.7;
+                float grow_amount = 0.4;
                 vec3 shrunk_position = vec3(world_position.xy, max(world_position.z - (1.0 - grow_amount), 0.0));
                 gl_Position = vertex_color.r > grow_amount ?
                     vec4(0) :
@@ -343,7 +343,7 @@ export namespace Forest {
             }
         `, `
             void main(void) {
-                gl_FragData[0] = vec4(1.0);
+                gl_FragData[0] = vec4(color + 0.25, 1.0);
             }    
         `);
 
