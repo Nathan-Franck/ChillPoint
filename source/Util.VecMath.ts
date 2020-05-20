@@ -4,9 +4,9 @@
 
 export let TAU = 6.28318530717958647692528676655900576839433879875021164195;
 
-export type Vec2 = [number, number];
-export type Vec3 = [number, number, number];
-export type Vec4 = [number, number, number, number];
+export type Vec2 = readonly [number, number];
+export type Vec3 = readonly [number, number, number];
+export type Vec4 = readonly [number, number, number, number];
 export type Quat = [number, number, number, number];
 export type Mat2 = [number, number, number, number];
 export type Mat3x2 = [number, number, number, number, number, number];

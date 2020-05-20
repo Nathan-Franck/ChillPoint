@@ -8,7 +8,7 @@ import { Indexing } from "./Util.Indexing";
 export namespace Terrain {
     export async function render(
         parent: HTMLElement,
-        camera: Camera.Type,
+        camera: typeof Camera.default_camera,
         chunk_width: number,
     ) {
         const canvas = HtmlBuilder.create_child(parent, {
@@ -75,12 +75,12 @@ export namespace Terrain {
         heights = heights.map(height => Math.min(height, 3));
 
         const coords_offset_per_square: Vec2[] = [
-            [ 0, 0 ],
-            [ 1, 0 ],
-            [ 0, 1 ],
-            [ 1, 1 ],
+            [0, 0],
+            [1, 0],
+            [0, 1],
+            [1, 1],
         ];
-        const sun_direction = Vec3.normal([ 1, -1, -2 ]);
+        const sun_direction = Vec3.normal([1, -1, -2]);
 
         const vertices = new Float32Array(chunk_size * 6 * 3);
         const color = new Float32Array(chunk_size * 6 * 3);
@@ -94,7 +94,8 @@ export namespace Terrain {
             const raw_vertices = coords_offset_per_square.map<Vec2>(vec => Vec2.add(
                 vec, height_coord
             )).map(coord => (<Vec3>[
-                ...coord.slice(0, 2),
+                coord[0],
+                coord[1],
                 heights[Indexing.to_index(coord, heights_width)] * 0.5,
             ]));
 
@@ -128,79 +129,69 @@ export namespace Terrain {
 
         // 🐢 Ground
         const ground_material = Shaders.generate_material(gl, {
-            textures: {
-                "grass": await Texture.load(gl, "./images/grass.jpg"),
-            },
-            buffers: {
-                "world_position": Texture.create_buffer(gl, vertices),
-                "vertex_color": Texture.create_buffer(gl, color),
-            },
             globals: {
                 ...camera.globals,
 
-                "grass": { type: "uniform", data: "sampler2D" },
-                "world_position": { type: "attribute", data: "vec3" },
-                "vertex_color": { type: "attribute", data: "vec3" },
+                "grass": { type: "uniform", unit: "sampler2D", data: await Texture.load(gl, "./images/grass.jpg") },
+                "world_position": { type: "attribute", unit: "vec3", data: Texture.create_buffer(gl, vertices) },
+                "vertex_color": { type: "attribute", unit: "vec3", data: Texture.create_buffer(gl, color) },
 
-                "uv": { type: "varying", data: "vec2" },
-                "color": { type: "varying", data: "vec3" },
-            }
-        }, `            
-            ${camera.includes}
+                "uv": { type: "varying", unit: "vec2" },
+                "color": { type: "varying", unit: "vec3" },
+            },
+            vertSource: `            
+                ${camera.includes}
 
-            void main(void) {
-                gl_Position = vec4(camera_transform(world_position), world_position.z * -0.25, 1.0);
-                uv = world_position.xy;
-                color = vertex_color;
-            }
-        `, `
-            void main(void) {
-                gl_FragColor = vec4(texture2D(grass, uv).rgb * color, 1.0);
-            }    
-        `);
+                void main(void) {
+                    gl_Position = vec4(camera_transform(world_position), world_position.z * -0.25, 1.0);
+                    uv = world_position.xy;
+                    color = vertex_color;
+                }
+            `,
+            fragSource: `
+                void main(void) {
+                    gl_FragColor = vec4(texture2D(grass, uv).rgb * color, 1.0);
+                }    
+            `,
+        });
 
         // 🌊 Water
         const water_material = Shaders.generate_material(gl, {
-            textures: {
-                "water": await Texture.load(gl, "./images/water.jpg"),
-                "foam": await Texture.load(gl, "./images/foam.jpg"),
-            },
-            buffers: {
-                "terrain_position": Texture.create_buffer(gl, vertices),
-            },
             globals: {
                 ...camera.globals,
 
-                "water": { type: "uniform", data: "sampler2D" },
-                "foam": { type: "uniform", data: "sampler2D" },
-                "terrain_position": { type: "attribute", data: "vec3" },
+                "water": { type: "uniform", unit: "sampler2D", data: await Texture.load(gl, "./images/water.jpg") },
+                "foam": { type: "uniform", unit: "sampler2D", data: await Texture.load(gl, "./images/foam.jpg") },
+                "terrain_position": { type: "attribute", unit: "vec3", data: Texture.create_buffer(gl, vertices) },
 
-                "water_height": { type: "const", data: [ 0.75 ] },
+                "water_height": { type: "const", data: [0.75] },
 
-                "uv": { type: "varying", data: "vec2" },
-                "blend": { type: "varying", data: "float" },
-            }
-        }, `    
-            ${camera.includes}
+                "uv": { type: "varying", unit: "vec2" },
+                "blend": { type: "varying", unit: "float" },
+            },
+            vertSource: `    
+                ${camera.includes}
 
-            void main(void) {
-                gl_Position = vec4(
-                    camera_transform(vec3(
-                        terrain_position.x,
-                        terrain_position.y,
-                        max(terrain_position.z, water_height))
-                ), water_height * -0.25, 1.0);
-                uv = terrain_position.xy;
-                blend = clamp((water_height - terrain_position.z) * 4.0, 0.0, 1.0);
-            }    
-        `, `
-            void main(void) {
-                gl_FragColor = vec4(mix(
-                    texture2D(foam, uv).y * vec3(2.0,2.0, 2.0),
-                    texture2D(water, uv).y * vec3(0.5, 0.7, 0.9),
-                    blend), 1.0);
-            }       
-        `);
+                void main(void) {
+                    gl_Position = vec4(
+                        camera_transform(vec3(
+                            terrain_position.x,
+                            terrain_position.y,
+                            max(terrain_position.z, water_height))
+                    ), water_height * -0.25, 1.0);
+                    uv = terrain_position.xy;
+                    blend = clamp((water_height - terrain_position.z) * 4.0, 0.0, 1.0);
+                }    
+            `,
+            fragSource: `
+                void main(void) {
+                    gl_FragColor = vec4(mix(
+                        texture2D(foam, uv).y * vec3(2.0,2.0, 2.0),
+                        texture2D(water, uv).y * vec3(0.5, 0.7, 0.9),
+                        blend), 1.0);
+                }       
+            `
+        });
 
         { // 🙏 Set up gl context for rendering
             gl.clearColor(0, 0, 0, 0);

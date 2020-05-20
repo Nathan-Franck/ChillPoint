@@ -1,61 +1,63 @@
 import { Scripting } from "./Util.Scripting";
 import { Vec2, Vec3, Vec4 } from "./Util.VecMath";
 
-export type GLSLType = "float" | "vec2" | "vec3" | "vec4";
+export type GLSLUnit = "float" | "vec2" | "vec3" | "vec4";
 export type GLSLConstType = Single | Vec2 | Vec3 | Vec4;
-export type GLSLUniformType = "sampler2D";
-export type Single = [number];
-export type Const<T extends GLSLConstType> = {
-    type: "const",
-    data: T,
+export type GLSLUniformUnit = "sampler2D";
+export type Single = readonly [number];
+export type Const = {
+    readonly type: "const",
+    readonly data: GLSLConstType,
 };
-export type Varying<T extends GLSLType> = {
-    type: "varying",
-    data: T,
+export type Varying = {
+    readonly type: "varying",
+    readonly unit: GLSLUnit,
 };
-export type Attribute<T extends GLSLType> = {
-    type: "attribute",
-    data: T,
+export type Attribute = {
+    readonly type: "attribute",
+    readonly unit: GLSLUnit,
+    readonly data: WebGLBuffer,
 }
-export type Uniform<T extends GLSLUniformType> = {
-    type: "uniform",
-    data: T,
+export type Uniform = {
+    readonly type: "uniform",
+    readonly unit: GLSLUniformUnit,
+    readonly data: WebGLTexture,
 };
-export const type_to_stride: { [key in GLSLType]: number } = {
+export const type_to_stride = {
     float: 1,
     vec2: 2,
     vec3: 3,
     vec4: 4,
-};
+} as const;
 
-export type ShaderGlobals<Textures, Buffers, T> = {
-    [key in keyof T]: Const<GLSLConstType> | Varying<GLSLType> | Attribute<GLSLType> | Uniform<GLSLUniformType>
-} & {
-        [key in keyof Textures]: Uniform<"sampler2D">
-    } & {
-        [key in keyof Buffers]: Attribute<GLSLType>
-    };
+export type ShaderGlobals = {
+    readonly [key: string]:
+    | Const
+    | Varying
+    | Attribute
+    | Uniform
+};
 
 export namespace Shaders {
 
-    export function const_text(key: string, element: Const<GLSLConstType>) {
-        const { data: value } = element;
-        if (value.length == 1) {
-            return `const highp float ${key} = ${value[0].toFixed(4)};`
+    export function const_text(key: string, element: Const) {
+        const { data } = element;
+        if (data.length == 1) {
+            return `const highp float ${key} = ${data[0].toFixed(4)};`
         }
-        return `const highp vec${value.length} ${key} = ${
-                `vec${value.length}(${(value as number[]).reduce<string>((output, value, index) =>
-                    `${output}${index > 0 ? ", " : ""}${value.toFixed(4)}`, "")}`
+        return `const highp vec${data.length} ${key} = ${
+            `vec${data.length}(${(data as readonly number[]).reduce<string>((output, value, index) =>
+                `${output}${index > 0 ? ", " : ""}${value.toFixed(4)}`, "")}`
             });`
     }
-    export function varying_text(key: string, element: Varying<any>) {
-        return `${element.type} highp ${element.data} ${key};`;
+    export function varying_text(key: string, element: Varying) {
+        return `${element.type} highp ${element.unit} ${key};`;
     }
-    export function uniform_attribute_text(key: string, element: Uniform<any> | Attribute<any>) {
-        return `${element.type} ${element.data} ${key}; `
+    export function uniform_attribute_text(key: string, element: Uniform | Attribute) {
+        return `${element.type} ${element.unit} ${key}; `
     }
 
-    export function to_vert_text<Textures, Buffers, T>(props: ShaderGlobals<Textures, Buffers, T>) {
+    export function to_vert_text(props: ShaderGlobals) {
         return Scripting.getKeys(props).reduce((text, key) => {
             const element = props[key];
             return `${text}\n ${
@@ -68,7 +70,7 @@ export namespace Shaders {
         }, "");
     }
 
-    export function to_frag_text<Textures, Buffers, T>(props: ShaderGlobals<Textures, Buffers, T>) {
+    export function to_frag_text(props: ShaderGlobals) {
         return Scripting.getKeys(props).reduce((text, key) => {
             const element = props[key];
             return `${text}${
@@ -83,33 +85,21 @@ export namespace Shaders {
         }, "");
     }
 
-    export function validate_environment<Textures, Buffers, T>(params: {
-        textures: Textures,
-        buffers: Buffers,
-        globals: ShaderGlobals<Textures, Buffers, T>,
-    }) {
-        return params;
-    }
-
-    export type Material<Textures, Buffers, T> = {
-        program: WebGLProgram,
-        textures: Textures,
-        element_buffer?: WebGLBuffer,
-        buffers: Buffers,
-        globals: ShaderGlobals<Textures, Buffers, T>,
+    export type Material = {
+        readonly program: WebGLProgram,
+        readonly element_buffer?: WebGLBuffer,
+        readonly globals: ShaderGlobals,
     };
 
-    export function generate_material<Textures, Buffers, T>(
+    export function generate_material(
         gl: WebGL2RenderingContext,
         environment: {
-            textures: Textures,
-            element_buffer?: WebGLBuffer,
-            buffers: Buffers,
-            globals: ShaderGlobals<Textures, Buffers, T>,
+            readonly element_buffer?: WebGLBuffer,
+            readonly globals: ShaderGlobals,
+            readonly vertSource: string,
+            readonly fragSource: string,
         },
-        vertSource: string,
-        fragSource: string,
-    ): Material<Textures, Buffers, T> {
+    ) {
         // ✨🎨 Create fragment shader object
         const program = gl.createProgram();
         {
@@ -118,11 +108,11 @@ export namespace Shaders {
             }
             const vertFullSource = `
                 ${Shaders.to_vert_text(environment.globals)}
-                ${vertSource}
+                ${environment.vertSource}
             `;
             const fragFullSource = `
                 ${Shaders.to_frag_text(environment.globals)}
-                ${fragSource}
+                ${environment.fragSource}
             `;
             [vertFullSource, fragFullSource].forEach((source, index) => {
                 const shader = gl.createShader(index == 0 ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);
@@ -151,35 +141,43 @@ export namespace Shaders {
         return {
             program,
             ...environment,
-        };
+        } as const;
     }
 
-    export function render_material<Textures, Buffers, T>(
+    export function render_material(
         gl: WebGL2RenderingContext,
-        material: Material<Textures, Buffers, T>,
+        material: Material,
         element_length: number,
     ) {
         gl.useProgram(material.program);
 
         { // 🦗 Texture to display
-            Scripting.getKeys(material.textures).forEach((key, index) => {
-                gl.activeTexture(gl.TEXTURE0 + index);
-                gl.bindTexture(gl.TEXTURE_2D, material.textures[key]);
+            Object.entries(material.globals)
+                .filter((entry): entry is [string, Uniform] =>
+                    "data" in entry[1] && entry[1].data instanceof WebGLTexture)
+                .forEach((entry, index) => {
+                    const [key, global] = entry;
+                    gl.activeTexture(gl.TEXTURE0 + index);
+                    gl.bindTexture(gl.TEXTURE_2D, global.data);
 
-                const uniformLocation = gl.getUniformLocation(material.program, key as string);
-                gl.uniform1i(uniformLocation, index);
-            });
+                    const uniformLocation = gl.getUniformLocation(material.program, key as string);
+                    gl.uniform1i(uniformLocation, index);
+                });
         }
 
         { // 👇 Set the points of the triangle to a buffer, assign to shader attribute
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, material.element_buffer || null);
-            Scripting.getKeys(material.buffers).forEach(key => {
-                gl.bindBuffer(gl.ARRAY_BUFFER, material.buffers[key]);
-                const attributeLocation = gl.getAttribLocation(material.program, key as string);
-                const dataType = material.globals[key].data;
-                gl.vertexAttribPointer(attributeLocation, type_to_stride[dataType], gl.FLOAT, false, 0, 0);
-                gl.enableVertexAttribArray(attributeLocation);
-            });
+            Object.entries(material.globals)
+                .filter((entry): entry is [string, Attribute] =>
+                    "data" in entry[1] && entry[1].data instanceof WebGLBuffer)
+                .forEach(entry => {
+                    const [key, global] = entry;
+                    gl.bindBuffer(gl.ARRAY_BUFFER, global.data);
+                    const attributeLocation = gl.getAttribLocation(material.program, key as string);
+                    const dataType = global.unit;
+                    gl.vertexAttribPointer(attributeLocation, type_to_stride[dataType], gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(attributeLocation);
+                });
         }
 
         if (material.element_buffer != null) {

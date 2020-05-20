@@ -242,7 +242,7 @@ export namespace Forest {
 
     export async function render(
         parent: HTMLElement,
-        camera: Camera.Type,
+        camera: typeof Camera.default_camera,
     ) {
         const canvas = HtmlBuilder.create_child(parent, {
             type: "canvas",
@@ -313,43 +313,48 @@ export namespace Forest {
         };
 
         const skeleton = generate_structure(diciduous);
-        const mesh = generate_tapered_mesh(skeleton, diciduous)
+        const mesh = generate_tapered_mesh(skeleton, diciduous);
 
         const tree_material = Shaders.generate_material(gl, {
-            textures: {},
             element_buffer: Texture.create_element_buffer(gl, mesh.triangles),
-            buffers: {
-                "world_position": Texture.create_buffer(gl, mesh.vertices),
-                "vertex_color": Texture.create_buffer(gl, mesh.normals),
-            },
             globals: {
                 ...camera.globals,
 
-                "parent_growth": { type: "const", data: [ 1 ], },
-                "child_size": { type: "const", data: [ diciduous.depth_definitions[0].size ], },
+                "parent_growth": { type: "const", data: [1], },
+                "child_size": { type: "const", data: [diciduous.depth_definitions[0].size], },
 
-                "world_position": { type: "attribute", data: "vec3" },
-                "vertex_color": { type: "attribute", data: "vec3" },
+                "world_position": {
+                    type: "attribute",
+                    unit: "vec3",
+                    data: Texture.create_buffer(gl, mesh.vertices),
+                },
+                "vertex_color": {
+                    type: "attribute",
+                    unit: "vec3",
+                    data: Texture.create_buffer(gl, mesh.normals),
+                },
 
-                "color": { type: "varying", data: "vec3" },
-            }
-        }, `            
-            ${camera.includes}
+                "color": { type: "varying", unit: "vec3" },
+            },
+            vertSource: `            
+                ${camera.includes}
 
-            void main(void) {
-                float z_position = world_position.z - (1.0 - parent_growth);
-                float shrink_rate = -min(z_position, 0.0);
-                vec3 shrunk_position = vec3(world_position.xy * mix(1.0, child_size, shrink_rate), z_position + shrink_rate);
-                gl_Position = vertex_color.r > parent_growth ?
-                    vec4(0) :
-                    vec4(camera_transform(shrunk_position), shrunk_position.z * -0.125, 1.0);
-                color = vertex_color;
-            }
-        `, `
-            void main(void) {
-                gl_FragData[0] = vec4(1.0);
-            }    
-        `);
+                void main(void) {
+                    float z_position = world_position.z - (1.0 - parent_growth);
+                    float shrink_rate = -min(z_position, 0.0);
+                    vec3 shrunk_position = vec3(world_position.xy * mix(1.0, child_size, shrink_rate), z_position + shrink_rate);
+                    gl_Position = vertex_color.r > parent_growth ?
+                        vec4(0) :
+                        vec4(camera_transform(shrunk_position), shrunk_position.z * -0.125, 1.0);
+                    color = vertex_color;
+                }
+            `,
+            fragSource: `
+                void main(void) {
+                    gl_FragData[0] = vec4(1.0);
+                }    
+            `
+        });
 
         { // 🙏 Set up gl context for rendering
             gl.clearColor(0, 0, 0, 0);

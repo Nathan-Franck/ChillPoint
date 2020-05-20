@@ -2,13 +2,13 @@
 import { Texture } from "./Util.Texture";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { Camera } from "./Util.Camera";
-import { Vec3 } from "./Util.VecMath";
+import { Vec3, Vec2 } from "./Util.VecMath";
 import { Shaders } from "./Util.Shaders";
 
 export namespace Meeples {
     export async function render(
         parent: HTMLElement,
-        camera: Camera.Type,
+        camera: typeof Camera.default_camera,
     ) {
         const canvas = HtmlBuilder.create_child(parent, {
             type: "canvas",
@@ -31,7 +31,7 @@ export namespace Meeples {
         }
 
         // 💀 Skeleton framework by which animations and mesh can be constructed on
-        type Joint = "chest" | "hip" | "head" | "shoulder"  | "elbow" | "wrist" | "finger" | "knee" | "ankle" | "toe";
+        type Joint = "chest" | "hip" | "head" | "shoulder" | "elbow" | "wrist" | "finger" | "knee" | "ankle" | "toe";
         type BoneInfo<T> = {
             parent: T | null,
             relative_position: Vec3,
@@ -46,60 +46,60 @@ export namespace Meeples {
         } = {
             chest: {
                 parent: null,
-                relative_position: [ 0, 0, 0 ],
-                debug_color: [ 1, 1, 1 ],
+                relative_position: [0, 0, 0],
+                debug_color: [1, 1, 1],
             },
             head: {
                 parent: "chest",
-                relative_position: [ 0, 0, 0.5 ],
-                debug_color: [ 1, 0, 0 ],
+                relative_position: [0, 0, 0.5],
+                debug_color: [1, 0, 0],
             },
             shoulder: {
                 parent: "chest",
-                relative_position: [ .5, 0, 0 ],
-                debug_color: [ 0, 0, 1 ],
+                relative_position: [.5, 0, 0],
+                debug_color: [0, 0, 1],
                 mirrored: true,
             },
             hip: {
                 parent: "chest",
-                relative_position: [ 0.25, 0, -1 ],
-                debug_color: [ 0, 0, 1 ],
+                relative_position: [0.25, 0, -1],
+                debug_color: [0, 0, 1],
                 mirrored: true,
             },
             elbow: {
                 parent: "shoulder",
-                relative_position: [ .5, 0, 0 ],
-                debug_color: [ 0, 1, 0 ],
+                relative_position: [.5, 0, 0],
+                debug_color: [0, 1, 0],
                 mirrored: true,
             },
             wrist: {
                 parent: "elbow",
-                relative_position: [ .5, 0, 0 ],
-                debug_color: [ 0, 1, 0 ],
+                relative_position: [.5, 0, 0],
+                debug_color: [0, 1, 0],
                 mirrored: true,
             },
             finger: {
                 parent: "wrist",
-                relative_position: [ .5, 0, 0 ],
-                debug_color: [ 0, 1, 0 ],
+                relative_position: [.5, 0, 0],
+                debug_color: [0, 1, 0],
                 mirrored: true,
             },
             knee: {
                 parent: "hip",
-                relative_position: [ 0, 0, -1 ],
-                debug_color: [ 1, 0, 1 ],
+                relative_position: [0, 0, -1],
+                debug_color: [1, 0, 1],
                 mirrored: true,
             },
             ankle: {
                 parent: "knee",
-                relative_position: [ 0, 0, -1 ],
-                debug_color: [ 1, 0, 1 ],
+                relative_position: [0, 0, -1],
+                debug_color: [1, 0, 1],
                 mirrored: true,
             },
             toe: {
                 parent: "ankle",
-                relative_position: [ 0, 0.25, 0 ],
-                debug_color: [ 1, 0, 1 ],
+                relative_position: [0, 0.25, 0],
+                debug_color: [1, 0, 1],
                 mirrored: true,
             },
         };
@@ -130,19 +130,18 @@ export namespace Meeples {
                         absolute_position,
                         mirrored: bone.mirrored,
                     };
-                }).reduce<[Joint, Vec3][]>((processed_bones, bone) => {
+                }).reduce<Array<readonly [Joint, Vec3]>>((processed_bones, bone) => {
                     if (bone.mirrored) {
-                        return [...processed_bones, [
-                            bone.joint,
-                            bone.absolute_position,
-                        ], [
-                            bone.joint,
-                            <Vec3>[
-                                -bone.absolute_position[0],
-                                ...bone.absolute_position.slice(1, 3),
-                            ],
-                        ],
-                        ];
+                        return [
+                            ...processed_bones, [
+                                bone.joint,
+                                bone.absolute_position,
+                            ], [
+                                bone.joint, [
+                                    -bone.absolute_position[0],
+                                    bone.absolute_position[1],
+                                    bone.absolute_position[2],
+                                ]]];
                     }
                     return [...processed_bones, [
                         bone.joint,
@@ -154,40 +153,40 @@ export namespace Meeples {
         const quad_to_triangles = [0, 1, 2, 2, 1, 3];
         const box_quads = {
             left: <Vec3[]>[
-                [ 1, -1, -1 ],
-                [ 1, 1, -1 ],
-                [ 1, -1, 1 ],
-                [ 1, 1, 1 ],
+                [1, -1, -1],
+                [1, 1, -1],
+                [1, -1, 1],
+                [1, 1, 1],
             ],
             right: <Vec3[]>[
-                [ -1, -1, -1 ],
-                [ -1, 1, -1 ],
-                [ -1, -1, 1 ],
-                [ -1, 1, 1 ],
+                [-1, -1, -1],
+                [-1, 1, -1],
+                [-1, -1, 1],
+                [-1, 1, 1],
             ],
             top: <Vec3[]>[
-                [ -1, 1, -1 ],
-                [ 1, 1, -1 ],
-                [ -1, 1, 1 ],
-                [ 1, 1, 1 ],
+                [-1, 1, -1],
+                [1, 1, -1],
+                [-1, 1, 1],
+                [1, 1, 1],
             ],
             bottom: <Vec3[]>[
-                [ -1, -1, -1 ],
-                [ 1, -1, -1 ],
-                [ -1, -1, 1 ],
-                [ 1, -1, 1 ],
+                [-1, -1, -1],
+                [1, -1, -1],
+                [-1, -1, 1],
+                [1, -1, 1],
             ],
             front: <Vec3[]>[
-                [ -1, -1, 1 ],
-                [ 1, -1, 1 ],
-                [ -1, 1, 1 ],
-                [ 1, 1, 1 ],
+                [-1, -1, 1],
+                [1, -1, 1],
+                [-1, 1, 1],
+                [1, 1, 1],
             ],
             back: <Vec3[]>[
-                [ -1, -1, -1 ],
-                [ 1, -1, -1 ],
-                [ -1, 1, -1 ],
-                [ 1, 1, -1 ],
+                [-1, -1, -1],
+                [1, -1, -1],
+                [-1, 1, -1],
+                [1, 1, -1],
             ],
         };
 
@@ -213,31 +212,34 @@ export namespace Meeples {
 
         // 🙋‍♂️ Meeples
         const meeple_material = Shaders.generate_material(gl, {
-            textures: {},
-            buffers: {
-                "world_position": Texture.create_buffer(gl, world_positions),
-                "vertex_color": Texture.create_buffer(gl, vertex_colors),
-            },
             globals: {
                 ...camera.globals,
+                "world_position": {
+                    type: "attribute",
+                    unit: "vec3",
+                    data: Texture.create_buffer(gl, world_positions)
+                },
+                "vertex_color": {
+                    type: "attribute",
+                    unit: "vec3",
+                    data: Texture.create_buffer(gl, vertex_colors)
+                },
+                "color": { type: "varying", unit: "vec3" },
+            },
+            vertSource: `            
+                ${camera.includes}
 
-                "world_position": { type: "attribute", data: "vec3" },
-                "vertex_color": { type: "attribute", data: "vec3" },
-                  
-                "color": { type: "varying", data: "vec3" },
-            }
-        }, `            
-            ${camera.includes}
-
-            void main(void) {
-                gl_Position = vec4(camera_transform(world_position), world_position.z * -0.25, 1.0);
-                color = vertex_color;
-            }
-        `, `
-            void main(void) {
-                gl_FragColor = vec4(color, 1.0);
-            }    
-        `);
+                void main(void) {
+                    gl_Position = vec4(camera_transform(world_position), world_position.z * -0.25, 1.0);
+                    color = vertex_color;
+                }
+            `,
+            fragSource: `
+                void main(void) {
+                    gl_FragColor = vec4(color, 1.0);
+                }    
+            `
+        });
 
         { // 🙏 Set up gl context for rendering
             gl.clearColor(0, 0, 0, 0);
