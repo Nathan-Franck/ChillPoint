@@ -26,55 +26,55 @@ export namespace SmoothCurve {
 export namespace Forest {
 
 	export type DepthDefinition = {
-		name: string,
-		split_amount: number,
-		flatness: number,
-		size: number,
-		height_spread: number,
-		branch_pitch: number,
-		branch_roll: number,
-		height_to_growth: SmoothCurve,
+		readonly name: string,
+		readonly split_amount: number,
+		readonly flatness: number,
+		readonly size: number,
+		readonly height_spread: number,
+		readonly branch_pitch: number,
+		readonly branch_roll: number,
+		readonly height_to_growth: SmoothCurve,
 	}
 
 	export type Settings = {
-		start_size: number,
-		start_growth: number,
-		depth_definitions: DepthDefinition[],
+		readonly start_size: number,
+		readonly start_growth: number,
+		readonly depth_definitions: DepthDefinition[],
 	}
 
 	export type MeshSettings = {
-		thickness: number,
-		growth_to_thickness: SmoothCurve,
+		readonly thickness: number,
+		readonly growth_to_thickness: SmoothCurve,
 	}
 
 	export type GenQueueItem = Node & {
-		parent_index?: number,
+		readonly parent_index?: number,
 	}
 
 	export type Node = {
-		size: number,
-		position: Vec3,
-		rotation: Quat,
-		split_height: number,
-		growth: number,
-		split_depth: number,
+		readonly size: number,
+		readonly position: Vec3,
+		readonly rotation: Quat,
+		readonly split_height: number,
+		readonly growth: number,
+		readonly split_depth: number,
 	}
 
 	export type Skeleton = {
-		nodes: Node[],
-		node_to_primary_child_index: (number | undefined)[]
+		readonly nodes: Node[],
+		readonly node_to_primary_child_index: (number | undefined)[],
 	}
 
 	function generate_structure(settings: Settings) {
 
-		const start_node: Node = {
+		const start_node = {
 			size: settings.start_size,
 			position: [0, 0, 0],
 			rotation: [0, 0, 0, 1],
 			split_height: 0,
 			growth: settings.start_growth,
 			split_depth: 0,
-		};
+		} as const;
 
 		const generation_queue: GenQueueItem[] = [];
 		const output: Skeleton = {
@@ -203,7 +203,7 @@ export namespace Forest {
 			const height = parent.size * parent.growth;
 			const parent_size = Num.lerp(child.size, parent.size, parent.growth) * settings.thickness;
 			const child_size = Num.lerp(grandchild.size, child.size, child.growth) * settings.thickness;
-			const vertices: Vec3[] = [
+			const vertices = [
 				[0.5 * parent_size, 0.5 * parent_size, 0], // 0
 				[-0.5 * parent_size, 0.5 * parent_size, 0], // 1
 				[-0.5 * parent_size, -0.5 * parent_size, 0], // 2
@@ -212,7 +212,7 @@ export namespace Forest {
 				[-0.5 * child_size, 0.5 * child_size, height], // 5
 				[-0.5 * child_size, -0.5 * child_size, height], // 6
 				[0.5 * child_size, -0.5 * child_size, height], // 7
-			];
+			] as const;
 			const vertex_offset = node_index * 8 * 3;
 			mesh.vertices.set(
 				vertices.flatMap(vertex =>
