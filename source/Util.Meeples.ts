@@ -192,6 +192,7 @@ export namespace Meeples {
 
 		const world_positions = new Float32Array(processed_bones.length * 6 * 6 * 3);
 		const vertex_colors = new Float32Array(processed_bones.length * 6 * 6 * 3);
+		const triangles = new Uint16Array(processed_bones.length * 6 * 6 * 3);
 
 		processed_bones.forEach(([key, position], index) => {
 			const offset = index * 6 * 6 * 3;

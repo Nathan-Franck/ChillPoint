@@ -201,7 +201,7 @@ export namespace Terrain {
 		}
 
 		// 🎨 Draw materials
-		Shaders.render_material(gl, ground_material, vertices.length);
-		Shaders.render_material(gl, water_material, vertices.length);
+		Shaders.render_material(gl, ground_material, vertices.length / 3);
+		Shaders.render_material(gl, water_material, vertices.length / 3);
 	}
 }
