@@ -60,11 +60,6 @@ export namespace Forest {
 		readonly split_depth: number,
 	}
 
-	export type Skeleton = {
-		readonly nodes: Node[],
-		readonly node_to_primary_child_index: (number | undefined)[],
-	}
-
 	function generate_structure(settings: Settings) {
 
 		const start_node = {
@@ -77,19 +72,17 @@ export namespace Forest {
 		} as const;
 
 		const generation_queue: GenQueueItem[] = [];
-		const output: Skeleton = {
-			nodes: [],
-			node_to_primary_child_index: [],
-		};
+		const nodes = [];
+		const node_to_primary_child_index = [];
 
 		generation_queue.push(start_node);
 		let gen_item;
 		while ((gen_item = generation_queue.pop()) != null) {
-			const node_index = output.nodes.length;
-			output.nodes.push(gen_item);
-			output.node_to_primary_child_index.push(undefined);
+			const node_index = nodes.length;
+			nodes.push(gen_item);
+			node_to_primary_child_index.push(undefined);
 			if (gen_item.parent_index != null) {
-				output.node_to_primary_child_index[gen_item.parent_index] = node_index;
+				node_to_primary_child_index[gen_item.parent_index] = node_index;
 			}
 
 			// 🐣 Branch spawning
@@ -160,8 +153,13 @@ export namespace Forest {
 				}
 			}
 		}
-		return output;
+		return {
+			nodes,
+			node_to_primary_child_index,
+		} as const;
 	}
+
+	type Skeleton = ReturnType<typeof generate_structure>;
 
 	const normals = [
 		[0.5, 0.5, 0],
@@ -191,7 +189,7 @@ export namespace Forest {
 			vertices: new Float32Array(skeleton.nodes.length * 8 * 3),
 			normals: new Float32Array(skeleton.nodes.length * 8 * 3),
 			triangles: new Uint16Array(skeleton.nodes.length * 6 * 6),
-		};
+		} as const;
 		skeleton.nodes.forEach((parent, node_index) => {
 			const child_index = skeleton.node_to_primary_child_index[node_index];
 			const child = child_index == null ? parent :
