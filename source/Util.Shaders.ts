@@ -140,7 +140,7 @@ export namespace Shaders {
 		}
 
 		return {
-			program,    
+			program,
 			...environment,
 		} as const;
 	}
@@ -149,6 +149,7 @@ export namespace Shaders {
 		gl: WebGL2RenderingContext,
 		material: Material,
 		element_length: number,
+		instance_length: number = 1,
 	) {
 		gl.useProgram(material.program);
 
@@ -178,13 +179,16 @@ export namespace Shaders {
 					const dataType = global.unit;
 					gl.vertexAttribPointer(attributeLocation, type_to_stride[dataType], gl.FLOAT, false, 0, 0);
 					gl.enableVertexAttribArray(attributeLocation);
+					if (global.instanced) {
+						gl.vertexAttribDivisor(attributeLocation, 1);
+					}
 				});
 		}
 
 		if (material.element_buffer != null) {
-			gl.drawElements(gl.TRIANGLES, element_length, gl.UNSIGNED_SHORT, 0);
+			gl.drawElementsInstanced(gl.TRIANGLES, element_length, gl.UNSIGNED_SHORT, 0, instance_length);
 		} else {
-			gl.drawArrays(gl.TRIANGLES, 0, element_length);
+			gl.drawArraysInstanced(gl.TRIANGLES, 0, element_length, instance_length);
 		}
 	}
 }

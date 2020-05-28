@@ -6,7 +6,7 @@ export namespace Texture {
 				throw new Error("Texture is null, this is not expected!");
 			}
 			gl.bindTexture(gl.TEXTURE_2D, texture);
-	
+
 			const textureSettings = {
 				level: 0,
 				internalFormat: gl.RGBA,
@@ -29,7 +29,7 @@ export namespace Texture {
 		});
 	}
 
-	export function create_element_buffer(gl: WebGLRenderingContext, data: Uint16Array) {
+	export function create_element_buffer(gl: WebGL2RenderingContext, data: Uint16Array) {
 		const buffer = gl.createBuffer();
 		if (buffer == null) {
 			throw new Error("Buffer is null, this is not expected!");
@@ -39,7 +39,7 @@ export namespace Texture {
 		return buffer;
 	}
 
-	export function create_buffer(gl: WebGLRenderingContext, data: Float32Array) {
+	export function create_buffer(gl: WebGL2RenderingContext, data: Float32Array) {
 		const buffer = gl.createBuffer();
 		if (buffer == null) {
 			throw new Error("Buffer is null, this is not expected!");
