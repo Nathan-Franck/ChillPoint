@@ -312,6 +312,12 @@ export namespace Forest {
 
 		const skeleton = generate_structure(diciduous);
 		const mesh = generate_tapered_mesh(skeleton, diciduous);
+		const positions = new Float32Array([
+			0, 0, 0,
+			10, 0, 0,
+			0, 10, 0,
+			0, 0, 10,
+		])
 
 		const tree_material = Shaders.generate_material(gl, {
 			element_buffer: Texture.create_element_buffer(gl, mesh.triangles),
@@ -320,8 +326,13 @@ export namespace Forest {
 
 				"parent_growth": { type: "const", data: [1], },
 				"child_size": { type: "const", data: [diciduous.depth_definitions[0].size], },
-
-				"world_position": {
+				"model_position": {
+					type: "attribute",
+					unit: "vec3",
+					data: Texture.create_buffer(gl, positions),
+					instanced: true,
+				},
+				"vertex_position": {
 					type: "attribute",
 					unit: "vec3",
 					data: Texture.create_buffer(gl, mesh.vertices),
@@ -338,6 +349,7 @@ export namespace Forest {
 				${camera.includes}
 
 				void main(void) {
+					vec3 world_position = vertex_position + model_position;
 					float z_position = world_position.z - (1.0 - parent_growth);
 					float shrink_rate = -min(z_position, 0.0);
 					vec3 shrunk_position = vec3(world_position.xy * mix(1.0, child_size, shrink_rate), z_position + shrink_rate);
@@ -362,6 +374,6 @@ export namespace Forest {
 		}
 
 		// 🎨 Draw materials
-		Shaders.render_material(gl, tree_material, mesh.triangles.length);
+		Shaders.render_material(gl, tree_material, mesh.triangles.length, positions.length / 3.0);
 	}
 }
