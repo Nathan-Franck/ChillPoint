@@ -97,8 +97,8 @@ export namespace Shaders {
 		environment: {
 			readonly element_buffer?: WebGLBuffer,
 			readonly globals: ShaderGlobals,
-			readonly vertSource: string,
-			readonly fragSource: string,
+			readonly vert_source: string,
+			readonly frag_source: string,
 		},
 	) {
 		// ✨🎨 Create fragment shader object
@@ -109,11 +109,11 @@ export namespace Shaders {
 			}
 			const vertFullSource = `
 				${Shaders.to_vert_text(environment.globals)}
-				${environment.vertSource}
+				${environment.vert_source}
 			`;
 			const fragFullSource = `
 				${Shaders.to_frag_text(environment.globals)}
-				${environment.fragSource}
+				${environment.frag_source}
 			`;
 			[vertFullSource, fragFullSource].forEach((source, index) => {
 				const shader = gl.createShader(index == 0 ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);

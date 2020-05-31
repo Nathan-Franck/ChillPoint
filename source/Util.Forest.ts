@@ -45,6 +45,7 @@ export namespace Forest {
 	export type MeshSettings = {
 		readonly thickness: number,
 		readonly growth_to_thickness: SmoothCurve,
+		readonly leaf_depth: number,
 	}
 
 	export type GenQueueItem = Node & {
@@ -161,7 +162,7 @@ export namespace Forest {
 
 	type Skeleton = ReturnType<typeof generate_structure>;
 
-	const normals = [
+	const wood_normals = [
 		[0.5, 0.5, 0],
 		[-0.5, 0.5, 0],
 		[-0.5, -0.5, 0],
@@ -172,7 +173,7 @@ export namespace Forest {
 		[0.5, -0.5, 0],
 	] as const;
 
-	const triangles = [
+	const wood_triangles = [
 		0, 1, 2, 2, 3, 0, // Bottom
 		6, 5, 4, 4, 7, 6, // Top
 		2, 1, 5, 5, 6, 2, // Left
@@ -181,7 +182,18 @@ export namespace Forest {
 		1, 0, 4, 4, 5, 1, // Forward
 	] as const;
 
-	export function generate_tapered_mesh(
+	const leaf_triangles = [
+		0, 1, 2, 2, 3, 0
+	] as const;
+
+	const leaf_normals = [
+		[0, 1, 0],
+		[-0.2, 0.8, 0],
+		[0, 1, 0],
+		[0.2, 0.8, 0],
+	] as const;
+
+	export function generate_tapered_wood(
 		skeleton: Skeleton,
 		settings: MeshSettings,
 	) {
@@ -191,51 +203,100 @@ export namespace Forest {
 			split_height: new Float32Array(skeleton.nodes.length * 8),
 			triangles: new Uint16Array(skeleton.nodes.length * 6 * 6),
 		} as const;
-		skeleton.nodes.forEach((parent, node_index) => {
-			const child_index = skeleton.node_to_primary_child_index[node_index];
-			const child = child_index == null ? parent :
-				skeleton.nodes[child_index];
-			const grandchild_index = child_index == null ? null :
-				skeleton.node_to_primary_child_index[child_index];
-			const grandchild = grandchild_index == null ? child :
-				skeleton.nodes[grandchild_index];
-			const height = parent.size * parent.growth;
-			const parent_size = Num.lerp(child.size, parent.size, parent.growth) * settings.thickness;
-			const child_size = Num.lerp(grandchild.size, child.size, child.growth) * settings.thickness;
-			const vertices = [
-				[0.5 * parent_size, 0.5 * parent_size, 0], // 0
-				[-0.5 * parent_size, 0.5 * parent_size, 0], // 1
-				[-0.5 * parent_size, -0.5 * parent_size, 0], // 2
-				[0.5 * parent_size, -0.5 * parent_size, 0], // 3
-				[0.5 * child_size, 0.5 * child_size, height], // 4
-				[-0.5 * child_size, 0.5 * child_size, height], // 5
-				[-0.5 * child_size, -0.5 * child_size, height], // 6
-				[0.5 * child_size, -0.5 * child_size, height], // 7
-			] as const;
-			const vertex_offset = node_index * 8 * 3;
-			mesh.vertices.set(
-				vertices.flatMap(vertex =>
-					Vec3.apply_mat4(
-						vertex,
-						Mat4.rot_trans(
-							parent.rotation,
-							parent.position,
-						))),
-				vertex_offset);
-			mesh.normals.set(
-				normals.flatMap(normal =>
-					Vec3.normal(
-						Vec3.apply_quat(
-							normal,
-							parent.rotation,
-						))),
-				vertex_offset);
-			mesh.split_height.set(
-				vertices.map(() => parent.split_height), node_index * 8);
-			mesh.triangles.set(
-				triangles.map(i => i + node_index * 8),
-				node_index * 6 * 6);
-		});
+		skeleton.nodes.
+			filter(node => node.split_depth != settings.leaf_depth).
+			forEach((parent, node_index) => {
+				const child_index = skeleton.node_to_primary_child_index[node_index];
+				const child = child_index == null ? parent :
+					skeleton.nodes[child_index];
+				const grandchild_index = child_index == null ? null :
+					skeleton.node_to_primary_child_index[child_index];
+				const grandchild = grandchild_index == null ? child :
+					skeleton.nodes[grandchild_index];
+				const height = parent.size * parent.growth;
+				const parent_size = Num.lerp(child.size, parent.size, parent.growth) * settings.thickness;
+				const child_size = Num.lerp(grandchild.size, child.size, child.growth) * settings.thickness;
+				const vertices = [
+					[0.5 * parent_size, 0.5 * parent_size, 0], // 0
+					[-0.5 * parent_size, 0.5 * parent_size, 0], // 1
+					[-0.5 * parent_size, -0.5 * parent_size, 0], // 2
+					[0.5 * parent_size, -0.5 * parent_size, 0], // 3
+					[0.5 * child_size, 0.5 * child_size, height], // 4
+					[-0.5 * child_size, 0.5 * child_size, height], // 5
+					[-0.5 * child_size, -0.5 * child_size, height], // 6
+					[0.5 * child_size, -0.5 * child_size, height], // 7
+				] as const;
+				const vertex_offset = node_index * vertices.length * 3;
+				mesh.vertices.set(
+					vertices.flatMap(vertex =>
+						Vec3.apply_mat4(
+							vertex,
+							Mat4.rot_trans(
+								parent.rotation,
+								parent.position,
+							))),
+					vertex_offset);
+				mesh.normals.set(
+					wood_normals.flatMap(normal =>
+						Vec3.normal(
+							Vec3.apply_quat(
+								normal,
+								parent.rotation,
+							))),
+					vertex_offset);
+				mesh.split_height.set(
+					vertices.map(() => parent.split_height), node_index * vertices.length);
+				mesh.triangles.set(
+					wood_triangles.map(i => i + node_index * vertices.length),
+					node_index * wood_triangles.length);
+			});
+		return mesh;
+	}
+
+	export function generate_leaves(
+		skeleton: Skeleton,
+		settings: MeshSettings,
+	) {
+		const mesh = {
+			vertices: new Float32Array(skeleton.nodes.length * 4 * 3),
+			normals: new Float32Array(skeleton.nodes.length * 4 * 3),
+			split_height: new Float32Array(skeleton.nodes.length * 4),
+			triangles: new Uint16Array(skeleton.nodes.length * 6),
+		} as const;
+		skeleton.nodes.
+			filter(node => node.split_depth == settings.leaf_depth).
+			forEach((node, node_index) => {
+				const height = node.size * node.growth;
+				const vertices = [
+					[0, 0, 0], // 0
+					[node.size * 0.4, node.size * 0.1, height * 0.5], // 1
+					[0, 0, height], // 2
+					[node.size * -0.4, node.size * 0.1, height * 0.5], // 3
+				] as const;
+				const vertex_offset = node_index * vertices.length * 3;
+				mesh.vertices.set(
+					vertices.flatMap(vertex =>
+						Vec3.apply_mat4(
+							vertex,
+							Mat4.rot_trans(
+								node.rotation,
+								node.position,
+							))),
+					vertex_offset);
+				mesh.normals.set(
+					leaf_normals.flatMap(normal =>
+						Vec3.normal(
+							Vec3.apply_quat(
+								normal,
+								node.rotation,
+							))),
+					vertex_offset);
+				mesh.split_height.set(
+					vertices.map(() => node.split_height), node_index * vertices.length);
+				mesh.triangles.set(
+					leaf_triangles.map(i => i + node_index * vertices.length),
+					node_index * leaf_triangles.length);
+			});
 		return mesh;
 	}
 
@@ -268,6 +329,7 @@ export namespace Forest {
 			start_size: 1,
 			start_growth: 1,
 			thickness: 0.05,
+			leaf_depth: 3,
 			growth_to_thickness: {
 				y_values: [0.0025, 0.035],
 				x_range: [0, 1]
@@ -308,11 +370,24 @@ export namespace Forest {
 					y_values: [0.5, 0.8, 1, 0.8, .5],
 					x_range: [0, 0.5]
 				},
+			}, {
+				name: "Leaf",
+				split_amount: 10,
+				flatness: 0,
+				size: 0.4,
+				height_spread: 0.8,
+				branch_pitch: 40 / 180 * Math.PI,
+				branch_roll: 90 / 180 * Math.PI,
+				height_to_growth: {
+					y_values: [0.5, 0.8, 1, 0.8, .5],
+					x_range: [0, 0.5]
+				},
 			}]
 		};
 
 		const skeleton = generate_structure(diciduous);
-		const mesh = generate_tapered_mesh(skeleton, diciduous);
+		const bark_mesh = generate_tapered_wood(skeleton, diciduous);
+		const leaf_mesh = generate_leaves(skeleton, diciduous);
 		const model_position = new Float32Array(([
 			[0, 0, 0],
 			[4, 0, 0],
@@ -325,13 +400,12 @@ export namespace Forest {
 			1, 0.2, 0.6, 0.4,
 		]);
 
-		const tree_material = Shaders.generate_material(gl, {
-			element_buffer: Texture.create_element_buffer(gl, mesh.triangles),
+		const tree_material = {
 			globals: {
 				...camera.globals,
 
 				"child_size": { type: "const", data: [diciduous.depth_definitions[0].size], },
-				"scale": { type: "const", data: [3] },
+				"scale": { type: "const", data: [5] },
 				"model_position": {
 					type: "attribute",
 					unit: "vec3",
@@ -344,43 +418,79 @@ export namespace Forest {
 					data: Texture.create_buffer(gl, model_growth),
 					instanced: true,
 				},
+
+				"color": { type: "varying", unit: "vec3" },
+			},
+			vert_source: `            
+			${camera.includes}
+
+			void main(void) {
+				float z_position = vertex_position.z - (1.0 - model_growth);
+				float shrink_rate = -min(z_position, 0.0);
+				vec3 shrunk_position = vec3(vertex_position.xy * mix(1.0, child_size, shrink_rate), z_position + shrink_rate);
+				vec3 world_position = shrunk_position * scale + model_position;
+				gl_Position = vertex_split_height > model_growth ?
+					vec4(0) :
+					vec4(camera_transform(world_position), world_position.z * -0.125, 1.0);
+				color = vec3(dot(vertex_normal, -vec3(1.0, -1.0, -2.0)));
+			}
+		`,
+		} as const;
+
+		const bark_material = Shaders.generate_material(gl, {
+			...tree_material,
+			element_buffer: Texture.create_element_buffer(gl, bark_mesh.triangles),
+			globals: {
+				...tree_material.globals,
 				"vertex_position": {
 					type: "attribute",
 					unit: "vec3",
-					data: Texture.create_buffer(gl, mesh.vertices),
+					data: Texture.create_buffer(gl, bark_mesh.vertices),
 				},
 				"vertex_normal": {
 					type: "attribute",
 					unit: "vec3",
-					data: Texture.create_buffer(gl, mesh.normals),
+					data: Texture.create_buffer(gl, bark_mesh.normals),
 				},
 				"vertex_split_height": {
 					type: "attribute",
 					unit: "float",
-					data: Texture.create_buffer(gl, mesh.split_height),
+					data: Texture.create_buffer(gl, bark_mesh.split_height),
 				},
-
-				"color": { type: "varying", unit: "vec3" },
 			},
-			vertSource: `            
-				${camera.includes}
-
-				void main(void) {
-					float z_position = vertex_position.z - (1.0 - model_growth);
-					float shrink_rate = -min(z_position, 0.0);
-					vec3 shrunk_position = vec3(vertex_position.xy * mix(1.0, child_size, shrink_rate), z_position + shrink_rate);
-					vec3 world_position = shrunk_position * scale + model_position;
-					gl_Position = vertex_split_height > model_growth ?
-						vec4(0) :
-						vec4(camera_transform(world_position), world_position.z * -0.125, 1.0);
-					color = vec3(dot(vertex_normal, -vec3(1.0, -1.0, -2.0)));
-				}
-			`,
-			fragSource: `
+			frag_source: `
 				void main(void) {
 					gl_FragData[0] = vec4(color, 1.0);
 				}    
-			`
+			`,
+		});
+
+		const leaf_material = Shaders.generate_material(gl, {
+			...tree_material,
+			element_buffer: Texture.create_element_buffer(gl, leaf_mesh.triangles),
+			globals: {
+				...tree_material.globals,
+				"vertex_position": {
+					type: "attribute",
+					unit: "vec3",
+					data: Texture.create_buffer(gl, leaf_mesh.vertices),
+				},
+				"vertex_normal": {
+					type: "attribute",
+					unit: "vec3",
+					data: Texture.create_buffer(gl, leaf_mesh.normals),
+				},
+				"vertex_split_height": {
+					type: "attribute",
+					unit: "float",
+					data: Texture.create_buffer(gl, leaf_mesh.split_height),
+				},
+			},
+			frag_source: `
+				void main(void) {
+					gl_FragData[0] = vec4(color, 1.0);
+				}    
+			`,
 		});
 
 		{ // 🙏 Set up gl context for rendering
@@ -391,6 +501,7 @@ export namespace Forest {
 		}
 
 		// 🎨 Draw materials
-		Shaders.render_material(gl, tree_material, mesh.triangles.length, model_position.length / 3.0);
+		Shaders.render_material(gl, bark_material, bark_mesh.triangles.length, model_position.length / 3.0);
+		Shaders.render_material(gl, leaf_material, leaf_mesh.triangles.length, model_position.length / 3.0);
 	}
 }

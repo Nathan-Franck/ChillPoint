@@ -139,7 +139,7 @@ export namespace Terrain {
 				"uv": { type: "varying", unit: "vec2" },
 				"color": { type: "varying", unit: "vec3" },
 			},
-			vertSource: `            
+			vert_source: `            
 				${camera.includes}
 
 				void main(void) {
@@ -148,7 +148,7 @@ export namespace Terrain {
 					color = vertex_color;
 				}
 			`,
-			fragSource: `
+			frag_source: `
 				void main(void) {
 					gl_FragColor = vec4(texture2D(grass, uv).rgb * color, 1.0);
 				}    
@@ -169,7 +169,7 @@ export namespace Terrain {
 				"uv": { type: "varying", unit: "vec2" },
 				"blend": { type: "varying", unit: "float" },
 			},
-			vertSource: `    
+			vert_source: `    
 				${camera.includes}
 
 				void main(void) {
@@ -183,7 +183,7 @@ export namespace Terrain {
 					blend = clamp((water_height - terrain_position.z) * 4.0, 0.0, 1.0);
 				}    
 			`,
-			fragSource: `
+			frag_source: `
 				void main(void) {
 					gl_FragColor = vec4(mix(
 						texture2D(foam, uv).y * vec3(2.0,2.0, 2.0),

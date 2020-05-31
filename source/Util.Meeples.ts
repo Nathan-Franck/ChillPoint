@@ -227,7 +227,7 @@ export namespace Meeples {
 				},
 				"color": { type: "varying", unit: "vec3" },
 			},
-			vertSource: `            
+			vert_source: `            
 				${camera.includes}
 
 				void main(void) {
@@ -235,7 +235,7 @@ export namespace Meeples {
 					color = vertex_color;
 				}
 			`,
-			fragSource: `
+			frag_source: `
 				void main(void) {
 					gl_FragColor = vec4(color, 1.0);
 				}    

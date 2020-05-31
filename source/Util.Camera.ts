@@ -16,11 +16,11 @@ export namespace Camera {
 			"camera_size": {
 				type: "const",
 				data: [
-					16 * window.innerWidth / window.innerHeight,
-					16
+					7 * window.innerWidth / window.innerHeight,
+					7
 				],
 			},
-			"camera_position": { type: "const", data: [0, 16] },
+			"camera_position": { type: "const", data: [0, 20] },
 			"x_vector": { type: "const", data: [1, 0.5] },
 			"y_vector": { type: "const", data: [-1, 0.5] },
 			"z_vector": { type: "const", data: [0, 1] },
