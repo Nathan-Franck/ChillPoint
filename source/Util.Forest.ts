@@ -44,8 +44,12 @@ export namespace Forest {
 
 	export type MeshSettings = {
 		readonly thickness: number,
+		readonly leaves: {
+			split_depth: number,
+			length: number,
+			breadth: number,
+		},
 		readonly growth_to_thickness: SmoothCurve,
-		readonly leaf_depth: number,
 	}
 
 	export type GenQueueItem = Node & {
@@ -204,7 +208,7 @@ export namespace Forest {
 			triangles: new Uint16Array(skeleton.nodes.length * 6 * 6),
 		} as const;
 		skeleton.nodes.
-			filter(node => node.split_depth != settings.leaf_depth).
+			filter(node => node.split_depth != settings.leaves.split_depth).
 			forEach((parent, node_index) => {
 				const child_index = skeleton.node_to_primary_child_index[node_index];
 				const child = child_index == null ? parent :
@@ -264,14 +268,15 @@ export namespace Forest {
 			triangles: new Uint16Array(skeleton.nodes.length * 6),
 		} as const;
 		skeleton.nodes.
-			filter(node => node.split_depth == settings.leaf_depth).
+			filter(node => node.split_depth == settings.leaves.split_depth).
 			forEach((node, node_index) => {
-				const height = node.size * node.growth;
+				const length = node.size * settings.leaves.length;
+				const breadth = node.size * settings.leaves.breadth;
 				const vertices = [
 					[0, 0, 0], // 0
-					[node.size * 0.4, node.size * 0.1, height * 0.5], // 1
-					[0, 0, height], // 2
-					[node.size * -0.4, node.size * 0.1, height * 0.5], // 3
+					[breadth * 0.4, breadth * 0.1, length * 0.5], // 1
+					[0, 0, length], // 2
+					[breadth * -0.4, breadth * 0.1, length * 0.5], // 3
 				] as const;
 				const vertex_offset = node_index * vertices.length * 3;
 				mesh.vertices.set(
@@ -325,11 +330,55 @@ export namespace Forest {
 		}
 
 		// 🌳 Beautiful trees ---
+
+		const test_tree: Settings & MeshSettings = {
+			start_size: 1,
+			start_growth: 1,
+			thickness: 0.05,
+			leaves: {
+				split_depth: 2,
+				length: 1,
+				breadth: .5,
+			},
+			growth_to_thickness: {
+				y_values: [0.0025, 0.035],
+				x_range: [0, 1]
+			},
+			depth_definitions: [{
+				name: "Branch-A",
+				split_amount: 10,
+				flatness: 0,
+				size: 0.3,
+				height_spread: 0.8,
+				branch_pitch: 50,
+				branch_roll: 90,
+				height_to_growth: {
+					y_values: [0, 1],
+					x_range: [0, 0.25]
+				},
+			}, {
+				name: "Leaf",
+				split_amount: 10,
+				flatness: 0,
+				size: 0.4,
+				height_spread: 0.8,
+				branch_pitch: 40 / 180 * Math.PI,
+				branch_roll: 90 / 180 * Math.PI,
+				height_to_growth: {
+					y_values: [0.5, 0.8, 1, 0.8, .5],
+					x_range: [0, 0.5]
+				},
+			}]
+		};
 		const diciduous: Settings & MeshSettings = {
 			start_size: 1,
 			start_growth: 1,
 			thickness: 0.05,
-			leaf_depth: 3,
+			leaves: {
+				split_depth: 4,
+				length: 1,
+				breadth: .3,
+			},
 			growth_to_thickness: {
 				y_values: [0.0025, 0.035],
 				x_range: [0, 1]
@@ -374,7 +423,7 @@ export namespace Forest {
 				name: "Leaf",
 				split_amount: 10,
 				flatness: 0,
-				size: 0.4,
+				size: 1,
 				height_spread: 0.8,
 				branch_pitch: 40 / 180 * Math.PI,
 				branch_roll: 90 / 180 * Math.PI,
@@ -419,7 +468,7 @@ export namespace Forest {
 					instanced: true,
 				},
 
-				"color": { type: "varying", unit: "vec3" },
+				"shade": { type: "varying", unit: "float" },
 			},
 			vert_source: `            
 			${camera.includes}
@@ -432,7 +481,7 @@ export namespace Forest {
 				gl_Position = vertex_split_height > model_growth ?
 					vec4(0) :
 					vec4(camera_transform(world_position), world_position.z * -0.125, 1.0);
-				color = vec3(dot(vertex_normal, -vec3(1.0, -1.0, -2.0)));
+				shade = max(dot(vertex_normal, -vec3(1.0, -1.0, -2.0)), 0.0);
 			}
 		`,
 		} as const;
@@ -460,7 +509,7 @@ export namespace Forest {
 			},
 			frag_source: `
 				void main(void) {
-					gl_FragData[0] = vec4(color, 1.0);
+					gl_FragData[0] = vec4(vec3(1, 1, 1) * shade, 1.0);
 				}    
 			`,
 		});
@@ -488,7 +537,7 @@ export namespace Forest {
 			},
 			frag_source: `
 				void main(void) {
-					gl_FragData[0] = vec4(color, 1.0);
+					gl_FragData[0] = vec4(vec3(0.5, 0.8, 0.4) * (0.5 + shade * 0.5), 1.0);
 				}    
 			`,
 		});
