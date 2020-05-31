@@ -423,7 +423,7 @@ export namespace Forest {
 				name: "Leaf",
 				split_amount: 10,
 				flatness: 0,
-				size: 1,
+				size: 0.7,
 				height_spread: 0.8,
 				branch_pitch: 40 / 180 * Math.PI,
 				branch_roll: 90 / 180 * Math.PI,
@@ -509,7 +509,7 @@ export namespace Forest {
 			},
 			frag_source: `
 				void main(void) {
-					gl_FragData[0] = vec4(vec3(1, 1, 1) * shade, 1.0);
+					gl_FragData[0] = vec4(vec3(0.7, 0.6, 0.5) * (0.25 + shade * 0.75), 1.0);
 				}    
 			`,
 		});
