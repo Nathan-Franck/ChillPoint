@@ -188,6 +188,7 @@ export namespace Forest {
 		const mesh = {
 			vertices: new Float32Array(skeleton.nodes.length * 8 * 3),
 			normals: new Float32Array(skeleton.nodes.length * 8 * 3),
+			split_height: new Float32Array(skeleton.nodes.length * 8),
 			triangles: new Uint16Array(skeleton.nodes.length * 6 * 6),
 		} as const;
 		skeleton.nodes.forEach((parent, node_index) => {
@@ -221,16 +222,16 @@ export namespace Forest {
 							parent.position,
 						))),
 				vertex_offset);
-			const debug_growth = Math.pow(parent.split_height, 1);
 			mesh.normals.set(
 				normals.flatMap(normal =>
-					([debug_growth, debug_growth, debug_growth])),
-				// Vec3.normal(
-				//     Vec3.apply_quat(
-				//         normal,
-				//         parent.rotation,
-				//     ))),
+					Vec3.normal(
+						Vec3.apply_quat(
+							normal,
+							parent.rotation,
+						))),
 				vertex_offset);
+			mesh.split_height.set(
+				vertices.map(() => parent.split_height), node_index * 8);
 			mesh.triangles.set(
 				triangles.map(i => i + node_index * 8),
 				node_index * 6 * 6);
@@ -320,7 +321,6 @@ export namespace Forest {
 		] as const).flatMap(vec =>
 			Vec3.add(vec, [16, 16, 0]))
 		);
-
 		const model_growth = new Float32Array([
 			1, 0.2, 0.6, 0.4,
 		]);
@@ -349,10 +349,15 @@ export namespace Forest {
 					unit: "vec3",
 					data: Texture.create_buffer(gl, mesh.vertices),
 				},
-				"vertex_color": {
+				"vertex_normal": {
 					type: "attribute",
 					unit: "vec3",
 					data: Texture.create_buffer(gl, mesh.normals),
+				},
+				"vertex_split_height": {
+					type: "attribute",
+					unit: "float",
+					data: Texture.create_buffer(gl, mesh.split_height),
 				},
 
 				"color": { type: "varying", unit: "vec3" },
@@ -365,15 +370,15 @@ export namespace Forest {
 					float shrink_rate = -min(z_position, 0.0);
 					vec3 shrunk_position = vec3(vertex_position.xy * mix(1.0, child_size, shrink_rate), z_position + shrink_rate);
 					vec3 world_position = shrunk_position * scale + model_position;
-					gl_Position = vertex_color.r > model_growth ?
+					gl_Position = vertex_split_height > model_growth ?
 						vec4(0) :
 						vec4(camera_transform(world_position), world_position.z * -0.125, 1.0);
-					color = vertex_color;
+					color = vec3(dot(vertex_normal, -vec3(1.0, -1.0, -2.0)));
 				}
 			`,
 			fragSource: `
 				void main(void) {
-					gl_FragData[0] = vec4(1.0);
+					gl_FragData[0] = vec4(color, 1.0);
 				}    
 			`
 		});
