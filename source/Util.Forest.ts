@@ -166,7 +166,7 @@ export namespace Forest {
 
 	type Skeleton = ReturnType<typeof generate_structure>;
 
-	const wood_normals = [
+	const bark_normals = [
 		[0.5, 0.5, 0],
 		[-0.5, 0.5, 0],
 		[-0.5, -0.5, 0],
@@ -177,7 +177,7 @@ export namespace Forest {
 		[0.5, -0.5, 0],
 	] as const;
 
-	const wood_triangles = [
+	const bark_triangles = [
 		0, 1, 2, 2, 3, 0, // Bottom
 		6, 5, 4, 4, 7, 6, // Top
 		2, 1, 5, 5, 6, 2, // Left
@@ -241,7 +241,7 @@ export namespace Forest {
 							))),
 					vertex_offset);
 				mesh.normals.set(
-					wood_normals.flatMap(normal =>
+					bark_normals.flatMap(normal =>
 						Vec3.normal(
 							Vec3.apply_quat(
 								normal,
@@ -251,8 +251,8 @@ export namespace Forest {
 				mesh.split_height.set(
 					vertices.map(() => parent.split_height), node_index * vertices.length);
 				mesh.triangles.set(
-					wood_triangles.map(i => i + node_index * vertices.length),
-					node_index * wood_triangles.length);
+					bark_triangles.map(i => i + node_index * vertices.length),
+					node_index * bark_triangles.length);
 			});
 		return mesh;
 	}
@@ -470,7 +470,7 @@ export namespace Forest {
 
 				"shade": { type: "varying", unit: "float" },
 			},
-			vert_source: `            
+			vert_source: `
 			${camera.includes}
 
 			void main(void) {
