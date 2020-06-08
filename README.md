@@ -4,6 +4,8 @@ Typescript / Web-technology playground with a focus on world rendering ---
 
 My personal playground while experimenting with Typescript and Web-technologies.
 
+![Chillpoint Showcase](https://raw.githubusercontent.com/TacticalDan/ChillPoint/master/Chillpoint%20Showcase.png)
+
 ## Tools/Features in Development
 
 ### Util.Shader.ts
