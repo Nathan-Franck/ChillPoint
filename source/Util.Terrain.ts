@@ -1,19 +1,23 @@
 import { Texture } from "./Util.Texture";
 import { Shaders } from "./Util.Shaders";
-import { HtmlBuilder } from "./Util.HtmlBuilder";
+import { HtmlBuilder, Style } from "./Util.HtmlBuilder";
 import { Camera } from "./Util.Camera";
 import { Vec2, Vec3 } from "./Util.VecMath";
 import { Indexing } from "./Util.Indexing";
+import { Forest } from "./Util.Forest";
+import { ChillpointStyles } from "./Chillpoint.Styles";
 
 export namespace Terrain {
 	export async function render(
 		parent: HTMLElement,
 		camera: typeof Camera.default_camera,
 		chunk_width: number,
+		canvas_style: Style,
 	) {
 		const canvas = HtmlBuilder.create_child(parent, {
 			type: "canvas",
 			style: {
+				...canvas_style,
 				width: "100%",
 				height: "100%",
 				position: "absolute",

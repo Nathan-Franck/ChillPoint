@@ -12,4 +12,8 @@ export namespace ChillpointStyles {
 		textAlign: "center",
 		fontFamily: "lato",
 	};
+
+	export const blurred: Style = {
+		filter: "blur(5px)",
+	};
 }

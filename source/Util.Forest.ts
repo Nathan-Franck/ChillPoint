@@ -3,6 +3,7 @@ import { Texture } from "./Util.Texture";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { Vec3, Quat, Num, Mat4 } from "./Util.VecMath";
 import { Camera } from "./Util.Camera";
+import { ChillpointStyles } from "./Chillpoint.Styles";
 
 export type SmoothCurve = {
 	y_values: number[],
@@ -312,6 +313,7 @@ export namespace Forest {
 		const canvas = HtmlBuilder.create_child(parent, {
 			type: "canvas",
 			style: {
+				// ...ChillpointStyles.blurred,
 				width: "100%",
 				height: "100%",
 				position: "absolute",
@@ -330,46 +332,6 @@ export namespace Forest {
 		}
 
 		// 🌳 Beautiful trees ---
-
-		const test_tree: Settings & MeshSettings = {
-			start_size: 1,
-			start_growth: 1,
-			thickness: 0.05,
-			leaves: {
-				split_depth: 2,
-				length: 1,
-				breadth: .5,
-			},
-			growth_to_thickness: {
-				y_values: [0.0025, 0.035],
-				x_range: [0, 1]
-			},
-			depth_definitions: [{
-				name: "Branch-A",
-				split_amount: 10,
-				flatness: 0,
-				size: 0.3,
-				height_spread: 0.8,
-				branch_pitch: 50,
-				branch_roll: 90,
-				height_to_growth: {
-					y_values: [0, 1],
-					x_range: [0, 0.25]
-				},
-			}, {
-				name: "Leaf",
-				split_amount: 10,
-				flatness: 0,
-				size: 0.4,
-				height_spread: 0.8,
-				branch_pitch: 40 / 180 * Math.PI,
-				branch_roll: 90 / 180 * Math.PI,
-				height_to_growth: {
-					y_values: [0.5, 0.8, 1, 0.8, .5],
-					x_range: [0, 0.5]
-				},
-			}]
-		};
 		const diciduous: Settings & MeshSettings = {
 			start_size: 1,
 			start_growth: 1,
@@ -537,7 +499,7 @@ export namespace Forest {
 			},
 			frag_source: `
 				void main(void) {
-					gl_FragData[0] = vec4(vec3(0.5, 0.8, 0.4) * (0.5 + shade * 0.5), 1.0);
+					gl_FragData[0] = vec4(vec3(0.55, 0.8, 0.35) * (0.5 + shade * 0.5), 1.0);
 				}    
 			`,
 		});

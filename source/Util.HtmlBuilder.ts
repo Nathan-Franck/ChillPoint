@@ -56,19 +56,19 @@ export namespace HtmlBuilder {
 	export function generateStyleHTML(styles: ClassStyle[]) {
 		return styles.reduce<string>((output, style) =>
 			`${output} ${style.name} {${
-				Object.keys(style.declaration).reduce<string>((output, declarationKey) => {
-					const formattedKey = declarationKey.replace(new RegExp(`([A-Z])`), match => `-${match.toLowerCase()}`);
-					const value = style.declaration[declarationKey as keyof Style];
-					return (
-						`${output} ${formattedKey}: ${value};`);
-				}, "")
+			Object.keys(style.declaration).reduce<string>((output, declarationKey) => {
+				const formattedKey = declarationKey.replace(new RegExp(`([A-Z])`), match => `-${match.toLowerCase()}`);
+				const value = style.declaration[declarationKey as keyof Style];
+				return (
+					`${output} ${formattedKey}: ${value};`);
+			}, "")
 			} }`, "");
 	}
 
 	/**
 	 * 🎨 Assign custom attributes and style to an existing element.
 	 */
-	export function assignToElement<T extends keyof HTMLElementTagNameMap>(
+	export function assign_to_element<T extends keyof HTMLElementTagNameMap>(
 		element: HTMLElementTagNameMap[T],
 		tag: Partial<HTMLTag<T>>,
 	) {
@@ -113,7 +113,7 @@ export namespace HtmlBuilder {
 		tag: HTMLTag<T>,
 	) {
 		const child = document.createElement(tag.type);
-		assignToElement(child, tag);
+		assign_to_element(child, tag);
 		parent.appendChild(child);
 		return child;
 	}
@@ -144,7 +144,7 @@ export namespace HtmlBuilder {
 	) {
 		const existingElement = pool.pop();
 		if (existingElement != null) {
-			assignToElement<T>(existingElement, tag);
+			assign_to_element<T>(existingElement, tag);
 			parent.appendChild(existingElement);
 			return existingElement;
 		} else {
