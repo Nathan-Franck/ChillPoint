@@ -3,7 +3,6 @@ import { Texture } from "./Util.Texture";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { Vec3, Quat, Num, Mat4 } from "./Util.VecMath";
 import { Camera } from "./Util.Camera";
-import { ChillpointStyles } from "./Chillpoint.Styles";
 
 export type SmoothCurve = {
 	y_values: number[],

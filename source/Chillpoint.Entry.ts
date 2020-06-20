@@ -5,6 +5,7 @@ import { Camera } from './Util.Camera';
 import { Meeples } from './Util.Meeples';
 import { Forest } from './Util.Forest';
 import { Weebles } from './Util.Weebles';
+import { Editor } from './Util.Editor';
 
 export namespace ChillpointEntry {
 	export function initialize_client() {
@@ -34,6 +35,10 @@ export namespace ChillpointEntry {
 			meeples: () => {
 				Terrain.render(body, Camera.default_camera, 32, {});
 				Meeples.render(body, Camera.default_camera);
+			},
+			editor: () => {
+				// Terrain.render(body, Camera.default_camera, 32, ChillpointStyles.blurred);
+				Editor.render(body);
 			},
 		};
 
