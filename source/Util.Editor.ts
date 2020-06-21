@@ -1,33 +1,75 @@
 import { HtmlBuilder } from "./Util.HtmlBuilder";
+import { KeyCodes } from "./Util.KeyCodes";
 
 export namespace Editor {
-    export function render(
-        parent: HTMLElement,
-    ) {
-        const textEditor = HtmlBuilder.create_child(parent, {
-            type: "div",
-            style: {
-                width: "100%",
-                height: "100%",
-                position: "absolute",
-                left: 0,
-                top: 0,
-                zIndex: 3,
-                color: "white",
-                backgroundColor: "transparent",
-                wordWrap: "break-word",
-                fontFamily: "Trebuchet MS",
-                whiteSpace: "pre",
-                overflow: "scroll",
-            },
-            attributes: {
-                innerHTML: sample_text,
-                contentEditable: "true",
-                spellcheck: false,
-            },
-        });
-
-    }
+	export function render(
+		parent: HTMLElement,
+	) {
+		const handleTabInput = (e: KeyboardEvent) => {
+			if (e.key != "Tab")
+				return;
+			const newText = "    ";
+			const { selectionStart } = textEditor;
+			textEditor.value = `${
+				textEditor.value.substring(0, selectionStart)
+				}${
+				newText
+				}${
+				textEditor.value.substring(textEditor.selectionEnd, textEditor.value.length)
+				}`;
+			const newSelection = selectionStart + newText.length;
+			textEditor.selectionStart = newSelection;
+			textEditor.selectionEnd = newSelection;
+			e.preventDefault();
+			return true;
+		};
+		const handleEnterInput = (e: KeyboardEvent) => {
+			if (e.key != "Enter")
+				return;
+			const newText = `
+`;
+			const { selectionStart } = textEditor;
+			textEditor.value = `${
+				textEditor.value.substring(0, selectionStart)
+				}${
+				newText
+				}${
+				textEditor.value.substring(textEditor.selectionEnd, textEditor.value.length)
+				}`;
+			const newSelection = selectionStart + newText.length;
+			textEditor.selectionStart = newSelection;
+			textEditor.selectionEnd = newSelection;
+			e.preventDefault();
+			return true;
+		};
+		const textEditor = HtmlBuilder.create_child(parent, {
+			type: "textarea",
+			style: {
+				width: "100%",
+				height: "100%",
+				position: "absolute",
+				left: 0,
+				top: 0,
+				zIndex: 3,
+				color: "white",
+				backgroundColor: "transparent",
+				fontFamily: "Trebuchet MS",
+				// wordWrap: "break-word",
+				// whiteSpace: "pre",
+				// overflow: "scroll",
+			},
+			attributes: {
+				innerHTML: sample_text,
+				contentEditable: "true",
+				spellcheck: false,
+				onkeydown: (e) => {
+					return (
+						handleTabInput(e) ||
+						handleEnterInput(e));
+				},
+			},
+		});
+	}
 }
 
 const sample_text = `
@@ -395,7 +437,7 @@ export namespace Forest {
 				flatness: 0.6,
 				size: 0.4,
 				height_spread: 0.8,
-				branch_pitch: 60 / 180 * Math.PI,
+				branch_pitch: 60 / 180 * Math.PI,	
 				branch_roll: 90 / 180 * Math.PI,
 				height_to_growth: {
 					y_values: [0.5, 0.9, 1],
