@@ -29,19 +29,19 @@ export namespace Editor {
 		parent: HTMLElement,
 	) {
 		const apply_text_state = (state: TextState) => {
-			textEditor.value = state.editor_contents;
-			textEditor.selectionStart = state.selection_start;
-			textEditor.selectionEnd = state.selection_end;
+			text_editor.value = state.editor_contents;
+			text_editor.selectionStart = state.selection_start;
+			text_editor.selectionEnd = state.selection_end;
 		};
 		const handle_tab_input = (e: KeyboardEvent) => {
 			if (e.key != "Tab")
 				return;
 			apply_text_state(
 				insertText({
-					new_text: "    ",
-					selection_start: textEditor.selectionStart,
-					selection_end: textEditor.selectionEnd,
-					editor_contents: textEditor.value,
+					new_text: "\t",
+					selection_start: text_editor.selectionStart,
+					selection_end: text_editor.selectionEnd,
+					editor_contents: text_editor.value,
 				})
 			);
 			e.preventDefault();
@@ -50,19 +50,27 @@ export namespace Editor {
 		const handle_enter_input = (e: KeyboardEvent) => {
 			if (e.key != "Enter")
 				return;
+			const state = {
+				selection_start: text_editor.selectionStart,
+				selection_end: text_editor.selectionEnd,
+				editor_contents: text_editor.value,
+			};
+			const pre_text = state.editor_contents.substring(0, state.selection_start);
+			const line_start = pre_text.lastIndexOf("\n");
+			const pre_line = pre_text.substring(line_start + 1);
+			const text_start = pre_line.trimStart();
+			const white_space = pre_line.substring(0, pre_line.length - text_start.length);
 			apply_text_state(
 				insertText({
+					...state,
 					new_text: `
-`,
-					selection_start: textEditor.selectionStart,
-					selection_end: textEditor.selectionEnd,
-					editor_contents: textEditor.value,
+${white_space}`,
 				})
 			);
 			e.preventDefault();
 			return true;
 		};
-		const textEditor = HtmlBuilder.create_child(parent, {
+		const text_editor = HtmlBuilder.create_child(parent, {
 			type: "textarea",
 			style: {
 				width: "100%",
