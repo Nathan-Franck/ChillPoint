@@ -36,14 +36,16 @@ export namespace Editor {
 		const handle_tab_input = (e: KeyboardEvent) => {
 			if (e.key != "Tab")
 				return;
-			apply_text_state(
-				insertText({
-					new_text: "\t",
-					selection_start: text_editor.selectionStart,
-					selection_end: text_editor.selectionEnd,
-					editor_contents: text_editor.value,
-				})
-			);
+
+			document.execCommand("insertText", false, "\t");
+			// apply_text_state(
+			// 	insertText({
+			// 		new_text: "\t",
+			// 		selection_start: text_editor.selectionStart,
+			// 		selection_end: text_editor.selectionEnd,
+			// 		editor_contents: text_editor.value,
+			// 	})
+			// );
 			e.preventDefault();
 			return true;
 		};
@@ -60,13 +62,14 @@ export namespace Editor {
 			const pre_line = pre_text.substring(line_start + 1);
 			const text_start = pre_line.trimStart();
 			const white_space = pre_line.substring(0, pre_line.length - text_start.length);
-			apply_text_state(
-				insertText({
-					...state,
-					new_text: `
-${white_space}`,
-				})
-			);
+			document.execCommand("insertText", false, `\n${white_space}`,);
+			// 			apply_text_state(
+			// 				insertText({
+			// 					...state,
+			// 					new_text: `
+			// ${white_space}`,
+			// 				})
+			// 			);
 			e.preventDefault();
 			return true;
 		};
