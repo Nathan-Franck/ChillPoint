@@ -2,43 +2,63 @@ import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { KeyCodes } from "./Util.KeyCodes";
 
 export namespace Editor {
+
+	export type TextState = {
+		editor_contents: string,
+		selection_start: number,
+		selection_end: number,
+	};
+
+	export function insertText(state: TextState & {
+		new_text: string,
+	}): TextState {
+		return {
+			editor_contents: `${
+				state.editor_contents.substring(0, state.selection_start)
+				}${
+				state.new_text
+				}${
+				state.editor_contents.substring(state.selection_end, state.editor_contents.length)
+				}`,
+			selection_start: state.selection_start + state.new_text.length,
+			selection_end: state.selection_start + state.new_text.length,
+		};
+	}
+
 	export function render(
 		parent: HTMLElement,
 	) {
-		const handleTabInput = (e: KeyboardEvent) => {
+		const apply_text_state = (state: TextState) => {
+			textEditor.value = state.editor_contents;
+			textEditor.selectionStart = state.selection_start;
+			textEditor.selectionEnd = state.selection_end;
+		};
+		const handle_tab_input = (e: KeyboardEvent) => {
 			if (e.key != "Tab")
 				return;
-			const newText = "    ";
-			const { selectionStart } = textEditor;
-			textEditor.value = `${
-				textEditor.value.substring(0, selectionStart)
-				}${
-				newText
-				}${
-				textEditor.value.substring(textEditor.selectionEnd, textEditor.value.length)
-				}`;
-			const newSelection = selectionStart + newText.length;
-			textEditor.selectionStart = newSelection;
-			textEditor.selectionEnd = newSelection;
+			apply_text_state(
+				insertText({
+					new_text: "    ",
+					selection_start: textEditor.selectionStart,
+					selection_end: textEditor.selectionEnd,
+					editor_contents: textEditor.value,
+				})
+			);
 			e.preventDefault();
 			return true;
 		};
-		const handleEnterInput = (e: KeyboardEvent) => {
+		const handle_enter_input = (e: KeyboardEvent) => {
 			if (e.key != "Enter")
 				return;
-			const newText = `
-`;
-			const { selectionStart } = textEditor;
-			textEditor.value = `${
-				textEditor.value.substring(0, selectionStart)
-				}${
-				newText
-				}${
-				textEditor.value.substring(textEditor.selectionEnd, textEditor.value.length)
-				}`;
-			const newSelection = selectionStart + newText.length;
-			textEditor.selectionStart = newSelection;
-			textEditor.selectionEnd = newSelection;
+			apply_text_state(
+				insertText({
+					new_text: `
+`,
+					selection_start: textEditor.selectionStart,
+					selection_end: textEditor.selectionEnd,
+					editor_contents: textEditor.value,
+				})
+			);
 			e.preventDefault();
 			return true;
 		};
@@ -64,8 +84,8 @@ export namespace Editor {
 				spellcheck: false,
 				onkeydown: (e) => {
 					return (
-						handleTabInput(e) ||
-						handleEnterInput(e));
+						handle_tab_input(e) ||
+						handle_enter_input(e));
 				},
 			},
 		});
