@@ -10,6 +10,13 @@
             "name": "Launch Chrome against localhost",
             "url": "http://localhost:5500/website",
             "webRoot": "${workspaceFolder}"
+        },
+        {
+            "name": "Start Web Server",
+            "type": "node",
+            "program": "${workspaceFolder}/server/WebServer.Entry.js",
+            "cwd": "${workspaceFolder}",
+            "request": "launch"
         }
     ]
 }

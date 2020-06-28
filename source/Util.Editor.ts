@@ -1,5 +1,4 @@
 import { HtmlBuilder } from "./Util.HtmlBuilder";
-import { KeyCodes } from "./Util.KeyCodes";
 
 export namespace Editor {
 
@@ -9,7 +8,7 @@ export namespace Editor {
 		selection_end: number,
 	};
 
-	export function insertText(state: TextState & {
+	export function insert_text(state: TextState & {
 		new_text: string,
 	}): TextState {
 		return {
@@ -37,7 +36,7 @@ export namespace Editor {
 			if (e.key != "Tab")
 				return;
 			apply_text_state(
-				insertText({
+				insert_text({
 					new_text: "\t",
 					selection_start: text_editor.selectionStart,
 					selection_end: text_editor.selectionEnd,
@@ -61,10 +60,9 @@ export namespace Editor {
 			const text_start = pre_line.trimStart();
 			const white_space = pre_line.substring(0, pre_line.length - text_start.length);
 			apply_text_state(
-				insertText({
+				insert_text({
 					...state,
-					new_text: `
-${white_space}`,
+					new_text: `\n${white_space}`,
 				})
 			);
 			e.preventDefault();
@@ -82,6 +80,7 @@ ${white_space}`,
 				color: "white",
 				backgroundColor: "transparent",
 				fontFamily: "Trebuchet MS",
+				fontSize: "16",
 				// wordWrap: "break-word",
 				// whiteSpace: "pre",
 				// overflow: "scroll",
