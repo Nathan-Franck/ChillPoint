@@ -1,6 +1,9 @@
 import * as http from "http";
 import * as fs from "fs";
 
+/**
+ * 🕊 Serves webpages/scripts/content out to HTTP clients
+ */
 export namespace WebServer {
     export function start_server() {
 
@@ -15,18 +18,9 @@ export namespace WebServer {
             "": undefined,
         } as const;
 
-        type RestMethod = 
-            | "GET"
-            | "PUT"
-            | "POST"
-            | "PATCH"
-            | "DELETE";
-
         http.createServer(async (req, res) => {
 
-            const method = req.method as RestMethod; // 👷 Respond differently depending on REST method used
-
-            // 🌍 Process URL for file retrieval from local server storage
+            // 🌍 Process URL for file retrieval fromd local server storage
             const incoming_url = req.url?.split("?")[0] ?? "/";
             const file_path = incoming_url != "/" ? incoming_url : "/index.html";
 
