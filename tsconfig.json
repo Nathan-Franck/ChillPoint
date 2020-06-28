@@ -4,9 +4,6 @@
         "lib": ["DOM", "ES2020"],
         "module": "AMD",
         "target": "ES2019",
-        "rootDir": "source",
-        "outDir": "website/js",
-        "outFile": "website/js/Chillpoint.Entry.js",
 
         "sourceMap": true,
         "noEmitOnError": true,
@@ -20,6 +17,6 @@
         "preserveConstEnums": true,
         "newLine": "lf",
 
-        "types": [],
-    },
+        "types": ["node"],
+    }
 }

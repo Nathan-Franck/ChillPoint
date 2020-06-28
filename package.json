@@ -6,10 +6,9 @@
     "build": "tsc",
     "watch": "tsc -w"
   },
-  "devDependencies": {
-    "typescript": "^3.7.5"
-  },
+  "devDependencies": {},
   "dependencies": {
-    "three": "^0.116.1"
+    "@types/node": "^14.0.14",
+    "typescript": "^3.7.5"
   }
 }

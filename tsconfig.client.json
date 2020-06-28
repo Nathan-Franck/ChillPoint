@@ -1,0 +1,9 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outFile": "website/js/Chillpoint.Entry.js",
+    },
+    "files": [
+        "source/Chillpoint.Entry.ts"
+    ]
+}

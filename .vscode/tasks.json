@@ -1,0 +1,19 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "client: watch",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": [],
+			"command": "npx tsc -w -p tsconfig.client.json"
+		},
+		{
+			"label": "server: watch",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": [],
+			"command": "npx tsc -w -p tsconfig.server.json"
+		},
+	]
+}

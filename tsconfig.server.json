@@ -1,0 +1,10 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "module": "CommonJS",
+        "outDir": "server"
+    },
+    "files": [
+        "source/WebServer.Entry.ts"
+    ]
+}

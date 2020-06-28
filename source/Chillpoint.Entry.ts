@@ -37,7 +37,7 @@ export namespace ChillpointEntry {
 				Meeples.render(body, Camera.default_camera);
 			},
 			editor: () => {
-				// Terrain.render(body, Camera.default_camera, 32, ChillpointStyles.blurred);
+				Terrain.render(body, Camera.default_camera, 32, ChillpointStyles.blurred);
 				Editor.render(body);
 			},
 		};
