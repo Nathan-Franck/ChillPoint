@@ -83,6 +83,8 @@ export function start_peer_advertising_server() {
         }
 
     }).listen(PeerAdvertising.public_port);
+
+    console.log("Started peer advertising server!");
 }
 
 start_peer_advertising_server();
