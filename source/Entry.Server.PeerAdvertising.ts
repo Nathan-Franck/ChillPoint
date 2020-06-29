@@ -6,10 +6,9 @@ export function start_peer_advertising_server() {
 
     let available_peers: readonly PeerAdvertising.AvailablePeer[] = [];
 
-    http.createServer(async (request, result) => {
+    http.createServer(async (request, response) => {
 
         // 👂 Get command from http request
-        const { remoteAddress, remotePort } = request.connection;
         const command = await new Promise(async (resolve: (result: PeerAdvertising.Command | null) => void) => {
             var body: Buffer[] = [];
             request.on('data', chunk =>
@@ -27,17 +26,18 @@ export function start_peer_advertising_server() {
                 }, 10000)
         });
 
-        const send_response = (response: PeerAdvertising.Response) => {
-            result.writeHead(200, {
+        const send_response = (response_contents: PeerAdvertising.Response) => {
+            response.writeHead(200, {
                 'Content-Type': "application/json",
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Headers": "Content-Type",
             });
-            const response_string = JSON.stringify(response);
-            result.end(response_string);
+            const response_string = JSON.stringify(response_contents);
+            response.end(response_string);
         };
 
-        // 🛑 Connection wasn't valid!
+        // 📫 Get remote address/port
+        const { remoteAddress, remotePort } = request.connection;
         if (remoteAddress == null ||
             remotePort == null
         ) {
