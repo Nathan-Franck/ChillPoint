@@ -1,5 +1,3 @@
-import * as http from "http";
-
 /**
  * 🌍 Single location to advertise peer nodes and have nodes learn about each other.
  * Requires some authentication to ensure that bad actors can't know about peers.
@@ -9,109 +7,104 @@ import * as http from "http";
  */
 export namespace PeerAdvertising {
 
+    export const public_address = "localhost";
+    export const public_port = 6902;
     export const private_key = "coast.rip.scope.decay.peach"; // 👷 Change this for actual distribution
-    export const hearbeat_rate_ms = 30000;
+    export const hearbeat_rate_ms = 3000;
 
     export type PeerRole = "storage" | "web" | "neural"; // ☁ Dream big
 
     export type Peer = {
         readonly identifier: string,
         readonly role: PeerRole,
-        readonly address: string,
+    };
+
+    export type AvailablePeer = Peer & {
         readonly timestamp: number,
+        readonly address: string,
+        readonly port: number,
     };
 
-    /**
-     *  Remove existing registration for identifier and add new one
-     */
-    export type RegisterHeartbeat = Peer & {
-        readonly private_key: typeof private_key,
-        readonly type: "register_heartbeat",
-    };
+    export namespace Commands {
 
-    /**
-     *  Remove peer for identifier
-     */
-    export type Unregister = {
-        readonly private_key: typeof private_key,
-        readonly type: "unregister",
-        readonly identifier: string,
-    };
+        /**
+         *  Remove existing registration for identifier and add new one
+         */
+        export type RegisterHeartbeat = Peer & {
+            readonly private_key: typeof private_key,
+            readonly type: "register_heartbeat",
+        };
 
-    /**
-     *  Present all current peers that haven't timed-out
-     */
-    export type ListPeers = {
-        readonly private_key: typeof private_key,
-        readonly type: "list_peers",
-    };
+        /**
+         *  Remove peer for identifier
+         */
+        export type Unregister = {
+            readonly private_key: typeof private_key,
+            readonly type: "unregister",
+            readonly identifier: string,
+        };
 
-    export type Unsafe = {
-        readonly private_key: string | number | null,
+        /**
+         *  Present all current peers that haven't timed-out
+         */
+        export type AvailablePeers = {
+            readonly private_key: typeof private_key,
+            readonly type: "available_peers",
+        };
+
+        export type Unsafe = {
+            readonly private_key: string | number | null,
+        }
+
     }
 
     export type Command = 
-        | RegisterHeartbeat
-        | Unregister
-        | ListPeers
-        | Unsafe;
+        | Commands.RegisterHeartbeat
+        | Commands.Unregister
+        | Commands.AvailablePeers
+        | Commands.Unsafe;
 
-    export type Response = "success" | {
-        readonly peers: readonly Peer[]
+    export type AvailablePeers = {
+        readonly available_peers: readonly AvailablePeer[]
+    };
+
+    export type Response = AvailablePeers |  { success: true } | { error: string };
+
+    export async function available_peers(): Promise<AvailablePeers | null> {
+        const response = await command_server({
+            private_key,
+            type: "available_peers",
+        });
+        if ("error" in response ||
+            "success" in response) {
+            return null;
+        }
+        return response;
     }
 
-    export function start_server() {
-
-        let peers: readonly Peer[] = [];
-
-        http.createServer(async (req, res) => {
-
-            // 👂 Get command from http request
-            const command = await new Promise(async (resolve: (result: Command | null) => void) => {
-                var body = '';
-                res.on('data', chunk => body += chunk);
-                res.on('end', () => {
-                    resolve(JSON.parse(body));
-                });
-                setTimeout(() => {
-                    resolve(null);
-                  }, 10000)
+    export function advertise_peer(peer: Peer) {
+        return setInterval(async () => {
+            const response = await command_server({
+                private_key,
+                type: "register_heartbeat",
+                ...peer,
             });
 
-            // 🛑 No valid command entered!
-            if (command == null ||
-                !("type" in command) ||
-                command.private_key != private_key
-            ) {
-                res.end("code: SQUAT");
-                return;
+            if (typeof response == "string") {
+                console.log(response);
             }
+        }, hearbeat_rate_ms);
+    }
 
-            // ✨ Respond to command
-            switch (command.type) {
-                case "list_peers":
-                    peers = peers.filter(peer =>
-                        Date.now() - peer.timestamp < hearbeat_rate_ms * 2);
-                    res.end(JSON.stringify(peers));
-                    break;
-                case "register_heartbeat":
-                    peers = [
-                        ...peers.filter(peer =>
-                            peer.identifier != command.identifier),
-                        {
-                            address: command.address,
-                            identifier: command.identifier,
-                            role: command.role,
-                            timestamp: Date.now(),
-                        }
-                    ]
-                    break;
-                case "unregister":
-                    peers = peers.filter(peer =>
-                        peer.identifier != command.identifier);
-                    break;
-            }
-
-        }).listen(9615);
+    async function command_server(command: Command) {
+        const fetchResult = await fetch(`http://${public_address}:${public_port}`, {
+            method: "POST",
+            mode: "cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(command),
+        });
+        const text = await fetchResult.text();
+        const response: Response = text ? JSON.parse(text) : {};
+        return response;
     }
 }

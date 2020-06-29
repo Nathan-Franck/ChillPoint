@@ -6,6 +6,7 @@ import { Meeples } from './Util.Meeples';
 import { Forest } from './Util.Forest';
 import { Weebles } from './Util.Weebles';
 import { Editor } from './Util.Editor';
+import { PeerAdvertising } from './Util.PeerAdvertising';
 
 /**
  *	👨‍🔬 Test front-end UI features using different named environments
@@ -41,6 +42,22 @@ export namespace UITests {
 			editor: () => {
 				Terrain.render(body, Camera.default_camera, 32, ChillpointStyles.blurred);
 				Editor.render(body);
+			},
+			register_peer: () => {
+				PeerAdvertising.advertise_peer({
+					identifier: "test_123",
+					role: "web",
+				});
+				const info = HtmlBuilder.create_child(body, {
+					type: "div",
+					attributes: { innerHTML: "Registering peer!" },
+					style: { color: "white" },
+				});
+				setInterval(async () => {
+					HtmlBuilder.assign_to_element(info, {
+						attributes: { innerHTML: `${await PeerAdvertising.available_peers()}` },
+					});
+				}, 1000);
 			},
 		};
 

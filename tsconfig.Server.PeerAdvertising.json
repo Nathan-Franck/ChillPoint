@@ -2,9 +2,9 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "module": "CommonJS",
-        "outDir": "server"
+        "outDir": "distributions"
     },
     "files": [
-        "source/WebServer.Entry.ts"
+        "source/Entry.Server.PeerAdvertising.ts"
     ]
 }

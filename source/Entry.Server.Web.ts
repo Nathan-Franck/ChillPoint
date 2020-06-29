@@ -43,7 +43,7 @@ export namespace WebServer {
             res.writeHead(200, {'Content-Type': content_type});
             res.end(file);
 
-        }).listen(9615);
+        }).listen(6901);
     }
 }
 

@@ -1,9 +1,9 @@
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
-        "outFile": "website/js/Chillpoint.Entry.js",
+        "outFile": "website/js/Entry.UI.Tests.js",
     },
     "files": [
-        "source/Chillpoint.Entry.ts"
+        "source/Entry.UI.Tests.ts"
     ]
 }
