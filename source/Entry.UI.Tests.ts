@@ -45,7 +45,7 @@ export namespace UITests {
 			},
 			register_peer: () => {
 				PeerAdvertising.advertise_peer({
-					identifier: "test_123",
+					identifier: `${Math.random()}`.slice(2, 8),
 					role: "web",
 				});
 				const info = HtmlBuilder.create_child(body, {
@@ -55,7 +55,7 @@ export namespace UITests {
 				});
 				setInterval(async () => {
 					HtmlBuilder.assign_to_element(info, {
-						attributes: { innerHTML: `${await PeerAdvertising.available_peers()}` },
+						attributes: { innerHTML: `${JSON.stringify(await PeerAdvertising.available_peers())}` },
 					});
 				}, 1000);
 			},
