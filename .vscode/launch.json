@@ -12,9 +12,16 @@
             "webRoot": "${workspaceFolder}"
         },
         {
-            "name": "Start Web Server",
+            "name": "Start Server.Web",
             "type": "node",
-            "program": "${workspaceFolder}/server/WebServer.Entry.js",
+            "program": "${workspaceFolder}/distributions/Entry.Server.Web.js",
+            "cwd": "${workspaceFolder}",
+            "request": "launch"
+        },
+        {
+            "name": "Start Server.PeerAdvertising",
+            "type": "node",
+            "program": "${workspaceFolder}/distributions/Entry.Server.PeerAdvertising.js",
             "cwd": "${workspaceFolder}",
             "request": "launch"
         }

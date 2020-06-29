@@ -2,18 +2,25 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "client: watch",
+			"label": "watch UI.Tests",
 			"type": "shell",
 			"group": "build",
 			"problemMatcher": [],
-			"command": "npx tsc -w -p tsconfig.client.json"
+			"command": "npx tsc -w -p tsconfig.UI.Tests.json"
 		},
 		{
-			"label": "server: watch",
+			"label": "watch Server.PeerAdvertising",
 			"type": "shell",
 			"group": "build",
 			"problemMatcher": [],
-			"command": "npx tsc -w -p tsconfig.server.json"
+			"command": "npx tsc -w -p tsconfig.Server.PeerAdvertising.json"
+		},
+		{
+			"label": "watch Server.Web",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": [],
+			"command": "npx tsc -w -p tsconfig.Server.Web.json"
 		},
 	]
 }
