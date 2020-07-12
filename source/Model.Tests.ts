@@ -25,6 +25,31 @@ export function modelTests() {
     type Test<T> = { name: string, expect: T, test: () => Promise<T> };
 
     const tests: Test<any>[] = [{
+        name: 'model.listen ignore unchanged members',
+        expect: "ecstatic",
+        test: async () => {
+
+            const model = new Model<State>(initialState);
+            model.state = model.state;
+            await Promise.resolve();
+
+            return await new Promise(resolve => {
+
+                model.listen("greeting", state => {
+                    resolve(state.greeting);
+                });
+
+                model.listen("expression", state => {
+                    resolve(state.expression);
+                });
+
+                model.state = {
+                    ...model.state,
+                    expression: "ecstatic",
+                };
+            });
+        },
+    }, {
         name: 'model.listen',
         expect: "hello world",
         test: async () => {
