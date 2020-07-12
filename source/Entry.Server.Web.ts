@@ -2,6 +2,15 @@ import * as http from "http";
 import * as fs from "fs";
 
 /**
+ * Usecases for the server
+ * - Access editor
+ * - Access tests
+ * - Load local files
+ * - Save local files
+ * - Query typescript=
+ */
+
+/**
  * 🕊 Serves webpages/scripts/content out to HTTP clients
  */
 export namespace WebServer {
