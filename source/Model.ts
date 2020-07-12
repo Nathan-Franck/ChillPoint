@@ -6,7 +6,7 @@ export class Model<T> {
 
     constructor(private _state: Immutable<T>) { }
 
-    public listen(members: keyof T | ReadonlyArray<keyof T>, callback: (state: T) => void) {
+    public listen(members: "all" | keyof T | ReadonlyArray<keyof T>, callback: (state: T) => void) {
         this._listeners.push({ members, callback });
     }
 
@@ -31,11 +31,12 @@ export class Model<T> {
                     // 🚥 Filter functions to determine which listeners should run
                     const memberChanged = (member: keyof T) =>
                         lastState == null || this._state[member] != lastState[member];
-                    const anyMemberChanged = (listener: { members: keyof T | ReadonlyArray<keyof T> }) =>
-                        typeof listener.members == "object" ?
-                            listener.members.some(member =>
-                                memberChanged(member)) :
-                            memberChanged(listener.members);
+                    const anyMemberChanged = (listener: { members: "all" | keyof T | ReadonlyArray<keyof T> }) =>
+                        listener.members == "all" ? true :
+                            typeof listener.members == "object" ?
+                                listener.members.some(member =>
+                                    memberChanged(member)) :
+                                memberChanged(listener.members);
 
                     this._lastState = this._state;
 
@@ -60,9 +61,24 @@ export class Model<T> {
             queueMicrotask(this._changeMicrotask);
         }
     }
-    
+
+    /** 🤵👰 Marry two models together forever 😻 */
+    public submodel<U extends keyof T>(member: U) {
+        const submodel = new Model<T[U]>(this.state[member]);
+        submodel.listen("all", state => {
+            this.state = {
+                ...this.state,
+                emotion: submodel.state,
+            };
+        });
+        this.listen(member, state => {
+            submodel.state = state[member];
+        });
+        return submodel;
+    }
+
     _listeners: {
-        members: keyof T | ReadonlyArray<keyof T>,
+        members: "all" | keyof T | ReadonlyArray<keyof T>,
         callback: (state: Immutable<T>) => void
     }[] = [];
     _responders: {

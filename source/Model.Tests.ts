@@ -5,13 +5,11 @@ export function modelTests() {
     type State = {
         greeting: string | undefined,
         expression: "sullen" | "ecstatic" | "mute",
-        emotion: EmotionState,
+        emotion: {
+            tension: number,
+            happiness: number,
+        },
     };
-
-    type EmotionState = {
-        tension: number,
-        happiness: number,
-    }
 
     const initialState = {
         greeting: undefined,
@@ -30,6 +28,8 @@ export function modelTests() {
         test: async () => {
 
             const model = new Model<State>(initialState);
+
+            // 🔨 Force model to consider itself unchanged
             model.state = model.state;
             await Promise.resolve();
 
@@ -107,19 +107,7 @@ export function modelTests() {
         test: async () => {
 
             const model = new Model<State>(initialState);
-
-            const emotionModel = new Model<EmotionState>(model.state.emotion);
-
-            // 🤵👰 Marry the two models together forever 😻
-            emotionModel.listen(["happiness", "tension"], state => {
-                model.state = {
-                    ...model.state,
-                    emotion: emotionModel.state,
-                };
-            });
-            model.listen("emotion", state => {
-                emotionModel.state = state.emotion;
-            });
+            const emotionModel = model.submodel("emotion");
 
             return await new Promise(resolve => {
 
@@ -142,19 +130,7 @@ export function modelTests() {
         test: async () => {
 
             const model = new Model<State>(initialState);
-
-            const emotionModel = new Model<EmotionState>(model.state.emotion);
-
-            // 🤵👰 Marry the two models together forever 😻
-            emotionModel.listen(["happiness", "tension"], state => {
-                model.state = {
-                    ...model.state,
-                    emotion: emotionModel.state,
-                };
-            });
-            model.listen("emotion", state => {
-                emotionModel.state = state.emotion;
-            });
+            const emotionModel = model.submodel("emotion");
 
             return await new Promise(resolve => {
 
