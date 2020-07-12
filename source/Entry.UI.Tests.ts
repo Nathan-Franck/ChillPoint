@@ -7,12 +7,17 @@ import { Forest } from './Util.Forest';
 import { Weebles } from './Util.Weebles';
 import { Editor } from './Util.Editor';
 import { PeerAdvertising } from './Util.PeerAdvertising';
+import { PeerConnection } from './Util.PeerConnection';
+import { modelTests } from "./Model.Tests";
 
 /**
  *	👨‍🔬 Test front-end UI features using different named environments
  */
 export namespace UITests {
 	export function initialize_client() {
+
+		modelTests();
+
 		const body = HtmlBuilder.assign_to_element(document.body, {
 			style: {
 				margin: 0,
@@ -43,7 +48,7 @@ export namespace UITests {
 				Terrain.render(body, Camera.default_camera, 32, ChillpointStyles.blurred);
 				Editor.render(body);
 			},
-			register_peer: () => {
+			register_peer: async () => {
 				PeerAdvertising.advertise_peer({
 					identifier: `${Math.random()}`.slice(2, 8),
 					role: "web",
@@ -59,8 +64,9 @@ export namespace UITests {
 					});
 				}, 1000);
 			},
+			peer_example: PeerConnection.example,
 		};
-
+		
 		const url = new URL(window.location.href);
 		const test_name = url.searchParams.get("test") as keyof typeof tests;
 

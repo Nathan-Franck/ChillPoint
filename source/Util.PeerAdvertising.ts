@@ -7,8 +7,8 @@
  */
 export namespace PeerAdvertising {
 
-    export const public_address = "localhost";
-    export const public_port = 6902;
+    export const public_address = "35.202.26.213";
+    export const public_port = 80;
     export const private_key = "coast.rip.scope.decay.peach"; // 👷 Change this for actual distribution
     export const hearbeat_rate_ms = 3000;
 
