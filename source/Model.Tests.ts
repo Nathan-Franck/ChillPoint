@@ -33,7 +33,7 @@ export function modelTests() {
 
             return await new Promise(resolve => {
 
-                model.listen(["greeting"], state => {
+                model.listen("greeting", state => {
                     resolve(state.greeting);
                 });
 
@@ -46,14 +46,14 @@ export function modelTests() {
         },
     }, {
         name: 'model.respond',
-        expect: "sullener",
+        expect: "sullen",
         test: async () => {
 
             const model = new Model<State>(initialState);
 
             const newState = await new Promise((resolve: (x: State) => void) => {
 
-                model.respond(["greeting"], state => {
+                model.respond("greeting", state => {
                     if (state.greeting == "what are you looking at?") {
                         return {
                             expression: "sullen",
@@ -61,7 +61,7 @@ export function modelTests() {
                     }
                 });
 
-                model.listen(["expression"], state => {
+                model.listen("expression", state => {
                     if (state.expression == initialState.expression)
                         return;
                     resolve(state);
@@ -92,13 +92,13 @@ export function modelTests() {
                     emotion: emotionModel.state,
                 };
             });
-            model.listen(["emotion"], state => {
+            model.listen("emotion", state => {
                 emotionModel.state = state.emotion;
             });
 
             return await new Promise(resolve => {
 
-                emotionModel.listen(["tension"], state => {
+                emotionModel.listen("tension", state => {
                     resolve(state.tension);
                 });
 
@@ -127,13 +127,13 @@ export function modelTests() {
                     emotion: emotionModel.state,
                 };
             });
-            model.listen(["emotion"], state => {
+            model.listen("emotion", state => {
                 emotionModel.state = state.emotion;
             });
 
             return await new Promise(resolve => {
 
-                model.listen(["emotion"], state => {
+                model.listen("emotion", state => {
                     resolve(state.emotion.tension);
                 });
 
