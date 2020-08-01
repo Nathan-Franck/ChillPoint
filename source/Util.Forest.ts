@@ -1,4 +1,4 @@
-import { ShaderBuilder, ShaderGlobals } from "./Util.ShaderBuilder";
+import { ShaderBuilder } from "./Util.ShaderBuilder";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { Vec3, Quat, Num, Mat4 } from "./Util.VecMath";
 import { Camera } from "./Util.Camera";

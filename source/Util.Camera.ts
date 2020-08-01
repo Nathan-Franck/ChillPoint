@@ -1,4 +1,4 @@
-import { ShaderGlobals, Binds } from "./Util.ShaderBuilder";
+import { Binds } from "./Util.ShaderBuilder";
 
 export namespace Camera {
 	export const environment = {
