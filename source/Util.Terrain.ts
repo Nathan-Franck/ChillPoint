@@ -204,16 +204,16 @@ export namespace Terrain {
 		// 🎨 Draw materials
 		ShaderBuilder.render_material(gl, ground_material, {
 			...camera,
-			"grass": [await ShaderBuilder.load_texture(gl, "./images/grass.jpg")],
+			"grass": await ShaderBuilder.load_texture(gl, "./images/grass.jpg"),
 			"world_position": ShaderBuilder.create_buffer(gl, vertices),
 			"vertex_color": ShaderBuilder.create_buffer(gl, color),
 		});
 		ShaderBuilder.render_material(gl, water_material, {
 			...camera,
-			"water": [await ShaderBuilder.load_texture(gl, "./images/water.jpg")],
-			"foam": [await ShaderBuilder.load_texture(gl, "./images/foam.jpg")],
+			"water": await ShaderBuilder.load_texture(gl, "./images/water.jpg"),
+			"foam": await ShaderBuilder.load_texture(gl, "./images/foam.jpg"),
 			"terrain_position": ShaderBuilder.create_buffer(gl, vertices),
-			"water_height": [0.75],
+			"water_height": 0.75,
 		});
 	}
 }

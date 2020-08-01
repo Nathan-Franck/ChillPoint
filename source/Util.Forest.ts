@@ -488,8 +488,8 @@ export namespace Forest {
 			...camera,
 			"model_position": ShaderBuilder.create_buffer(gl, model_position),
 			"model_growth": ShaderBuilder.create_buffer(gl, model_growth),
-			"child_size": [diciduous.depth_definitions["Branch-A"].size],
-			"scale": [7],
+			"child_size": diciduous.depth_definitions["Branch-A"].size,
+			"scale": 7,
 		} as const;
 
 		// 🎨 Draw materials

@@ -29,8 +29,8 @@ export namespace UITests {
 		});
 
 		const camera: Camera.Transform = {
-			"camera_position": [[0, 15]],
-			"camera_size": [[7 * window.innerWidth / window.innerHeight, 7]],
+			"camera_position": [0, 17],
+			"camera_size": [7 * window.innerWidth / window.innerHeight, 7],
 		}
 
 		const tests = {
