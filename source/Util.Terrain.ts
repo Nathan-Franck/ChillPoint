@@ -3,7 +3,6 @@ import { HtmlBuilder, Style } from "./Util.HtmlBuilder";
 import { Camera } from "./Util.Camera";
 import { Vec2, Vec3 } from "./Util.VecMath";
 import { Indexing } from "./Util.Indexing";
-import { CipherNameAndProtocol } from "tls";
 
 export namespace Terrain {
 	export async function render(
