@@ -44,64 +44,16 @@ export namespace Meeples {
 		const skeleton: {
 			[key in Joint]: BoneInfo<Joint>
 		} = {
-			chest: {
-				parent: null,
-				relative_position: [0, 0, 0],
-				debug_color: [1, 1, 1],
-			},
-			head: {
-				parent: "chest",
-				relative_position: [0, 0, 0.5],
-				debug_color: [1, 0, 0],
-			},
-			shoulder: {
-				parent: "chest",
-				relative_position: [.5, 0, 0],
-				debug_color: [0, 0, 1],
-				mirrored: true,
-			},
-			hip: {
-				parent: "chest",
-				relative_position: [0.25, 0, -1],
-				debug_color: [0, 0, 1],
-				mirrored: true,
-			},
-			elbow: {
-				parent: "shoulder",
-				relative_position: [.5, 0, 0],
-				debug_color: [0, 1, 0],
-				mirrored: true,
-			},
-			wrist: {
-				parent: "elbow",
-				relative_position: [.5, 0, 0],
-				debug_color: [0, 1, 0],
-				mirrored: true,
-			},
-			finger: {
-				parent: "wrist",
-				relative_position: [.5, 0, 0],
-				debug_color: [0, 1, 0],
-				mirrored: true,
-			},
-			knee: {
-				parent: "hip",
-				relative_position: [0, 0, -1],
-				debug_color: [1, 0, 1],
-				mirrored: true,
-			},
-			ankle: {
-				parent: "knee",
-				relative_position: [0, 0, -1],
-				debug_color: [1, 0, 1],
-				mirrored: true,
-			},
-			toe: {
-				parent: "ankle",
-				relative_position: [0, 0.25, 0],
-				debug_color: [1, 0, 1],
-				mirrored: true,
-			},
+			chest: { parent: null, relative_position: [0, 0, 0], debug_color: [1, 1, 1], },
+			head: { parent: "chest", relative_position: [0, 0, 0.5], debug_color: [1, 0, 0], },
+			shoulder: { parent: "chest", relative_position: [.5, 0, 0], debug_color: [0, 0, 1], mirrored: true, },
+			hip: { parent: "chest", relative_position: [0.25, 0, -1], debug_color: [0, 0, 1], mirrored: true, },
+			elbow: { parent: "shoulder", relative_position: [.5, 0, 0], debug_color: [0, 1, 0], mirrored: true, },
+			wrist: { parent: "elbow", relative_position: [.5, 0, 0], debug_color: [0, 1, 0], mirrored: true, },
+			finger: { parent: "wrist", relative_position: [.5, 0, 0], debug_color: [0, 1, 0], mirrored: true, },
+			knee: { parent: "hip", relative_position: [0, 0, -1], debug_color: [1, 0, 1], mirrored: true, },
+			ankle: { parent: "knee", relative_position: [0, 0, -1], debug_color: [1, 0, 1], mirrored: true, },
+			toe: { parent: "ankle", relative_position: [0, 0.25, 0], debug_color: [1, 0, 1], mirrored: true, },
 		};
 
 		// 🏭 Convert base-definition of skeleton into renderable bones

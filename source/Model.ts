@@ -1,90 +1,116 @@
-export type Immutable<T> = Readonly<{
-    [key in keyof T]: Immutable<T[key]>
-}>
 
-export class Model<T> {
+type Members<T> = "all-members" | keyof T | ReadonlyArray<keyof T>;
 
-    constructor(private _state: Immutable<T>) { }
+export type Model<T> = {
+    listen: (members: Members<T>, callback: (state: T) => void) => void;
+    respond: (members: Members<T>, response: (state: T) => Promise<Partial<T> | undefined> | Partial<T> | undefined) => void;
+    state: Readonly<T>;
+    submodel: <U extends keyof T>(member: U) => Model<T[U]>,
+    refresh_all: () => void,
+};
 
-    public listen(members: "all" | keyof T | ReadonlyArray<keyof T>, callback: (state: T) => void) {
-        this._listeners.push({ members, callback });
-    }
+export namespace Model {
+    export function create<T>(_state: Readonly<T>): Model<T> {
 
-    public respond(members: keyof T | ReadonlyArray<keyof T>, response: (state: T) => Partial<T> | undefined) {
-        this._responders.push({ members, response });
-    }
+        const _listeners: {
+            members: Members<T>,
+            callback: (state: Readonly<T>) => void
+        }[] = [];
+        const _responders: {
+            members: Members<T>,
+            response: (state: Readonly<T>) => Promise<Partial<T> | undefined> | Partial<T> | undefined
+        }[] = [];
+        let _last_state: Readonly<T> | undefined = undefined;
+        let _change_microtask: (() => void) | undefined = undefined;
 
-    public get state(): Immutable<T> {
-        return this._state;
-    }
+        const trigger_microtask = () => {
+            // 👀 Trigger all relevant responders/listeners
+            if (_change_microtask == null) {
+                _change_microtask = async () => {
+                    while (_state != _last_state) {
+                        const last_state = _last_state;
+                        _last_state = _state;
 
-    public set state(value: Immutable<T>) {
-        this._state = value;
+                        // 🚥 Filter functions to determine which listeners should run
+                        const member_changed = (member: keyof T) =>
+                            last_state == null || _state[member] != last_state[member];
+                        const any_member_changed = (listener: { members: Members<T> }) =>
+                            listener.members == "all-members" ? true :
+                                typeof listener.members != "object" ?
+                                    member_changed(listener.members) :
+                                    listener.members.some(member =>
+                                        member_changed(member));
 
-        // 👀 Trigger all relevant responders/listeners
-        if (this._changeMicrotask == null) {
 
-            this._changeMicrotask = () => {
-                while (this._state != this._lastState) {
-                    const lastState = this._lastState;
+                        // 👂 Listeners that don't directly affect the state [most of the time]
+                        await Promise.all(_listeners.
+                            map(async listener => {
+                                if (!any_member_changed(listener))
+                                    return;
+                                try {
+                                    listener.callback(_state)
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                            }));
 
-                    // 🚥 Filter functions to determine which listeners should run
-                    const memberChanged = (member: keyof T) =>
-                        lastState == null || this._state[member] != lastState[member];
-                    const anyMemberChanged = (listener: { members: "all" | keyof T | ReadonlyArray<keyof T> }) =>
-                        listener.members == "all" ? true :
-                            typeof listener.members == "object" ?
-                                listener.members.some(member =>
-                                    memberChanged(member)) :
-                                memberChanged(listener.members);
+                        // 🏃 Responders that directly write back to the state
+                        await Promise.all(_responders.
+                            map(async responder => {
+                                if (!any_member_changed(responder))
+                                    return;
+                                try {
+                                    const result = await responder.response(_state);
+                                    _state = {
+                                        ..._state,
+                                        ...result,
+                                    };
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                            }, _state));
 
-                    this._lastState = this._state;
-
-                    // 👂 Listeners that don't directly affect the state [most of the time]
-                    this._listeners.
-                        filter(anyMemberChanged).
-                        forEach(listener =>
-                            listener.callback(this._state));
-
-                    // 🏃 Responders that directly write back to the state
-                    this._state = this._responders.
-                        filter(anyMemberChanged).
-                        reduce((state, responder) => ({
-                            ...state,
-                            ...responder.response(state)
-                        }), this._state);
-
+                    }
+                    _change_microtask = undefined;
                 }
-                this._changeMicrotask = undefined;
             };
+            queueMicrotask(_change_microtask);
+        };
 
-            queueMicrotask(this._changeMicrotask);
-        }
+        return {
+            listen: (members, callback) => {
+                _listeners.push({ members, callback });
+            },
+            respond: (members, response) => {
+                _responders.push({ members, response });
+            },
+            get state() {
+                return _state;
+            },
+            set state(value) {
+                _state = value;
+                trigger_microtask();
+            },
+            submodel: <U extends keyof T>(member: U) => {
+                const submodel = Model.create<T[U]>(_state[member]);
+                submodel.listen("all-members", state => {
+                    _state = {
+                        ..._state,
+                        [member]: state,
+                    };
+                    trigger_microtask();
+                });
+                _listeners.push({
+                    members: member, callback: state => {
+                        submodel.state = state[member];
+                    }
+                });
+                return submodel;
+            },
+            refresh_all: () => {
+                _last_state = undefined;
+                trigger_microtask();
+            }
+        };
     }
-
-    /** 🤵👰 Marry two models together forever 😻 */
-    public submodel<U extends keyof T>(member: U) {
-        const submodel = new Model<T[U]>(this.state[member]);
-        submodel.listen("all", state => {
-            this.state = {
-                ...this.state,
-                emotion: submodel.state,
-            };
-        });
-        this.listen(member, state => {
-            submodel.state = state[member];
-        });
-        return submodel;
-    }
-
-    _listeners: {
-        members: "all" | keyof T | ReadonlyArray<keyof T>,
-        callback: (state: Immutable<T>) => void
-    }[] = [];
-    _responders: {
-        members: keyof T | ReadonlyArray<keyof T>,
-        response: (state: Immutable<T>) => Partial<T> | undefined
-    }[] = [];
-    _lastState: Immutable<T> | undefined = undefined;
-    _changeMicrotask: (() => void) | undefined = undefined;
 }

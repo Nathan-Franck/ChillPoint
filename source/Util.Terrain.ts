@@ -4,8 +4,6 @@ import { HtmlBuilder, Style } from "./Util.HtmlBuilder";
 import { Camera } from "./Util.Camera";
 import { Vec2, Vec3 } from "./Util.VecMath";
 import { Indexing } from "./Util.Indexing";
-import { Forest } from "./Util.Forest";
-import { ChillpointStyles } from "./Chillpoint.Styles";
 
 export namespace Terrain {
 	export async function render(
