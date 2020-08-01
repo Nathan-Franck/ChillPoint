@@ -1,11 +1,13 @@
+import { ShaderGlobals, Binds } from "./Util.ShaderBuilder";
+
 export namespace Camera {
-	export const default_camera = {
+	export const environment = {
 		includes: `
 				vec2 camera_transform(vec3 world_position) {
 					vec2 ortho_position =
-						world_position.x * x_vector +
-						world_position.y * y_vector +
-						world_position.z * z_vector;
+						world_position.x * vec2(1.0, 0.5) +
+						world_position.y * vec2(-1.0, 0.5) +
+						world_position.z * vec2(0.0, 1.0);
 					return vec2((
 						ortho_position -
 						camera_position
@@ -13,19 +15,10 @@ export namespace Camera {
 				}
 			`,
 		globals: {
-			"camera_size": {
-				type: "const",
-				data: [
-					7 * window.innerWidth / window.innerHeight,
-					7
-				],
-			},
-			"camera_position": { type: "const", data: [0, 20] },
-			"x_vector": { type: "const", data: [1, 0.5] },
-			"y_vector": { type: "const", data: [-1, 0.5] },
-			"z_vector": { type: "const", data: [0, 1] },
+			"camera_size": { type: "uniform", unit: "vec2", count: 1 },
+			"camera_position": { type: "uniform", unit: "vec2", count: 1 },
 		},
 	} as const;
 
-	default_camera.globals.camera_size.type
+	export type Transform = Binds<typeof environment["globals"]>;
 }

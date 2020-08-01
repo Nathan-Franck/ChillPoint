@@ -1,14 +1,13 @@
 
-import { Texture } from "./Util.Texture";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { Camera } from "./Util.Camera";
 import { Vec3 } from "./Util.VecMath";
-import { Shaders } from "./Util.Shaders";
+import { ShaderBuilder } from "./Util.ShaderBuilder";
 
 export namespace Meeples {
 	export async function render(
 		parent: HTMLElement,
-		camera: typeof Camera.default_camera,
+		camera: Camera.Transform,
 	) {
 		const canvas = HtmlBuilder.create_child(parent, {
 			type: "canvas",
@@ -164,23 +163,21 @@ export namespace Meeples {
 		});
 
 		// 🙋‍♂️ Meeples
-		const meeple_material = Shaders.generate_material(gl, {
+		const meeple_material = ShaderBuilder.generate_material(gl, {
 			globals: {
-				...camera.globals,
+				...Camera.environment.globals,
 				"world_position": {
 					type: "attribute",
 					unit: "vec3",
-					data: Texture.create_buffer(gl, world_positions)
 				},
 				"vertex_color": {
 					type: "attribute",
 					unit: "vec3",
-					data: Texture.create_buffer(gl, vertex_colors)
 				},
 				"color": { type: "varying", unit: "vec3" },
 			},
 			vert_source: `            
-				${camera.includes}
+				${Camera.environment.includes}
 
 				void main(void) {
 					gl_Position = vec4(camera_transform(world_position), world_position.z * -0.25, 1.0);
@@ -202,6 +199,10 @@ export namespace Meeples {
 		}
 
 		// 🎨 Draw materials
-		Shaders.render_material(gl, meeple_material, world_positions.length);
+		ShaderBuilder.render_material(gl, meeple_material, {
+			...camera,
+			"world_position": ShaderBuilder.create_buffer(gl, world_positions),
+			"vertex_color": ShaderBuilder.create_buffer(gl, vertex_colors),
+		});
 	}
 }
