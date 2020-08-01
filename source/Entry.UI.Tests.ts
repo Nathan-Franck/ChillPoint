@@ -28,24 +28,29 @@ export namespace UITests {
 			},
 		});
 
+		const camera: Camera.Transform = {
+			"camera_position": [[0, 15]],
+			"camera_size": [[7 * window.innerWidth / window.innerHeight, 7]],
+		}
+
 		const tests = {
 			terrain: () => {
-				Terrain.render(body, Camera.default_camera, 32, {});
+				Terrain.render(body, camera, 32, {});
 			},
 			forest_small: () => {
-				Terrain.render(body, Camera.default_camera, 32, ChillpointStyles.blurred);
-				Forest.render(body, Camera.default_camera);
+				Terrain.render(body, camera, 32, ChillpointStyles.blurred);
+				Forest.render(body, camera);
 			},
 			forest_big: () => {
-				Terrain.render(body, Camera.default_camera, 32, {});
-				Forest.render(body, Camera.default_camera);
+				Terrain.render(body, camera, 32, {});
+				Forest.render(body, camera);
 			},
 			meeples: () => {
-				Terrain.render(body, Camera.default_camera, 32, {});
-				Meeples.render(body, Camera.default_camera);
+				Terrain.render(body, camera, 32, {});
+				Meeples.render(body, camera);
 			},
 			editor: () => {
-				Terrain.render(body, Camera.default_camera, 32, ChillpointStyles.blurred);
+				Terrain.render(body, camera, 32, ChillpointStyles.blurred);
 				Editor.render(body);
 			},
 			register_peer: async () => {
@@ -66,7 +71,7 @@ export namespace UITests {
 			},
 			peer_example: PeerConnection.example,
 		};
-		
+
 		const url = new URL(window.location.href);
 		const test_name = url.searchParams.get("test") as keyof typeof tests;
 

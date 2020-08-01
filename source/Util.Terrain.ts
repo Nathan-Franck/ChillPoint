@@ -1,14 +1,14 @@
-import { Texture } from "./Util.Texture";
-import { Shaders } from "./Util.Shaders";
+import { ShaderBuilder, Binds } from "./Util.ShaderBuilder";
 import { HtmlBuilder, Style } from "./Util.HtmlBuilder";
 import { Camera } from "./Util.Camera";
 import { Vec2, Vec3 } from "./Util.VecMath";
 import { Indexing } from "./Util.Indexing";
+import { CipherNameAndProtocol } from "tls";
 
 export namespace Terrain {
 	export async function render(
 		parent: HTMLElement,
-		camera: typeof Camera.default_camera,
+		camera: Camera.Transform,
 		chunk_width: number,
 		canvas_style: Style,
 	) {
@@ -130,19 +130,19 @@ export namespace Terrain {
 		}
 
 		// 🐢 Ground
-		const ground_material = Shaders.generate_material(gl, {
+		const ground_material = ShaderBuilder.generate_material(gl, {
 			globals: {
-				...camera.globals,
+				...Camera.environment.globals,
 
-				"grass": { type: "uniform", unit: "sampler2D", data: await Texture.load(gl, "./images/grass.jpg") },
-				"world_position": { type: "attribute", unit: "vec3", data: Texture.create_buffer(gl, vertices) },
-				"vertex_color": { type: "attribute", unit: "vec3", data: Texture.create_buffer(gl, color) },
+				"grass": { type: "uniform", unit: "sampler2D", count: 1 },
+				"world_position": { type: "attribute", unit: "vec3" },
+				"vertex_color": { type: "attribute", unit: "vec3" },
 
 				"uv": { type: "varying", unit: "vec2" },
 				"color": { type: "varying", unit: "vec3" },
 			},
 			vert_source: `            
-				${camera.includes}
+				${Camera.environment.includes}
 
 				void main(void) {
 					gl_Position = vec4(camera_transform(world_position), world_position.z * -0.25, 1.0);
@@ -158,21 +158,20 @@ export namespace Terrain {
 		});
 
 		// 🌊 Water
-		const water_material = Shaders.generate_material(gl, {
+		const water_material = ShaderBuilder.generate_material(gl, {
 			globals: {
-				...camera.globals,
+				...Camera.environment.globals,
 
-				"water": { type: "uniform", unit: "sampler2D", data: await Texture.load(gl, "./images/water.jpg") },
-				"foam": { type: "uniform", unit: "sampler2D", data: await Texture.load(gl, "./images/foam.jpg") },
-				"terrain_position": { type: "attribute", unit: "vec3", data: Texture.create_buffer(gl, vertices) },
-
-				"water_height": { type: "const", data: [0.75] },
+				"water": { type: "uniform", unit: "sampler2D", count: 1 },
+				"water_height": { type: "uniform", unit: "float", count: 1 },
+				"foam": { type: "uniform", unit: "sampler2D", count: 1 },
+				"terrain_position": { type: "attribute", unit: "vec3" },
 
 				"uv": { type: "varying", unit: "vec2" },
 				"blend": { type: "varying", unit: "float" },
 			},
 			vert_source: `    
-				${camera.includes}
+				${Camera.environment.includes}
 
 				void main(void) {
 					gl_Position = vec4(
@@ -203,7 +202,18 @@ export namespace Terrain {
 		}
 
 		// 🎨 Draw materials
-		Shaders.render_material(gl, ground_material, vertices.length / 3);
-		Shaders.render_material(gl, water_material, vertices.length / 3);
+		ShaderBuilder.render_material(gl, ground_material, {
+			...camera,
+			"grass": [await ShaderBuilder.load_texture(gl, "./images/grass.jpg")],
+			"world_position": ShaderBuilder.create_buffer(gl, vertices),
+			"vertex_color": ShaderBuilder.create_buffer(gl, color),
+		});
+		ShaderBuilder.render_material(gl, water_material, {
+			...camera,
+			"water": [await ShaderBuilder.load_texture(gl, "./images/water.jpg")],
+			"foam": [await ShaderBuilder.load_texture(gl, "./images/foam.jpg")],
+			"terrain_position": ShaderBuilder.create_buffer(gl, vertices),
+			"water_height": [0.75],
+		});
 	}
 }

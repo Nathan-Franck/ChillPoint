@@ -1,5 +1,4 @@
-import { Shaders } from "./Util.Shaders";
-import { Texture } from "./Util.Texture";
+import { ShaderBuilder, ShaderGlobals } from "./Util.ShaderBuilder";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { Vec3, Quat, Num, Mat4 } from "./Util.VecMath";
 import { Camera } from "./Util.Camera";
@@ -26,7 +25,6 @@ export namespace SmoothCurve {
 export namespace Forest {
 
 	export type DepthDefinition = {
-		readonly name: string,
 		readonly split_amount: number,
 		readonly flatness: number,
 		readonly size: number,
@@ -39,7 +37,9 @@ export namespace Forest {
 	export type Settings = {
 		readonly start_size: number,
 		readonly start_growth: number,
-		readonly depth_definitions: DepthDefinition[],
+		readonly depth_definitions: {
+			[key: string]: DepthDefinition,
+		},
 	}
 
 	export type MeshSettings = {
@@ -91,8 +91,9 @@ export namespace Forest {
 			}
 
 			// 🐣 Branch spawning
-			if (gen_item.split_depth < settings.depth_definitions.length) {
-				const depth_definition = settings.depth_definitions[gen_item.split_depth];
+			const depth_definitions = Object.values(settings.depth_definitions);
+			if (gen_item.split_depth < depth_definitions.length) {
+				const depth_definition = depth_definitions[gen_item.split_depth];
 				const split_amount = depth_definition.split_amount * gen_item.growth;
 				const split_depth = gen_item.split_depth + 1;
 
@@ -307,7 +308,7 @@ export namespace Forest {
 
 	export async function render(
 		parent: HTMLElement,
-		camera: typeof Camera.default_camera,
+		camera: Camera.Transform,
 	) {
 		const canvas = HtmlBuilder.create_child(parent, {
 			type: "canvas",
@@ -344,55 +345,56 @@ export namespace Forest {
 				y_values: [0.0025, 0.035],
 				x_range: [0, 1]
 			},
-			depth_definitions: [{
-				name: "Branch-A",
-				split_amount: 10,
-				flatness: 0,
-				size: 0.3,
-				height_spread: 0.8,
-				branch_pitch: 50,
-				branch_roll: 90,
-				height_to_growth: {
-					y_values: [0, 1],
-					x_range: [0, 0.25]
+			depth_definitions: {
+				"Branch-A": {
+					split_amount: 10,
+					flatness: 0,
+					size: 0.3,
+					height_spread: 0.8,
+					branch_pitch: 50,
+					branch_roll: 90,
+					height_to_growth: {
+						y_values: [0, 1],
+						x_range: [0, 0.25]
+					},
 				},
-			}, {
-				name: "Branch-B",
-				split_amount: 6,
-				flatness: 0.6,
-				size: 0.4,
-				height_spread: 0.8,
-				branch_pitch: 60 / 180 * Math.PI,
-				branch_roll: 90 / 180 * Math.PI,
-				height_to_growth: {
-					y_values: [0.5, 0.9, 1],
-					x_range: [0, 0.5]
+				"Branch-B": {
+					split_amount: 6,
+					flatness: 0.6,
+					size: 0.4,
+					height_spread: 0.8,
+					branch_pitch: 60 / 180 * Math.PI,
+					branch_roll: 90 / 180 * Math.PI,
+					height_to_growth: {
+						y_values: [0.5, 0.9, 1],
+						x_range: [0, 0.5]
+					},
 				},
-			}, {
-				name: "Branch-C",
-				split_amount: 10,
-				flatness: 0,
-				size: 0.4,
-				height_spread: 0.8,
-				branch_pitch: 40 / 180 * Math.PI,
-				branch_roll: 90 / 180 * Math.PI,
-				height_to_growth: {
-					y_values: [0.5, 0.8, 1, 0.8, .5],
-					x_range: [0, 0.5]
+				"Branch-C": {
+					split_amount: 10,
+					flatness: 0,
+					size: 0.4,
+					height_spread: 0.8,
+					branch_pitch: 40 / 180 * Math.PI,
+					branch_roll: 90 / 180 * Math.PI,
+					height_to_growth: {
+						y_values: [0.5, 0.8, 1, 0.8, .5],
+						x_range: [0, 0.5]
+					},
 				},
-			}, {
-				name: "Leaf",
-				split_amount: 10,
-				flatness: 0,
-				size: 0.7,
-				height_spread: 0.8,
-				branch_pitch: 40 / 180 * Math.PI,
-				branch_roll: 90 / 180 * Math.PI,
-				height_to_growth: {
-					y_values: [0.5, 0.8, 1, 0.8, .5],
-					x_range: [0, 0.5]
-				},
-			}]
+				"Leaf": {
+					split_amount: 10,
+					flatness: 0,
+					size: 0.7,
+					height_spread: 0.8,
+					branch_pitch: 40 / 180 * Math.PI,
+					branch_roll: 90 / 180 * Math.PI,
+					height_to_growth: {
+						y_values: [0.5, 0.8, 1, 0.8, .5],
+						x_range: [0, 0.5]
+					},
+				}
+			}
 		};
 
 		const skeleton = generate_structure(diciduous);
@@ -412,27 +414,37 @@ export namespace Forest {
 
 		const tree_material = {
 			globals: {
-				...camera.globals,
-
-				"child_size": { type: "const", data: [diciduous.depth_definitions[0].size], },
-				"scale": { type: "const", data: [5] },
+				...Camera.environment.globals,
+				"triangles": { type: "element" },
+				"child_size": { type: "uniform", unit: "float", count: 1 },
+				"scale": { type: "uniform", unit: "float", count: 1 },
 				"model_position": {
 					type: "attribute",
 					unit: "vec3",
-					data: Texture.create_buffer(gl, model_position),
 					instanced: true,
 				},
 				"model_growth": {
 					type: "attribute",
 					unit: "float",
-					data: Texture.create_buffer(gl, model_growth),
 					instanced: true,
+				},
+				"vertex_position": {
+					type: "attribute",
+					unit: "vec3",
+				},
+				"vertex_normal": {
+					type: "attribute",
+					unit: "vec3",
+				},
+				"vertex_split_height": {
+					type: "attribute",
+					unit: "float",
 				},
 
 				"shade": { type: "varying", unit: "float" },
 			},
 			vert_source: `
-			${camera.includes}
+			${Camera.environment.includes}
 
 			void main(void) {
 				float z_position = vertex_position.z - (1.0 - model_growth);
@@ -447,27 +459,8 @@ export namespace Forest {
 		`,
 		} as const;
 
-		const bark_material = Shaders.generate_material(gl, {
+		const bark_material = ShaderBuilder.generate_material(gl, {
 			...tree_material,
-			element_buffer: Texture.create_element_buffer(gl, bark_mesh.triangles),
-			globals: {
-				...tree_material.globals,
-				"vertex_position": {
-					type: "attribute",
-					unit: "vec3",
-					data: Texture.create_buffer(gl, bark_mesh.vertices),
-				},
-				"vertex_normal": {
-					type: "attribute",
-					unit: "vec3",
-					data: Texture.create_buffer(gl, bark_mesh.normals),
-				},
-				"vertex_split_height": {
-					type: "attribute",
-					unit: "float",
-					data: Texture.create_buffer(gl, bark_mesh.split_height),
-				},
-			},
 			frag_source: `
 				void main(void) {
 					gl_FragData[0] = vec4(vec3(0.7, 0.6, 0.5) * (0.25 + shade * 0.75), 1.0);
@@ -475,27 +468,8 @@ export namespace Forest {
 			`,
 		});
 
-		const leaf_material = Shaders.generate_material(gl, {
+		const leaf_material = ShaderBuilder.generate_material(gl, {
 			...tree_material,
-			element_buffer: Texture.create_element_buffer(gl, leaf_mesh.triangles),
-			globals: {
-				...tree_material.globals,
-				"vertex_position": {
-					type: "attribute",
-					unit: "vec3",
-					data: Texture.create_buffer(gl, leaf_mesh.vertices),
-				},
-				"vertex_normal": {
-					type: "attribute",
-					unit: "vec3",
-					data: Texture.create_buffer(gl, leaf_mesh.normals),
-				},
-				"vertex_split_height": {
-					type: "attribute",
-					unit: "float",
-					data: Texture.create_buffer(gl, leaf_mesh.split_height),
-				},
-			},
 			frag_source: `
 				void main(void) {
 					gl_FragData[0] = vec4(vec3(0.55, 0.8, 0.35) * (0.5 + shade * 0.5), 1.0);
@@ -510,8 +484,28 @@ export namespace Forest {
 			gl.viewport(0, 0, canvas.width, canvas.height);
 		}
 
+		const global_binds = {
+			...camera,
+			"model_position": ShaderBuilder.create_buffer(gl, model_position),
+			"model_growth": ShaderBuilder.create_buffer(gl, model_growth),
+			"child_size": [diciduous.depth_definitions["Branch-A"].size],
+			"scale": [7],
+		} as const;
+
 		// 🎨 Draw materials
-		Shaders.render_material(gl, bark_material, bark_mesh.triangles.length, model_position.length / 3.0);
-		Shaders.render_material(gl, leaf_material, leaf_mesh.triangles.length, model_position.length / 3.0);
+		ShaderBuilder.render_material(gl, bark_material, {
+			...global_binds,
+			"triangles": ShaderBuilder.create_element_buffer(gl, bark_mesh.triangles),
+			"vertex_position": ShaderBuilder.create_buffer(gl, bark_mesh.vertices),
+			"vertex_normal": ShaderBuilder.create_buffer(gl, bark_mesh.normals),
+			"vertex_split_height": ShaderBuilder.create_buffer(gl, bark_mesh.split_height),
+		});
+		ShaderBuilder.render_material(gl, leaf_material, {
+			...global_binds,
+			"triangles": ShaderBuilder.create_element_buffer(gl, leaf_mesh.triangles),
+			"vertex_position": ShaderBuilder.create_buffer(gl, leaf_mesh.vertices),
+			"vertex_normal": ShaderBuilder.create_buffer(gl, leaf_mesh.normals),
+			"vertex_split_height": ShaderBuilder.create_buffer(gl, leaf_mesh.split_height),
+		});
 	}
 }
