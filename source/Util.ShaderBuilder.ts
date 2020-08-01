@@ -19,7 +19,7 @@ export type Element = {
 export type Uniform = {
 	readonly type: "uniform",
 	readonly unit: GLSLUniformUnit,
-	readonly count: number,
+	readonly count: 1 | UniformSizes,
 };
 export const unit_to_stride = {
 	float: 1,
@@ -27,6 +27,10 @@ export const unit_to_stride = {
 	vec3: 3,
 	vec4: 4,
 } as const;
+
+export type UniformSizes =
+	2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 |
+	17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32;
 export type SizedBuffer = {
 	type: "attribute",
 	buffer: WebGLBuffer,
@@ -38,11 +42,16 @@ export type ElementBuffer = {
 	length: number,
 };
 export type Binds<T> =
-	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "float" }>]: readonly number[] }
-	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec2" }>]: readonly Vec2[] }
-	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec3" }>]: readonly Vec3[] }
-	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec4" }>]: readonly Vec4[] }
-	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "sampler2D" }>]: readonly WebGLTexture[] }
+	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "float", count: 1 }>]: number }
+	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec2", count: 1 }>]: Vec2 }
+	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec3", count: 1 }>]: Vec3 }
+	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec4", count: 1 }>]: Vec4 }
+	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "sampler2D", count: 1 }>]: WebGLTexture }
+	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "float", count: UniformSizes }>]: readonly number[] }
+	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec2", count: UniformSizes }>]: readonly Vec2[] }
+	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec3", count: UniformSizes }>]: readonly Vec3[] }
+	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec4", count: UniformSizes }>]: readonly Vec4[] }
+	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "sampler2D", count: UniformSizes }>]: readonly WebGLTexture[] }
 	& { readonly [key in AllowedKeys<T, Attribute>]: SizedBuffer }
 	& { readonly [key in AllowedKeys<T, Element>]: ElementBuffer }
 
@@ -221,9 +230,10 @@ export namespace ShaderBuilder {
 					const [key, global] = entry;
 					const uniformLocation = gl.getUniformLocation(material.program, key as string);
 
+					const data = (binds as any)[key];
 					switch (global.unit) {
 						case "sampler2D":
-							const textures = (binds as any)[key] as WebGLTexture[];
+							const textures = global.count > 1 ? data as WebGLTexture[] : [data as WebGLTexture];
 							const indices = textures.map((data, sub_index) => {
 								const active_texture_index = texture_index + sub_index;
 								gl.activeTexture(gl.TEXTURE0 + active_texture_index);
@@ -233,20 +243,16 @@ export namespace ShaderBuilder {
 							gl.uniform1iv(uniformLocation, indices);
 							return texture_index + indices.length;
 						case "float":
-							const floats = (binds as any)[key] as number[];
-							gl.uniform1fv(uniformLocation, floats);
+							gl.uniform1fv(uniformLocation, global.count > 1 ? data as number[] : [data as number]);
 							break;
 						case "vec2":
-							const vec2s = (binds as any)[key] as Vec2[];
-							gl.uniform2fv(uniformLocation, vec2s.flat());
+							gl.uniform2fv(uniformLocation, global.count > 1 ? (data as Vec2[]).flat() : [...data as Vec2]);
 							break;
 						case "vec3":
-							const vec3s = (binds as any)[key] as Vec3[];
-							gl.uniform3fv(uniformLocation, vec3s.flat());
+							gl.uniform3fv(uniformLocation, global.count > 1 ? (data as Vec3[]).flat() : [...data as Vec3]);
 							break;
 						case "vec4":
-							const vec4s = (binds as any)[key] as Vec4[];
-							gl.uniform4fv(uniformLocation, vec4s.flat());
+							gl.uniform4fv(uniformLocation, global.count > 1 ? (data as Vec4[]).flat() : [...data as Vec4]);
 							break;
 					}
 					return texture_index;
