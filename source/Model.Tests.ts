@@ -27,7 +27,7 @@ export function modelTests() {
         expect: "ecstatic",
         test: async () => {
 
-            const model = new Model<State>(initialState);
+            const model = Model.create<State>(initialState);
 
             // 🔨 Force model to consider itself unchanged
             model.state = model.state;
@@ -54,7 +54,7 @@ export function modelTests() {
         expect: "hello world",
         test: async () => {
 
-            const model = new Model<State>(initialState);
+            const model = Model.create<State>(initialState);
 
             return await new Promise(resolve => {
 
@@ -74,7 +74,7 @@ export function modelTests() {
         expect: "sullen",
         test: async () => {
 
-            const model = new Model<State>(initialState);
+            const model = Model.create<State>(initialState);
 
             const newState = await new Promise((resolve: (x: State) => void) => {
 
@@ -106,7 +106,7 @@ export function modelTests() {
         expect: 1,
         test: async () => {
 
-            const model = new Model<State>(initialState);
+            const model = Model.create<State>(initialState);
             const emotionModel = model.submodel("emotion");
 
             return await new Promise(resolve => {
@@ -129,7 +129,7 @@ export function modelTests() {
         expect: 1,
         test: async () => {
 
-            const model = new Model<State>(initialState);
+            const model = Model.create<State>(initialState);
             const emotionModel = model.submodel("emotion");
 
             return await new Promise(resolve => {
