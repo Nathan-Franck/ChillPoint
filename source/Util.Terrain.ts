@@ -11,20 +11,22 @@ export namespace Terrain {
 		chunk_width: number,
 		canvas_style: Style,
 	) {
-		const canvas = HtmlBuilder.create_child(parent, {
-			type: "canvas",
-			style: {
-				...canvas_style,
-				width: "100%",
-				height: "100%",
-				position: "absolute",
-				left: 0,
-				top: 0,
-				zIndex: 0,
-			},
-			attributes: {
-				width: window.innerWidth,
-				height: window.innerHeight,
+		const { canvas } = HtmlBuilder.create_children(parent, {
+			canvas: {
+				type: "canvas",
+				style: {
+					...canvas_style,
+					width: "100%",
+					height: "100%",
+					position: "absolute",
+					left: 0,
+					top: 0,
+					zIndex: 0,
+				},
+				attributes: {
+					width: window.innerWidth,
+					height: window.innerHeight,
+				},
 			},
 		});
 		const gl = canvas.getContext('webgl2');

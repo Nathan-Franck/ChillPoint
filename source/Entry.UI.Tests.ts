@@ -58,7 +58,7 @@ export namespace UITests {
 					identifier: `${Math.random()}`.slice(2, 8),
 					role: "web",
 				});
-				const info = HtmlBuilder.create_child(body, {
+				const info = HtmlBuilder.create_child("info", body, {
 					type: "div",
 					attributes: { innerHTML: "Registering peer!" },
 					style: { color: "white" },
@@ -77,7 +77,7 @@ export namespace UITests {
 
 		tests[test_name]();
 
-		const ui_outline = HtmlBuilder.create_child(body, {
+		const ui_outline = HtmlBuilder.create_child("ui_outline", body, {
 			type: "div",
 			style: {
 
@@ -119,37 +119,36 @@ export namespace UITests {
 		// 	attributes: {
 		// 		innerHTML: "chill_point",
 		// 	},
-		// });
+		// },
 
-		const footer = HtmlBuilder.create_child(ui_outline, {
-			type: "div",
-			style: {
-				gridArea: "f",
-				gridTemplateAreas: `
+		const footer = HtmlBuilder.create_children(ui_outline, {
+			footer: {
+				type: "div",
+				style: {
+					gridArea: "f",
+					gridTemplateAreas: `
 					"w c s"
 				`
+				},
 			},
-		});
-
-		const warning = HtmlBuilder.create_child(ui_outline, {
-			type: "div",
-			style: {
-				gridArea: "w",
+			warning: {
+				type: "div",
+				style: {
+					gridArea: "w",
+				},
 			},
-		});
-
-		const app = HtmlBuilder.create_child(ui_outline, {
-			type: "div",
-			style: {
-				gridArea: "a",
+			app: {
+				type: "div",
+				style: {
+					gridArea: "a",
+				},
 			},
-		});
-
-		const socials = HtmlBuilder.create_child(ui_outline, {
-			type: "div",
-			style: {
-				gridArea: "s",
-			},
+			socials: {
+				type: "div",
+				style: {
+					gridArea: "s",
+				},
+			}
 		});
 	}
 }

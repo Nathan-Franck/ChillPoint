@@ -68,35 +68,37 @@ export namespace Editor {
 			e.preventDefault();
 			return true;
 		};
-		const text_editor = HtmlBuilder.create_child(parent, {
-			type: "textarea",
-			style: {
-				width: "100%",
-				height: "100%",
-				position: "absolute",
-				left: 0,
-				top: 0,
-				zIndex: 3,
-				color: "white",
-				backgroundColor: "transparent",
-				fontFamily: "Trebuchet MS",
-				fontSize: "16",
-				// wordWrap: "break-word",
-				// whiteSpace: "pre",
-				// overflow: "scroll",
-			},
-			attributes: {
-				innerHTML: sample_text,
-				contentEditable: "true",
-				spellcheck: false,
-				onkeydown: (e) => {
-					return (
-						handle_tab_input(e) ||
-						handle_enter_input(e));
+		const { text_editor } = HtmlBuilder.create_children(parent, {
+			text_editor: {
+				type: "textarea",
+				style: {
+					width: "100%",
+					height: "100%",
+					position: "absolute",
+					left: 0,
+					top: 0,
+					zIndex: 3,
+					color: "white",
+					backgroundColor: "transparent",
+					fontFamily: "Trebuchet MS",
+					fontSize: "16",
+					// wordWrap: "break-word",
+					// whiteSpace: "pre",
+					// overflow: "scroll",
+				},
+				attributes: {
+					innerHTML: sample_text,
+					contentEditable: "true",
+					spellcheck: false,
+					onkeydown: (e) => {
+						return (
+							handle_tab_input(e) ||
+							handle_enter_input(e));
+					},
 				},
 			},
-		});
-	}
+		})
+	};
 }
 
 const sample_text = `

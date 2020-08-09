@@ -1,6 +1,5 @@
 import { Scripting, AllowedKeys } from "./Util.Scripting";
 import { Vec2, Vec3, Vec4 } from "./Util.VecMath";
-import { POINT_CONVERSION_UNCOMPRESSED } from "constants";
 
 export type GLSLUnit = "float" | "vec2" | "vec3" | "vec4";
 export type GLSLUniformUnit = "float" | "vec2" | "vec3" | "vec4" | "sampler2D";
@@ -187,7 +186,8 @@ export namespace ShaderBuilder {
 					textureSettings.srcFormat, textureSettings.srcType, image);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 				gl.generateMipmap(gl.TEXTURE_2D);
 				resolve(texture);
 			};

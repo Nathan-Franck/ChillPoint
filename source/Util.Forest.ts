@@ -310,21 +310,23 @@ export namespace Forest {
 		parent: HTMLElement,
 		camera: Camera.Transform,
 	) {
-		const canvas = HtmlBuilder.create_child(parent, {
-			type: "canvas",
-			style: {
-				// ...ChillpointStyles.blurred,
-				width: "100%",
-				height: "100%",
-				position: "absolute",
-				left: 0,
-				top: 0,
-				zIndex: 0,
-			},
-			attributes: {
-				width: window.innerWidth,
-				height: window.innerHeight,
-			},
+		
+		const { canvas } = HtmlBuilder.create_children(parent, {
+			canvas: {
+				type: "canvas",
+				style: {
+					width: "100%",
+					height: "100%",
+					position: "absolute",
+					left: 0,
+					top: 0,
+					zIndex: 0,
+				},
+				attributes: {
+					width: window.innerWidth,
+					height: window.innerHeight,
+				},
+			}
 		});
 		const gl = canvas.getContext('webgl2');
 		if (gl == null) {
@@ -493,19 +495,16 @@ export namespace Forest {
 		} as const;
 
 		// 🎨 Draw materials
-		ShaderBuilder.render_material(gl, bark_material, {
-			...global_binds,
-			"triangles": ShaderBuilder.create_element_buffer(gl, bark_mesh.triangles),
-			"vertex_position": ShaderBuilder.create_buffer(gl, bark_mesh.vertices),
-			"vertex_normal": ShaderBuilder.create_buffer(gl, bark_mesh.normals),
-			"vertex_split_height": ShaderBuilder.create_buffer(gl, bark_mesh.split_height),
-		});
-		ShaderBuilder.render_material(gl, leaf_material, {
-			...global_binds,
-			"triangles": ShaderBuilder.create_element_buffer(gl, leaf_mesh.triangles),
-			"vertex_position": ShaderBuilder.create_buffer(gl, leaf_mesh.vertices),
-			"vertex_normal": ShaderBuilder.create_buffer(gl, leaf_mesh.normals),
-			"vertex_split_height": ShaderBuilder.create_buffer(gl, leaf_mesh.split_height),
-		});
+		[
+			{ material: leaf_material, mesh: leaf_mesh },
+			{ material: bark_material, mesh: bark_mesh },
+		].forEach(pass =>
+			ShaderBuilder.render_material(gl, pass.material, {
+				...global_binds,
+				"triangles": ShaderBuilder.create_element_buffer(gl, pass.mesh.triangles),
+				"vertex_position": ShaderBuilder.create_buffer(gl, pass.mesh.vertices),
+				"vertex_normal": ShaderBuilder.create_buffer(gl, pass.mesh.normals),
+				"vertex_split_height": ShaderBuilder.create_buffer(gl, pass.mesh.split_height),
+			}));
 	}
 }
