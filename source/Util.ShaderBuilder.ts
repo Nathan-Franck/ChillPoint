@@ -26,7 +26,11 @@ export const unit_to_stride = {
 	vec3: 3,
 	vec4: 4,
 } as const;
-
+export type Texture = {
+	texture: WebGLTexture,
+	width: number,
+	height: number,
+}
 export type UniformSizes =
 	2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 |
 	17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32;
@@ -45,12 +49,12 @@ export type Binds<T> =
 	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec2", count: 1 }>]: Vec2 }
 	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec3", count: 1 }>]: Vec3 }
 	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec4", count: 1 }>]: Vec4 }
-	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "sampler2D", count: 1 }>]: WebGLTexture }
+	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "sampler2D", count: 1 }>]: Texture }
 	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "float", count: UniformSizes }>]: readonly number[] }
 	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec2", count: UniformSizes }>]: readonly Vec2[] }
 	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec3", count: UniformSizes }>]: readonly Vec3[] }
 	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "vec4", count: UniformSizes }>]: readonly Vec4[] }
-	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "sampler2D", count: UniformSizes }>]: readonly WebGLTexture[] }
+	& { readonly [key in AllowedKeys<T, { type: "uniform", unit: "sampler2D", count: UniformSizes }>]: readonly Texture[] }
 	& { readonly [key in AllowedKeys<T, Attribute>]: SizedBuffer }
 	& { readonly [key in AllowedKeys<T, Element>]: ElementBuffer }
 
@@ -165,7 +169,7 @@ export namespace ShaderBuilder {
 	}
 
 	export async function load_texture(gl: WebGL2RenderingContext, url: string) {
-		return await new Promise<WebGLTexture>((resolve) => {
+		return await new Promise<Texture>((resolve) => {
 			const texture = gl.createTexture();
 			if (texture == null) {
 				throw new Error("Texture is null, this is not expected!");
@@ -189,7 +193,11 @@ export namespace ShaderBuilder {
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 				gl.generateMipmap(gl.TEXTURE_2D);
-				resolve(texture);
+				resolve({
+					texture,
+					width: image.width,
+					height: image.height,
+				});
 			};
 			image.src = url;
 		});
@@ -233,11 +241,11 @@ export namespace ShaderBuilder {
 					const data = (binds as any)[key];
 					switch (global.unit) {
 						case "sampler2D":
-							const textures = global.count > 1 ? data as WebGLTexture[] : [data as WebGLTexture];
+							const textures = global.count > 1 ? data as Texture[] : [data as Texture];
 							const indices = textures.map((data, sub_index) => {
 								const active_texture_index = texture_index + sub_index;
 								gl.activeTexture(gl.TEXTURE0 + active_texture_index);
-								gl.bindTexture(gl.TEXTURE_2D, data);
+								gl.bindTexture(gl.TEXTURE_2D, data.texture);
 								return active_texture_index;
 							})
 							gl.uniform1iv(uniformLocation, indices);
