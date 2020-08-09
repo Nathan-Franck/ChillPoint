@@ -9,6 +9,13 @@
 			"command": "npx tsc -w -p tsconfig.UI.Tests.json"
 		},
 		{
+			"label": "watch VideoAnimations",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": [],
+			"command": "npx tsc -w -p tsconfig.VideoAnimations.json"
+		},
+		{
 			"label": "watch Server.PeerAdvertising",
 			"type": "shell",
 			"group": "build",

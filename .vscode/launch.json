@@ -7,8 +7,15 @@
         {
             "type": "chrome",
             "request": "launch",
-            "name": "Launch Chrome against localhost",
-            "url": "http://localhost:5500/website",
+            "name": "UI.Tests",
+            "url": "http://localhost:5500/website/UI.Tests.html",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "VideoAnimations",
+            "url": "http://localhost:5500/website/VideoAnimations.html",
             "webRoot": "${workspaceFolder}"
         },
         {
