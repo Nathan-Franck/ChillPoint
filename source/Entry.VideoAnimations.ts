@@ -50,8 +50,8 @@ export namespace VideoAnimations {
                 0, 1,
                 1, 1,
             ])),
-            pattern: await ShaderBuilder.load_texture(gl, "./images/checker pattern.png"),
-            texture: await ShaderBuilder.load_texture(gl, "./images/elemental ball.png"),
+            pattern: await ShaderBuilder.load_texture(gl, "./images/fire pattern.png"),
+            texture: await ShaderBuilder.load_texture(gl, "./images/elemental ball 2.png"),
             camera_size: [canvas.width, canvas.height],
         } as const;
         const material = ShaderBuilder.generate_material(gl, {
@@ -83,24 +83,25 @@ export namespace VideoAnimations {
             }
 
             void main(void) {
-                lowp float tex_uv = hue_to_uv() + scroll;
+                lowp float tex_uv = hue_to_uv() + scroll * 4.0;
                 lowp float cool = tex_uv - floor(tex_uv);
-                lowp float alpha = float(texture2D(texture, uv).a > 0.5);
-                gl_FragColor = vec4(cool, cool, cool, alpha);
+                lowp vec4 pattern_color = texture2D(pattern, vec2(tex_uv * 1.0, 0.5));
+                gl_FragColor = vec4(pattern_color.rgb, pattern_color.a * texture2D(texture, uv).a);
             }`,
         });
 
         const start_time = Date.now() / 1000;
         const animation = () => {
-            gl.clearColor(0, .5, 1, .25);
+            const current_time = Date.now() / 1000 - start_time;
+            gl.clearColor(0, 0, 0, 0);
             gl.enable(gl.DEPTH_TEST);
             gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.viewport(30, 30, 64, 64);
+            gl.viewport(100 + Math.cos(current_time * 4 + 3.14159 / 2.0) * 80, 70 + Math.sin(current_time * 8) * 40, 64, 64);
             gl.enable(gl.BLEND)
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             ShaderBuilder.render_material(gl, material, {
                 ...constant_binds,
-                scroll: Date.now() / 1000 - start_time,
+                scroll: -current_time,
             });
             requestAnimationFrame(animation);
         }
