@@ -83,7 +83,7 @@ export namespace ShaderBuilder {
 	}
 
 	export function to_vert_text(props: ShaderGlobals) {
-		return Scripting.getKeys(props).reduce((text, key) => {
+		return Scripting.get_keys(props).reduce((text, key) => {
 			const element = props[key];
 			return `${text}\n ${
 				element.type == "varying" ?
@@ -98,7 +98,7 @@ export namespace ShaderBuilder {
 	}
 
 	export function to_frag_text(props: ShaderGlobals) {
-		return Scripting.getKeys(props).reduce((text, key) => {
+		return Scripting.get_keys(props).reduce((text, key) => {
 			const element = props[key];
 			return `${text}${
 				element.type == "varying" ?
