@@ -66,8 +66,12 @@ export namespace VideoAnimations {
             texture: await ShaderBuilder.load_texture(gl, "./images/swordly_armor.png"),
         } as const;
 
-        const vert_source = `void main(void) {
+        const image_vert_source = `void main(void) {
             gl_Position = vec4((texture_coords * 2.0 - 1.0) * vec2(1.0, -1.0), 0.0, 1.0); 
+            uv = texture_coords;
+        }`;
+        const screen_vert_source = `void main(void) {
+            gl_Position = vec4((texture_coords * 2.0 - 1.0), 0.0, 1.0); 
             uv = texture_coords;
         }`;
         const constant_globals = {
@@ -83,7 +87,7 @@ export namespace VideoAnimations {
                 ...constant_globals,
                 pattern: { type: "uniform", unit: "sampler2D", count: 1 },
             },
-            vert_source,
+            vert_source: image_vert_source,
             frag_source: `lowp float hue_to_uv() {
                 lowp vec3 color = texture2D(texture, uv).rgb;
                 lowp float min = min(min(color.r, color.g), color.b);
@@ -114,19 +118,28 @@ export namespace VideoAnimations {
         });
         const armor_material = ShaderBuilder.generate_material(gl, {
             globals: constant_globals,
-            vert_source,
+            vert_source: image_vert_source,
             frag_source: `
             void main(void) {
                 lowp vec4 tex_color = texture2D(texture, uv);
                 gl_FragColor = tex_color;
             }`,
         });
-        const flame_effect_material = ShaderBuilder.generate_material(gl, {
+        const frame_buffer_material = ShaderBuilder.generate_material(gl, {
+            globals: constant_globals,
+            vert_source: screen_vert_source,
+            frag_source: `
+            void main(void) {
+                lowp vec4 tex_color = texture2D(texture, uv);
+                gl_FragColor = tex_color;
+            }`,
+        });
+        const flame_material = ShaderBuilder.generate_material(gl, {
             globals: {
                 ...constant_globals,
                 ripple: { type: "uniform", unit: "sampler2D", count: 1 },
             },
-            vert_source,
+            vert_source: image_vert_source,
             frag_source: `void main(void) {
                 lowp vec2 ripple_uv = uv + vec2(0.0, texture2D(ripple, uv * vec2(16.0, 16.0) - vec2(scroll, 0.0)).r * 0.01);
                 lowp vec4 tex_color = texture2D(texture, ripple_uv);
@@ -136,6 +149,44 @@ export namespace VideoAnimations {
 
         const start_time = Date.now() / 1000;
         const animation = () => {
+
+            const target_texture = {
+                texture: gl.createTexture()!,
+                width: canvas.width,
+                height: canvas.height };
+
+            {
+                // define size and format of level 0
+                var level = 0;
+                const internalFormat = gl.RGBA;
+                const border = 0;
+                const format = gl.RGBA;
+                const type = gl.UNSIGNED_BYTE;
+                const data = null;
+                gl.bindTexture(gl.TEXTURE_2D, target_texture.texture);
+                gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                    target_texture.width, target_texture.height, border,
+                    format, type, data);
+
+                // set the filtering so we don't need mips
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            }
+
+            {
+                var framebuffer = gl.createFramebuffer();
+                const attachmentPoint = gl.COLOR_ATTACHMENT0;
+                gl.bindTexture(gl.TEXTURE_2D, target_texture.texture);
+                gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, target_texture, level);
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            }
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
+
+
             const current_time = (Date.now() / 1000 - start_time);
             gl.clearColor(0, 0, 0, 1);
             gl.disable(gl.DEPTH_TEST);
@@ -147,7 +198,7 @@ export namespace VideoAnimations {
                 (224 - flame_binds.texture.height) * .5,
                 flame_binds.texture.width,
                 flame_binds.texture.height);
-            ShaderBuilder.render_material(gl, flame_effect_material, {
+            ShaderBuilder.render_material(gl, flame_material, {
                 ...constant_binds,
                 ...flame_binds,
                 scroll: -current_time,
@@ -174,15 +225,29 @@ export namespace VideoAnimations {
             });
             [0, 1, 2].map(index => {
                 gl.viewport(
-                    141 + Math.cos(current_time * 6 + index * 3.14159 * .6666) * 60,
-                    110 + Math.sin(current_time * 6 + index  * 3.14159 * .6666) * 60,
+                    141 + Math.cos(current_time * 2 + index * 3.14159 * .6666) * 60,
+                    110 + Math.sin(current_time * 2 + index * 3.14159 * .6666) * 60,
                     32,
                     32);
                 ShaderBuilder.render_material(gl, material, {
                     ...constant_binds,
-                    scroll: -current_time,
+                    scroll: -current_time * .5,
                 });
             });
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.viewport(
+                0,
+                0,
+                canvas.width,
+                canvas.height);
+            ShaderBuilder.render_material(gl, frame_buffer_material, {
+                ...constant_binds,
+                ...armor_binds,
+                texture: { texture: target_texture, width: targetTextureWidth, height: targetTextureHeight },
+                scroll: -current_time,
+            });
+
             requestAnimationFrame(animation);
         }
         animation();
