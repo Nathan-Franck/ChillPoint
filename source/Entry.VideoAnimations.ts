@@ -1,6 +1,8 @@
 import { Model } from "./Model";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
+import { Scripting } from "./Util.Scripting";
 import { ShaderBuilder } from "./Util.ShaderBuilder";
+import { SmoothCurve } from "./Util.SmoothCurve";
 import { Vec2 } from "./Util.VecMath";
 
 export namespace VideoAnimations {
@@ -29,6 +31,7 @@ export namespace VideoAnimations {
                     height: canvas.height * min_t,
                     left: 0,
                     top: 0,
+                    cursor: "none",
                 }
             });
         };
@@ -150,45 +153,114 @@ export namespace VideoAnimations {
             }`,
         });
 
+        type Target = {
+            position: Vec2,
+            time: number,
+        };
+
         const model = Model.create({
             simulation_tick: 0,
             mouse_position: [0, 0] as Vec2,
+            targets: [] as readonly Target[],
+            clicks: 0,
+            hits: 0,
         });
 
-        document.body.onmousemove = (e) => {
+        document.body.addEventListener("mousemove", (e) => {
             model.state = {
-                //...model.state,
+                ...model.state,
                 mouse_position: [e.clientX, e.clientY],
-                simulation_tick: Date.now() / 1000 - start_time,
             };
-        }
+        })
 
-        const { framerate_readout } = HtmlBuilder.create_children(document.body, {
-            framerate_readout: {
-                type: "div",
-                attributes: {
-                    innerHTML: "0123",
-                },
-                style: {
-                    position: "absolute",
-                    left: "10px",
-                    top: "10px",
-                    zIndex: 10,
+        document.body.addEventListener("mousedown", (e) => {
+            const canvas_position = Vec2.mul(
+                Vec2.div(
+                    [e.clientX, e.clientY],
+                    [canvas.clientWidth, canvas.clientHeight]),
+                [canvas.width, canvas.height]);
 
-                    color: "white",
-                    fontFamily: "monospace",
-                }
+            console.log(canvas_position);
+            const hit_target = model.state.targets.find(target =>
+                Vec2.dist(target.position, canvas_position) < target_diameter(model.state, target) * 0.5);
+            if (hit_target != null) {
+                model.state = {
+                    ...model.state,
+                    hits: model.state.hits + 1,
+                    clicks: model.state.clicks + 1,
+                    targets: model.state.targets.filter(target =>
+                        target != hit_target),
+                };
+            } else {
+                model.state = {
+                    ...model.state,
+                    clicks: model.state.clicks + 1,
+                };
             }
+        })
+
+        const readout_style = {
+            position: "absolute",
+            left: "10px",
+            top: "1em",
+            zIndex: 10,
+
+            color: "white",
+            fontFamily: "monospace",
+        } as const;
+
+        const elements = HtmlBuilder.create_children(document.body, {
+            fps: {
+                type: "div",
+                style: readout_style,
+            },
+            hits: {
+                type: "div",
+                style: {
+                    ...readout_style,
+                    top: "2em",
+                },
+            },
+            clicks: {
+                type: "div",
+                style: {
+                    ...readout_style,
+                    top: "3em",
+                },
+            },
         });
 
-        const start_time = Date.now() / 1000;
+        const get_time = () => Date.now() / 1000;
 
         setInterval(() => {
             model.state = {
                 ...model.state,
-                simulation_tick: Date.now() / 1000 - start_time,
+                simulation_tick: get_time(),
             };
         }, 1000 / 60);
+
+        setInterval(() => {
+            model.state = {
+                ...model.state,
+                targets: [
+                    ...model.state.targets,
+                    {
+                        position: [Math.random() * canvas.width, Math.random() * canvas.height],
+                        time: get_time(),
+                    },
+                ],
+            };
+        }, 1000 / 2);
+
+        const smooth_curve: SmoothCurve = {
+            x_range: [0, 1],
+            y_values: [0, 1, 1, 1, .25, .25, 0],
+        }
+
+        const target_diameter = (state: typeof model.state, target: Target) => {
+            const time = (state.simulation_tick - target.time) / 4;
+            return 64 * SmoothCurve.sample(smooth_curve, time);
+        }
 
         const render = (state: typeof model.state) => {
 
@@ -232,26 +304,40 @@ export namespace VideoAnimations {
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.enable(gl.BLEND)
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-            gl.viewport(
-                (320 - flame_binds.texture.width) * .5,
-                (224 - flame_binds.texture.height) * .5,
-                flame_binds.texture.width,
-                flame_binds.texture.height);
-            ShaderBuilder.render_material(gl, flame_material, {
-                ...constant_binds,
-                ...flame_binds,
-                scroll: -state.simulation_tick,
+            // gl.viewport(
+            //     (320 - flame_binds.texture.width) * .5,
+            //     (224 - flame_binds.texture.height) * .5,
+            //     flame_binds.texture.width,
+            //     flame_binds.texture.height);
+            // ShaderBuilder.render_material(gl, flame_material, {
+            //     ...constant_binds,
+            //     ...flame_binds,
+            //     scroll: -state.simulation_tick,
+            // });
+            // gl.viewport(
+            //     (320 - beam_binds.texture.width) * .5,
+            //     (224 - beam_binds.texture.height) * .5,
+            //     beam_binds.texture.width,
+            //     beam_binds.texture.height);
+            // ShaderBuilder.render_material(gl, material, {
+            //     ...constant_binds,
+            //     ...beam_binds,
+            //     scroll: -state.simulation_tick * 0.2,
+            // });
+
+            state.targets.map(target => {
+                const scale = target_diameter(state, target);
+                gl.viewport(
+                    scale * -0.5 + target.position[0],
+                    scale * -0.5 + canvas.height - 1 - target.position[1],
+                    scale,
+                    scale);
+                ShaderBuilder.render_material(gl, material, {
+                    ...constant_binds,
+                    scroll: -(state.simulation_tick - target.time) * 1.619,
+                });
             });
-            gl.viewport(
-                (320 - beam_binds.texture.width) * .5,
-                (224 - beam_binds.texture.height) * .5,
-                beam_binds.texture.width,
-                beam_binds.texture.height);
-            ShaderBuilder.render_material(gl, material, {
-                ...constant_binds,
-                ...beam_binds,
-                scroll: -state.simulation_tick * 0.2,
-            });
+
             const width = armor_binds.texture.width;
             const height = armor_binds.texture.height;
             gl.viewport(
@@ -263,17 +349,6 @@ export namespace VideoAnimations {
                 ...constant_binds,
                 ...armor_binds,
                 scroll: 0,
-            });
-            [0, 1, 2].map(index => {
-                gl.viewport(
-                    141 + Math.cos(state.simulation_tick * 6 + index * 3.14159 * .6666) * 60,
-                    110 + Math.sin(state.simulation_tick * 6 + index * 3.14159 * .6666) * 60,
-                    32,
-                    32);
-                ShaderBuilder.render_material(gl, material, {
-                    ...constant_binds,
-                    scroll: -state.simulation_tick * .5,
-                });
             });
 
             // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -300,7 +375,7 @@ export namespace VideoAnimations {
 
             render(state);
 
-            const current_time = (Date.now() / 1000 - start_time);
+            const current_time = get_time();
 
             frame_times = [
                 ...frame_times.filter(frame_time =>
@@ -308,12 +383,18 @@ export namespace VideoAnimations {
                 current_time,
             ];
 
-            HtmlBuilder.assign_to_element(framerate_readout, {
-                attributes: {
-                    innerHTML: `${frame_times.length}`,
-                },
-            });
+            const display_state = {
+                ...state,
+                fps: frame_times.length,
+            };
 
+            Scripting.get_keys(elements).forEach(tag => {
+                HtmlBuilder.assign_to_element(elements[tag], {
+                    attributes: {
+                        innerHTML: `${tag}: ${display_state[tag]}`,
+                    },
+                });
+            })
         });
     }
 }
