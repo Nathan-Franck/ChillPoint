@@ -237,7 +237,9 @@ export namespace VideoAnimations {
             return 64 * SmoothCurve.sample(smooth_curve, time);
         }
 
-        const render = (state: typeof model.state) => {
+        let frame_times: readonly number[] = [];
+        model.listen("all-members", state => {
+
             gl.clearColor(.2, .2, .2, 1);
             gl.disable(gl.DEPTH_TEST);
             gl.clear(gl.COLOR_BUFFER_BIT);
@@ -269,12 +271,6 @@ export namespace VideoAnimations {
                 scroll: 0,
             });
             gl.flush();
-        }
-
-        let frame_times: readonly number[] = [];
-        model.listen("all-members", state => {
-
-            render(state);
 
             const current_time = get_time();
 
