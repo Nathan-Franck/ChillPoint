@@ -1,4 +1,4 @@
-import * as CSS from "Type.CSS";
+import * as CSS from "./Type.CSS";
 
 /**
  *🎼  HTML style attribute description.

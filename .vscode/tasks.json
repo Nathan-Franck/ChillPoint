@@ -2,6 +2,13 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "watch Electron",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": [],
+			"command": "npx tsc -w -p tsconfig.Electron.json"
+		},
+		{
 			"label": "watch UI.Tests",
 			"type": "shell",
 			"group": "build",

@@ -1,5 +1,7 @@
+import { Model } from "./Model";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { ShaderBuilder } from "./Util.ShaderBuilder";
+import { Vec2 } from "./Util.VecMath";
 
 export namespace VideoAnimations {
 
@@ -8,8 +10,8 @@ export namespace VideoAnimations {
             canvas: {
                 type: "canvas",
                 attributes: {
-                    width: 320,
-                    height: 224,
+                    width: 1920,
+                    height: 1080,
                 },
                 style: {
                     position: "absolute",
@@ -39,7 +41,8 @@ export namespace VideoAnimations {
     export async function bouncing() {
         const { canvas } = generate_platform();
         const gl = canvas.getContext("webgl2", {
-            premultipliedAlpha: false,
+            desynchronized: false,
+            preserveDrawingBuffer: true,
         })!;
 
         const constant_binds = {
@@ -147,47 +150,83 @@ export namespace VideoAnimations {
             }`,
         });
 
+        const model = Model.create({
+            simulation_tick: 0,
+            mouse_position: [0, 0] as Vec2,
+        });
+
+        document.body.onmousemove = (e) => {
+            model.state = {
+                //...model.state,
+                mouse_position: [e.clientX, e.clientY],
+                simulation_tick: Date.now() / 1000 - start_time,
+            };
+        }
+
+        const { framerate_readout } = HtmlBuilder.create_children(document.body, {
+            framerate_readout: {
+                type: "div",
+                attributes: {
+                    innerHTML: "0123",
+                },
+                style: {
+                    position: "absolute",
+                    left: "10px",
+                    top: "10px",
+                    zIndex: 10,
+
+                    color: "white",
+                    fontFamily: "monospace",
+                }
+            }
+        });
+
         const start_time = Date.now() / 1000;
-        const animation = () => {
 
-            const target_texture = {
-                texture: gl.createTexture()!,
-                width: canvas.width,
-                height: canvas.height };
+        setInterval(() => {
+            model.state = {
+                ...model.state,
+                simulation_tick: Date.now() / 1000 - start_time,
+            };
+        }, 1000 / 60);
 
-            {
-                // define size and format of level 0
-                var level = 0;
-                const internalFormat = gl.RGBA;
-                const border = 0;
-                const format = gl.RGBA;
-                const type = gl.UNSIGNED_BYTE;
-                const data = null;
-                gl.bindTexture(gl.TEXTURE_2D, target_texture.texture);
-                gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                    target_texture.width, target_texture.height, border,
-                    format, type, data);
+        const render = (state: typeof model.state) => {
 
-                // set the filtering so we don't need mips
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            }
+            // const target_texture = {
+            //     texture: gl.createTexture()!,
+            //     width: canvas.width,
+            //     height: canvas.height };
 
-            {
-                var framebuffer = gl.createFramebuffer();
-                const attachmentPoint = gl.COLOR_ATTACHMENT0;
-                gl.bindTexture(gl.TEXTURE_2D, target_texture.texture);
-                gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, target_texture, level);
-                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            }
+            // {
+            //     // define size and format of level 0
+            //     var level = 0;
+            //     const internalFormat = gl.RGBA;
+            //     const border = 0;
+            //     const format = gl.RGBA;
+            //     const type = gl.UNSIGNED_BYTE;
+            //     const data = null;
+            //     gl.bindTexture(gl.TEXTURE_2D, target_texture.texture);
+            //     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+            //         target_texture.width, target_texture.height, border,
+            //         format, type, data);
 
-            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+            //     // set the filtering so we don't need mips
+            //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            // }
 
+            // {
+            //     var framebuffer = gl.createFramebuffer();
+            //     const attachmentPoint = gl.COLOR_ATTACHMENT0;
+            //     gl.bindTexture(gl.TEXTURE_2D, target_texture.texture);
+            //     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+            //     gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, target_texture.texture, level);
+            //     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            // }
 
+            // gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
-            const current_time = (Date.now() / 1000 - start_time);
             gl.clearColor(0, 0, 0, 1);
             gl.disable(gl.DEPTH_TEST);
             gl.clear(gl.COLOR_BUFFER_BIT);
@@ -201,7 +240,7 @@ export namespace VideoAnimations {
             ShaderBuilder.render_material(gl, flame_material, {
                 ...constant_binds,
                 ...flame_binds,
-                scroll: -current_time,
+                scroll: -state.simulation_tick,
             });
             gl.viewport(
                 (320 - beam_binds.texture.width) * .5,
@@ -211,46 +250,71 @@ export namespace VideoAnimations {
             ShaderBuilder.render_material(gl, material, {
                 ...constant_binds,
                 ...beam_binds,
-                scroll: -current_time * 0.2,
+                scroll: -state.simulation_tick * 0.2,
             });
+            const width = armor_binds.texture.width;
+            const height = armor_binds.texture.height;
             gl.viewport(
-                (320 - armor_binds.texture.width) * .5,
-                (224 - armor_binds.texture.height) * .5,
-                armor_binds.texture.width,
-                armor_binds.texture.height);
+                width * -.5 + state.mouse_position[0] / canvas.clientWidth * canvas.width,
+                height * -.5 + canvas.height - 1 - (state.mouse_position[1] / canvas.clientHeight * canvas.height),
+                width,
+                height);
             ShaderBuilder.render_material(gl, armor_material, {
                 ...constant_binds,
                 ...armor_binds,
-                scroll: -current_time,
+                scroll: 0,
             });
             [0, 1, 2].map(index => {
                 gl.viewport(
-                    141 + Math.cos(current_time * 2 + index * 3.14159 * .6666) * 60,
-                    110 + Math.sin(current_time * 2 + index * 3.14159 * .6666) * 60,
+                    141 + Math.cos(state.simulation_tick * 6 + index * 3.14159 * .6666) * 60,
+                    110 + Math.sin(state.simulation_tick * 6 + index * 3.14159 * .6666) * 60,
                     32,
                     32);
                 ShaderBuilder.render_material(gl, material, {
                     ...constant_binds,
-                    scroll: -current_time * .5,
+                    scroll: -state.simulation_tick * .5,
                 });
             });
 
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            gl.viewport(
-                0,
-                0,
-                canvas.width,
-                canvas.height);
-            ShaderBuilder.render_material(gl, frame_buffer_material, {
-                ...constant_binds,
-                ...armor_binds,
-                texture: { texture: target_texture, width: targetTextureWidth, height: targetTextureHeight },
-                scroll: -current_time,
+            // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            // gl.viewport(
+            //     0,
+            //     0,
+            //     canvas.width,
+            //     canvas.height);
+            // ShaderBuilder.render_material(gl, frame_buffer_material, {
+            //     ...constant_binds,
+            //     ...armor_binds,
+            //     texture: target_texture,
+            //     scroll: -current_time,
+            // });
+            gl.flush();
+        }
+
+        let frame_times: readonly number[] = [];
+        // let previous_animation_state = model.state;
+        model.listen("all-members", state => {
+            // if (previous_animation_state == model.state)
+            //     return;
+            // previous_animation_state = model.state;
+
+            render(state);
+
+            const current_time = (Date.now() / 1000 - start_time);
+
+            frame_times = [
+                ...frame_times.filter(frame_time =>
+                    frame_time + 1 >= current_time),
+                current_time,
+            ];
+
+            HtmlBuilder.assign_to_element(framerate_readout, {
+                attributes: {
+                    innerHTML: `${frame_times.length}`,
+                },
             });
 
-            requestAnimationFrame(animation);
-        }
-        animation();
+        });
     }
 }
 

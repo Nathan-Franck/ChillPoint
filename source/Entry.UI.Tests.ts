@@ -73,7 +73,8 @@ export namespace UITests {
 		};
 
 		const url = new URL(window.location.href);
-		const test_name = url.searchParams.get("test") as keyof typeof tests;
+		const test_name = (url.searchParams.get("test") || "forest_big") as keyof typeof tests;
+		
 
 		tests[test_name]();
 
