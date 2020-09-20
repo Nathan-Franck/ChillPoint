@@ -29,8 +29,8 @@ export namespace VideoAnimations {
                 style: {
                     width: canvas.width * min_t,
                     height: canvas.height * min_t,
-                    left: 0,
-                    top: 0,
+                    left: (window.innerWidth - canvas.width * min_t) * .5,
+                    top: (window.innerHeight - canvas.height * min_t) * .5,
                     cursor: "none",
                 }
             });
@@ -68,16 +68,12 @@ export namespace VideoAnimations {
             texture: await ShaderBuilder.load_texture(gl, "./images/swordly_beam.png"),
             pattern: await ShaderBuilder.load_texture(gl, "./images/fire pattern 3.png"),
         } as const;
-        const armor_binds = {
-            texture: await ShaderBuilder.load_texture(gl, "./images/swordly_armor.png"),
+        const cursor_binds = {
+            texture: await ShaderBuilder.load_texture(gl, "./images/cursor.png"),
         } as const;
 
         const image_vert_source = `void main(void) {
             gl_Position = vec4((texture_coords * 2.0 - 1.0) * vec2(1.0, -1.0), 0.0, 1.0); 
-            uv = texture_coords;
-        }`;
-        const screen_vert_source = `void main(void) {
-            gl_Position = vec4((texture_coords * 2.0 - 1.0), 0.0, 1.0); 
             uv = texture_coords;
         }`;
         const constant_globals = {
@@ -122,34 +118,13 @@ export namespace VideoAnimations {
                 gl_FragColor = vec4(pattern_color.rgb / alpha, alpha);
             }`,
         });
-        const armor_material = ShaderBuilder.generate_material(gl, {
+        const cursor_material = ShaderBuilder.generate_material(gl, {
             globals: constant_globals,
             vert_source: image_vert_source,
             frag_source: `
             void main(void) {
                 lowp vec4 tex_color = texture2D(texture, uv);
                 gl_FragColor = tex_color;
-            }`,
-        });
-        const frame_buffer_material = ShaderBuilder.generate_material(gl, {
-            globals: constant_globals,
-            vert_source: screen_vert_source,
-            frag_source: `
-            void main(void) {
-                lowp vec4 tex_color = texture2D(texture, uv);
-                gl_FragColor = tex_color;
-            }`,
-        });
-        const flame_material = ShaderBuilder.generate_material(gl, {
-            globals: {
-                ...constant_globals,
-                ripple: { type: "uniform", unit: "sampler2D", count: 1 },
-            },
-            vert_source: image_vert_source,
-            frag_source: `void main(void) {
-                lowp vec2 ripple_uv = uv + vec2(0.0, texture2D(ripple, uv * vec2(16.0, 16.0) - vec2(scroll, 0.0)).r * 0.01);
-                lowp vec4 tex_color = texture2D(texture, ripple_uv);
-                gl_FragColor = vec4(tex_color.rgb, 1);
             }`,
         });
 
@@ -166,17 +141,17 @@ export namespace VideoAnimations {
             hits: 0,
         });
 
-        document.body.addEventListener("mousemove", (e) => {
+        canvas.addEventListener("mousemove", (e) => {
             model.state = {
                 ...model.state,
-                mouse_position: [e.clientX, e.clientY],
+                mouse_position: [e.offsetX, e.offsetY],
             };
         })
 
-        document.body.addEventListener("mousedown", (e) => {
+        canvas.addEventListener("mousedown", (e) => {
             const canvas_position = Vec2.mul(
                 Vec2.div(
-                    [e.clientX, e.clientY],
+                    [e.offsetX, e.offsetY],
                     [canvas.clientWidth, canvas.clientHeight]),
                 [canvas.width, canvas.height]);
 
@@ -237,7 +212,7 @@ export namespace VideoAnimations {
                 ...model.state,
                 simulation_tick: get_time(),
             };
-        }, 1000 / 60);
+        }, 1000 / 144);
 
         setInterval(() => {
             model.state = {
@@ -254,7 +229,7 @@ export namespace VideoAnimations {
 
         const smooth_curve: SmoothCurve = {
             x_range: [0, 1],
-            y_values: [0, 1, 1, 1, .25, .25, 0],
+            y_values: [0, 1, 1, 1, .5, .5, 0],
         }
 
         const target_diameter = (state: typeof model.state, target: Target) => {
@@ -263,68 +238,11 @@ export namespace VideoAnimations {
         }
 
         const render = (state: typeof model.state) => {
-
-            // const target_texture = {
-            //     texture: gl.createTexture()!,
-            //     width: canvas.width,
-            //     height: canvas.height };
-
-            // {
-            //     // define size and format of level 0
-            //     var level = 0;
-            //     const internalFormat = gl.RGBA;
-            //     const border = 0;
-            //     const format = gl.RGBA;
-            //     const type = gl.UNSIGNED_BYTE;
-            //     const data = null;
-            //     gl.bindTexture(gl.TEXTURE_2D, target_texture.texture);
-            //     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-            //         target_texture.width, target_texture.height, border,
-            //         format, type, data);
-
-            //     // set the filtering so we don't need mips
-            //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-            //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            // }
-
-            // {
-            //     var framebuffer = gl.createFramebuffer();
-            //     const attachmentPoint = gl.COLOR_ATTACHMENT0;
-            //     gl.bindTexture(gl.TEXTURE_2D, target_texture.texture);
-            //     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-            //     gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, target_texture.texture, level);
-            //     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            // }
-
-            // gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-
-            gl.clearColor(0, 0, 0, 1);
+            gl.clearColor(.2, .2, .2, 1);
             gl.disable(gl.DEPTH_TEST);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.enable(gl.BLEND)
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-            // gl.viewport(
-            //     (320 - flame_binds.texture.width) * .5,
-            //     (224 - flame_binds.texture.height) * .5,
-            //     flame_binds.texture.width,
-            //     flame_binds.texture.height);
-            // ShaderBuilder.render_material(gl, flame_material, {
-            //     ...constant_binds,
-            //     ...flame_binds,
-            //     scroll: -state.simulation_tick,
-            // });
-            // gl.viewport(
-            //     (320 - beam_binds.texture.width) * .5,
-            //     (224 - beam_binds.texture.height) * .5,
-            //     beam_binds.texture.width,
-            //     beam_binds.texture.height);
-            // ShaderBuilder.render_material(gl, material, {
-            //     ...constant_binds,
-            //     ...beam_binds,
-            //     scroll: -state.simulation_tick * 0.2,
-            // });
-
             state.targets.map(target => {
                 const scale = target_diameter(state, target);
                 gl.viewport(
@@ -334,44 +252,27 @@ export namespace VideoAnimations {
                     scale);
                 ShaderBuilder.render_material(gl, material, {
                     ...constant_binds,
-                    scroll: -(state.simulation_tick - target.time) * 1.619,
+                    scroll: -(state.simulation_tick - target.time) * 1.619 * .2,
                 });
             });
 
-            const width = armor_binds.texture.width;
-            const height = armor_binds.texture.height;
+            const width = cursor_binds.texture.width;
+            const height = cursor_binds.texture.height;
             gl.viewport(
-                width * -.5 + state.mouse_position[0] / canvas.clientWidth * canvas.width,
-                height * -.5 + canvas.height - 1 - (state.mouse_position[1] / canvas.clientHeight * canvas.height),
+                Math.round(state.mouse_position[0] / canvas.clientWidth * canvas.width),
+                -height + Math.round(canvas.height - 1 - (state.mouse_position[1] / canvas.clientHeight * canvas.height)),
                 width,
                 height);
-            ShaderBuilder.render_material(gl, armor_material, {
+            ShaderBuilder.render_material(gl, cursor_material, {
                 ...constant_binds,
-                ...armor_binds,
+                ...cursor_binds,
                 scroll: 0,
             });
-
-            // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            // gl.viewport(
-            //     0,
-            //     0,
-            //     canvas.width,
-            //     canvas.height);
-            // ShaderBuilder.render_material(gl, frame_buffer_material, {
-            //     ...constant_binds,
-            //     ...armor_binds,
-            //     texture: target_texture,
-            //     scroll: -current_time,
-            // });
             gl.flush();
         }
 
         let frame_times: readonly number[] = [];
-        // let previous_animation_state = model.state;
         model.listen("all-members", state => {
-            // if (previous_animation_state == model.state)
-            //     return;
-            // previous_animation_state = model.state;
 
             render(state);
 
