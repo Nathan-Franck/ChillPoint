@@ -16,11 +16,11 @@
 			"command": "npx tsc -w -p tsconfig.UI.Tests.json"
 		},
 		{
-			"label": "watch VideoAnimations",
+			"label": "watch MouseAccuracy",
 			"type": "shell",
 			"group": "build",
 			"problemMatcher": [],
-			"command": "npx tsc -w -p tsconfig.VideoAnimations.json"
+			"command": "npx tsc -w -p tsconfig.MouseAccuracy.json"
 		},
 		{
 			"label": "watch Server.PeerAdvertising",

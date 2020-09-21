@@ -114,6 +114,7 @@ export namespace ShaderBuilder {
 		readonly globals: T,
 		readonly vert_source: string,
 		readonly frag_source: string,
+		readonly mode: "TRIANGLES" | "TRIANGLE_STRIP",
 	};
 
 	export type Material<T extends ShaderGlobals> = {
@@ -190,8 +191,8 @@ export namespace ShaderBuilder {
 					textureSettings.srcFormat, textureSettings.srcType, image);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 				gl.generateMipmap(gl.TEXTURE_2D);
 				resolve({
 					texture,
@@ -312,9 +313,9 @@ export namespace ShaderBuilder {
 				const data = (binds as any)[element_key] as SizedBuffer;
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, data.buffer);
 
-				gl.drawElementsInstanced(gl.TRIANGLES, data.length, gl.UNSIGNED_SHORT, 0, buffer_counts.instance);
+				gl.drawElementsInstanced(gl[material.mode], data.length, gl.UNSIGNED_SHORT, 0, buffer_counts.instance);
 			} else {
-				gl.drawArraysInstanced(gl.TRIANGLES, 0, buffer_counts.element, buffer_counts.instance);
+				gl.drawArraysInstanced(gl[material.mode], 0, buffer_counts.element, buffer_counts.instance);
 			}
 		}
 	}
