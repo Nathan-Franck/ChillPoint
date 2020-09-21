@@ -143,7 +143,7 @@ export namespace MouseAccuracy {
             },
             vert_source: `void main(void) {
                     gl_Position = vec4((position / canvas_dimensions * 2.0 - 1.0) * vec2(1.0, -1.0), 0.0, 1.0);
-                    uv = distance * 0.05;
+                    uv = distance * 0.025;
                 }`,
             frag_source: `void main(void) {
                 gl_FragColor = texture2D(pattern, vec2(uv, 0.5)) * vec4(1.0, 0.2, 0.2, 1.0);
@@ -217,9 +217,23 @@ export namespace MouseAccuracy {
                         target != hit_target),
                 };
             } else {
+                const punished_target = model.state.targets.reduce<{
+                    target: Target,
+                    distance: number,
+                } | undefined>((closest, current) => {
+                    const distance = Vec2.dist(current.position, canvas_position);
+                    if (closest == null ||
+                        closest.distance > distance)
+                        return {
+                            target: current,
+                            distance,
+                        };
+                    return closest;
+                }, undefined);
                 model.state = {
                     ...model.state,
                     clicks: model.state.clicks + 1,
+                    targets: model.state.targets.filter(target => target != punished_target?.target),
                 };
             }
         })
@@ -298,26 +312,18 @@ export namespace MouseAccuracy {
 
         //     last_state = state;
 
-        model.respond("mouse_position", state => {
+        const append_mouse_to_tail = (state: typeof model.state, min_offset_for_grow: number) => {
             const last_first = state.tail[0];
-            const distance_offset = last_first == null ? 0 : Vec2.dist(state.mouse_position, last_first.position);
-            const max_length = 300;
-            // const min_offset_for_grow = 10;
-            // if (distance_offset < min_offset_for_grow) {
-            //     return {
-            //         tail: [
-            //             {
-            //                 position: state.mouse_position,
-            //                 distance: 0,
-            //             },
-            //             ...state.tail.slice(1, state.tail.length),
-            //         ],
-            //     }
-            // }
+            const { mouse_position } = state;
+            const distance_offset = last_first == null ? 10000 : Vec2.dist(mouse_position, last_first.position);
+            const max_length = 1000;
+            if (distance_offset < min_offset_for_grow) {
+                return { tail: state.tail };
+            }
             return {
                 tail: [
                     {
-                        position: state.mouse_position,
+                        position: mouse_position,
                         distance: 0,
                     },
                     ...state.tail.map(particle => ({
@@ -326,7 +332,9 @@ export namespace MouseAccuracy {
                     })).filter(particle => particle.distance <= max_length),
                 ],
             };
-        });
+        }
+
+        model.respond("mouse_position", state => append_mouse_to_tail(state, 10));
 
         model.listen("all-members", state => {
 
@@ -366,7 +374,7 @@ export namespace MouseAccuracy {
                 canvas.width,
                 canvas.height);
             // 🐒 Tail effect here 👇
-            const { tail } = state;
+            const { tail } = append_mouse_to_tail(state, 0);
             const thickery = 2;
             const positions = new Float32Array(tail.length * 4);
             positions.set(tail.
@@ -387,7 +395,7 @@ export namespace MouseAccuracy {
                         ...Vec2.sub(position, perp)];
                 }));
             const distances = new Float32Array(tail.length * 2);
-            distances.set(tail.flatMap(({distance}) => [distance, distance]));
+            distances.set(tail.flatMap(({ distance }) => [distance, distance]));
             ShaderBuilder.render_material(gl, tail_material, {
                 ...tail_binds,
                 distance: ShaderBuilder.create_buffer(gl, distances),
@@ -395,18 +403,18 @@ export namespace MouseAccuracy {
             });
 
 
-            // const width = cursor_binds.texture.width;
-            // const height = cursor_binds.texture.height;
-            // gl.viewport(
-            //     state.mouse_position[0],
-            //     -height + canvas.height - 1 - state.mouse_position[1],
-            //     width,
-            //     height);
-            // ShaderBuilder.render_material(gl, cursor_material, {
-            //     ...constant_binds,
-            //     ...cursor_binds,
-            //     canvas_dimensions,
-            // });
+            const width = cursor_binds.texture.width;
+            const height = cursor_binds.texture.height;
+            gl.viewport(
+                state.mouse_position[0],
+                -height + canvas.height - 1 - state.mouse_position[1],
+                width,
+                height);
+            ShaderBuilder.render_material(gl, cursor_material, {
+                ...constant_binds,
+                ...cursor_binds,
+                canvas_dimensions,
+            });
 
             gl.flush();
 
