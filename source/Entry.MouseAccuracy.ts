@@ -5,7 +5,7 @@ import { ShaderBuilder } from "./Util.ShaderBuilder";
 import { SmoothCurve } from "./Util.SmoothCurve";
 import { Vec2 } from "./Util.VecMath";
 
-export namespace VideoAnimations {
+export namespace MouseAccuracy {
 
     export function generate_platform() {
         const platform = HtmlBuilder.create_children(document.body, {
@@ -21,17 +21,23 @@ export namespace VideoAnimations {
                 },
             }
         });
+        const width = 16;
+        const height = 9;
         const resize_canvas = () => {
             const { canvas } = platform;
-            const t = [window.innerWidth / canvas.width, window.innerHeight / canvas.height];
+            const t = [window.innerWidth / width, window.innerHeight / height];
             const min_t = Math.min(...t);
             HtmlBuilder.assign_to_element(canvas, {
                 style: {
-                    width: canvas.width * min_t,
-                    height: canvas.height * min_t,
-                    left: (window.innerWidth - canvas.width * min_t) * .5,
-                    top: (window.innerHeight - canvas.height * min_t) * .5,
-                    cursor: "none",
+                    width: width * min_t,
+                    height: height * min_t,
+                    left: (window.innerWidth - width * min_t) * .5,
+                    top: (window.innerHeight - height * min_t) * .5,
+                    // cursor: "none",
+                },
+                attributes: {
+                    width: width * min_t,
+                    height: height * min_t,
                 }
             });
         };
@@ -41,11 +47,12 @@ export namespace VideoAnimations {
         return platform;
     }
 
-    export async function bouncing() {
+    export async function play_game() {
         const { canvas } = generate_platform();
         const gl = canvas.getContext("webgl2", {
             desynchronized: false,
             preserveDrawingBuffer: true,
+            antialias: false,
         })!;
 
         const constant_binds = {
@@ -58,18 +65,12 @@ export namespace VideoAnimations {
             ])),
             pattern: await ShaderBuilder.load_texture(gl, "./images/fire pattern 2.png"),
             texture: await ShaderBuilder.load_texture(gl, "./images/elemental ball 2.png"),
-            camera_size: [canvas.width, canvas.height],
-        } as const;
-        const flame_binds = {
-            texture: await ShaderBuilder.load_texture(gl, "./images/swordly_fire.png"),
-            ripple: await ShaderBuilder.load_texture(gl, "./images/ripple.png"),
-        };
-        const beam_binds = {
-            texture: await ShaderBuilder.load_texture(gl, "./images/swordly_beam.png"),
-            pattern: await ShaderBuilder.load_texture(gl, "./images/fire pattern 3.png"),
         } as const;
         const cursor_binds = {
             texture: await ShaderBuilder.load_texture(gl, "./images/cursor.png"),
+        } as const;
+        const background_binds = {
+            pattern: await ShaderBuilder.load_texture(gl, "./images/circle pattern.png"),
         } as const;
 
         const image_vert_source = `void main(void) {
@@ -79,14 +80,15 @@ export namespace VideoAnimations {
         const constant_globals = {
             vertices: { type: "element" },
             texture_coords: { type: "attribute", unit: "vec2" },
-            camera_size: { type: "uniform", unit: "vec2", count: 1 },
             texture: { type: "uniform", unit: "sampler2D", count: 1 },
-            scroll: { type: "uniform", unit: "float", count: 1 },
             uv: { type: "varying", unit: "vec2" },
+            canvas_dimensions: { type: "uniform", unit: "vec2", count: 1 },
         } as const;
         const material = ShaderBuilder.generate_material(gl, {
+            mode: "TRIANGLES",
             globals: {
                 ...constant_globals,
+                scroll: { type: "uniform", unit: "float", count: 1 },
                 pattern: { type: "uniform", unit: "sampler2D", count: 1 },
             },
             vert_source: image_vert_source,
@@ -119,12 +121,52 @@ export namespace VideoAnimations {
             }`,
         });
         const cursor_material = ShaderBuilder.generate_material(gl, {
+            mode: "TRIANGLES",
             globals: constant_globals,
             vert_source: image_vert_source,
             frag_source: `
             void main(void) {
                 lowp vec4 tex_color = texture2D(texture, uv);
                 gl_FragColor = tex_color;
+            }`,
+        });
+
+
+        const tail_material = ShaderBuilder.generate_material(gl, {
+            mode: "TRIANGLE_STRIP",
+            globals: {
+                canvas_dimensions: { type: "uniform", unit: "vec2", count: 1 },
+                pattern: { type: "uniform", unit: "sampler2D", count: 1 },
+                position: { type: "attribute", unit: "vec2" },
+                distance: { type: "attribute", unit: "float" },
+                uv: { type: "varying", unit: "float" },
+            },
+            vert_source: `void main(void) {
+                    gl_Position = vec4((position / canvas_dimensions * 2.0 - 1.0) * vec2(1.0, -1.0), 0.0, 1.0);
+                    uv = distance * 0.05;
+                }`,
+            frag_source: `void main(void) {
+                gl_FragColor = texture2D(pattern, vec2(uv, 0.5)) * vec4(1.0, 0.2, 0.2, 1.0);
+            }`,
+        });
+        const tail_binds = {
+            canvas_dimensions: [canvas.width, canvas.height],
+            pattern: await ShaderBuilder.load_texture(gl, "./images/dotted line pattern.png"),
+        } as const;
+
+        const background_material = ShaderBuilder.generate_material(gl, {
+            mode: "TRIANGLES",
+            globals: {
+                ...constant_globals,
+                mouse_position: { type: "uniform", unit: "vec2", count: 1 },
+                pattern: { type: "uniform", unit: "sampler2D", count: 1 },
+            },
+            vert_source: image_vert_source,
+            frag_source: `void main(void) {
+                lowp float tex_uv = length(mouse_position - uv * canvas_dimensions) / 128.0;
+                lowp vec4 pattern_color = texture2D(pattern, vec2(sqrt(tex_uv) * 4.0, 0.5));
+                lowp float alpha = pattern_color.a / (1.0 + tex_uv * 4.0);
+                gl_FragColor = vec4(pattern_color.rgb, alpha);
             }`,
         });
 
@@ -137,6 +179,10 @@ export namespace VideoAnimations {
             simulation_tick: 0,
             mouse_position: [0, 0] as Vec2,
             targets: [] as readonly Target[],
+            tail: [] as readonly {
+                position: Vec2,
+                distance: number,
+            }[],
             clicks: 0,
             hits: 0,
         });
@@ -144,7 +190,11 @@ export namespace VideoAnimations {
         canvas.addEventListener("mousemove", (e) => {
             model.state = {
                 ...model.state,
-                mouse_position: [e.offsetX, e.offsetY],
+                mouse_position: Vec2.mul(
+                    [canvas.width, canvas.height],
+                    Vec2.div(
+                        [e.offsetX, e.offsetY],
+                        [canvas.clientWidth, canvas.clientHeight])),
             };
         })
 
@@ -238,12 +288,55 @@ export namespace VideoAnimations {
         }
 
         let frame_times: readonly number[] = [];
+        // let last_state = model.state;
+        // const render = () => {
+
+        //     const { state } = model;
+
+        //     // if (last_state == state)
+        //     //     return;
+
+        //     last_state = state;
+
+        model.respond("mouse_position", state => {
+            const last_first = state.tail[0];
+            const distance_offset = last_first == null ? 0 : Vec2.dist(state.mouse_position, last_first.position);
+            const max_length = 300;
+            // const min_offset_for_grow = 10;
+            // if (distance_offset < min_offset_for_grow) {
+            //     return {
+            //         tail: [
+            //             {
+            //                 position: state.mouse_position,
+            //                 distance: 0,
+            //             },
+            //             ...state.tail.slice(1, state.tail.length),
+            //         ],
+            //     }
+            // }
+            return {
+                tail: [
+                    {
+                        position: state.mouse_position,
+                        distance: 0,
+                    },
+                    ...state.tail.map(particle => ({
+                        ...particle,
+                        distance: particle.distance + distance_offset,
+                    })).filter(particle => particle.distance <= max_length),
+                ],
+            };
+        });
+
         model.listen("all-members", state => {
 
             gl.clearColor(.2, .2, .2, 1);
             gl.disable(gl.DEPTH_TEST);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.enable(gl.BLEND)
+
+            const canvas_dimensions = [canvas.width, canvas.height] as const;
+
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             state.targets.map(target => {
                 const scale = target_diameter(state, target);
@@ -254,22 +347,67 @@ export namespace VideoAnimations {
                     scale);
                 ShaderBuilder.render_material(gl, material, {
                     ...constant_binds,
+                    canvas_dimensions,
                     scroll: -(state.simulation_tick - target.time) * 1.619 * .2,
                 });
             });
 
-            const width = cursor_binds.texture.width;
-            const height = cursor_binds.texture.height;
+            // gl.viewport(
+            //     0, 0,
+            //     canvas.width,
+            //     canvas.height);
+            // ShaderBuilder.render_material(gl, background_material, {
+            //     ...constant_binds,
+            //     ...background_binds,
+            //     mouse_position: state.mouse_position,
+            // });
             gl.viewport(
-                Math.round(state.mouse_position[0] / canvas.clientWidth * canvas.width),
-                -height + Math.round(canvas.height - 1 - (state.mouse_position[1] / canvas.clientHeight * canvas.height)),
-                width,
-                height);
-            ShaderBuilder.render_material(gl, cursor_material, {
-                ...constant_binds,
-                ...cursor_binds,
-                scroll: 0,
+                0, 0,
+                canvas.width,
+                canvas.height);
+            // 🐒 Tail effect here 👇
+            const { tail } = state;
+            const thickery = 2;
+            const positions = new Float32Array(tail.length * 4);
+            positions.set(tail.
+                flatMap(({ position }, index) => {
+                    const next_position = index < tail.length - 1 ?
+                        tail[index + 1].position :
+                        Vec2.add(
+                            position,
+                            Vec2.sub(
+                                position,
+                                tail[index - 1].position));
+                    const diff = Vec2.sub(next_position, position);
+                    const perp = Vec2.scale(
+                        Vec2.normal([diff[1], -diff[0]]),
+                        thickery);
+                    return [
+                        ...Vec2.add(position, perp),
+                        ...Vec2.sub(position, perp)];
+                }));
+            const distances = new Float32Array(tail.length * 2);
+            distances.set(tail.flatMap(({distance}) => [distance, distance]));
+            ShaderBuilder.render_material(gl, tail_material, {
+                ...tail_binds,
+                distance: ShaderBuilder.create_buffer(gl, distances),
+                position: ShaderBuilder.create_buffer(gl, positions),
             });
+
+
+            // const width = cursor_binds.texture.width;
+            // const height = cursor_binds.texture.height;
+            // gl.viewport(
+            //     state.mouse_position[0],
+            //     -height + canvas.height - 1 - state.mouse_position[1],
+            //     width,
+            //     height);
+            // ShaderBuilder.render_material(gl, cursor_material, {
+            //     ...constant_binds,
+            //     ...cursor_binds,
+            //     canvas_dimensions,
+            // });
+
             gl.flush();
 
             const current_time = get_time();
@@ -291,11 +429,11 @@ export namespace VideoAnimations {
                         innerHTML: `${tag}: ${display_state[tag]}`,
                     },
                 });
-            })
+            });
         });
     }
 }
 
 
 
-VideoAnimations.bouncing();
+MouseAccuracy.play_game();

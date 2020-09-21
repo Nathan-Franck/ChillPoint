@@ -1,9 +1,0 @@
-{
-    "extends": "./tsconfig.base.json",
-    "compilerOptions": {
-        "outFile": "website/js/Entry.VideoAnimations.js",
-    },
-    "files": [
-        "source/Entry.VideoAnimations.ts"
-    ]
-}

@@ -132,6 +132,7 @@ export namespace Terrain {
 
 		// 🐢 Ground
 		const ground_material = ShaderBuilder.generate_material(gl, {
+			mode: "TRIANGLES",
 			globals: {
 				...Camera.environment.globals,
 
@@ -160,6 +161,7 @@ export namespace Terrain {
 
 		// 🌊 Water
 		const water_material = ShaderBuilder.generate_material(gl, {
+			mode: "TRIANGLES",
 			globals: {
 				...Camera.environment.globals,
 
