@@ -88,6 +88,7 @@ export namespace MouseAccuracy {
             mode: "TRIANGLES",
             globals: {
                 ...constant_globals,
+                blend_color: { type: "uniform", unit: "vec4", count: 1 },
                 scroll: { type: "uniform", unit: "float", count: 1 },
                 pattern: { type: "uniform", unit: "sampler2D", count: 1 },
             },
@@ -117,7 +118,7 @@ export namespace MouseAccuracy {
                 lowp float cool = tex_uv - floor(tex_uv);
                 lowp vec4 pattern_color = texture2D(pattern, vec2(tex_uv * 1.0, 0.5));
                 lowp float alpha = float(pattern_color.a * texture2D(texture, uv).a > .5);
-                gl_FragColor = vec4(pattern_color.rgb / alpha, alpha);
+                gl_FragColor = vec4(pattern_color.rgb * blend_color.rgb, alpha * blend_color.a);
             }`,
         });
         const cursor_material = ShaderBuilder.generate_material(gl, {
@@ -172,7 +173,11 @@ export namespace MouseAccuracy {
 
         type Target = {
             position: Vec2,
-            time: number,
+            spawn_time: number,
+            despawn?: {
+                time: number,
+                cause: "click" | "punish",
+            },
         };
 
         const model = Model.create({
@@ -205,35 +210,58 @@ export namespace MouseAccuracy {
                     [canvas.clientWidth, canvas.clientHeight]),
                 [canvas.width, canvas.height]);
 
-            console.log(canvas_position);
             const hit_target = model.state.targets.find(target =>
-                Vec2.dist(target.position, canvas_position) < target_diameter(model.state, target) * 0.5);
+                target.despawn == null &&
+                Vec2.dist(target.position, canvas_position) < target_diameter(
+                    model.state.simulation_tick - target.spawn_time, target) * 0.5);
             if (hit_target != null) {
+                // ✅ Clear target clicked
                 model.state = {
                     ...model.state,
                     hits: model.state.hits + 1,
                     clicks: model.state.clicks + 1,
-                    targets: model.state.targets.filter(target =>
-                        target != hit_target),
+                    targets: model.state.targets.map(target =>
+                        target != hit_target ? target :
+                            <Target>{
+                                ...target,
+                                despawn: {
+                                    time: model.state.simulation_tick,
+                                    cause: "click",
+                                }
+                            }),
                 };
             } else {
-                const punished_target = model.state.targets.reduce<{
+                // 🛑 Punish player for mis-click
+                const punished = model.state.targets.reduce<{
                     target: Target,
                     distance: number,
-                } | undefined>((closest, current) => {
-                    const distance = Vec2.dist(current.position, canvas_position);
+                } | undefined>((closest, target) => {
+                    if (target.despawn != null)
+                        return closest;
+                    const distance = Vec2.dist(target.position, canvas_position);
                     if (closest == null ||
                         closest.distance > distance)
                         return {
-                            target: current,
+                            target,
                             distance,
                         };
                     return closest;
                 }, undefined);
+
+                console.log(punished);
+
                 model.state = {
                     ...model.state,
                     clicks: model.state.clicks + 1,
-                    targets: model.state.targets.filter(target => target != punished_target?.target),
+                    targets: model.state.targets.map(target =>
+                        target != punished?.target ? target :
+                            <Target>{
+                                ...target,
+                                despawn: {
+                                    time: model.state.simulation_tick,
+                                    cause: "punish",
+                                },
+                            }),
                 };
             }
         })
@@ -285,20 +313,24 @@ export namespace MouseAccuracy {
                     ...model.state.targets,
                     {
                         position: [Math.random() * canvas.width, Math.random() * canvas.height],
-                        time: get_time(),
+                        spawn_time: get_time(),
                     },
                 ],
             };
         }, 1000 / 2);
 
-        const smooth_curve: SmoothCurve = {
-            x_range: [0, 1],
+        const diameter_curve: SmoothCurve = {
+            x_range: [0, 4],
             y_values: [0, 1, 1, 1, .5, .5, 0],
         }
 
-        const target_diameter = (state: typeof model.state, target: Target) => {
-            const time = (state.simulation_tick - target.time) / 4;
-            return 64 * SmoothCurve.sample(smooth_curve, time);
+        const despawn_fade_curve: SmoothCurve = {
+            x_range: [0, 2],
+            y_values: [1, .2, .1, 0],
+        }
+
+        const target_diameter = (time: number, target: Target) => {
+            return 64 * SmoothCurve.sample(diameter_curve, time);
         }
 
         let frame_times: readonly number[] = [];
@@ -334,7 +366,7 @@ export namespace MouseAccuracy {
             };
         }
 
-        model.respond("mouse_position", state => append_mouse_to_tail(state, 10));
+        model.respond("mouse_position", state => append_mouse_to_tail(state, 32));
 
         model.listen("all-members", state => {
 
@@ -342,12 +374,14 @@ export namespace MouseAccuracy {
             gl.disable(gl.DEPTH_TEST);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.enable(gl.BLEND)
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
             const canvas_dimensions = [canvas.width, canvas.height] as const;
 
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             state.targets.map(target => {
-                const scale = target_diameter(state, target);
+                if (target.despawn != null)
+                    return;
+                const scale = target_diameter(state.simulation_tick - target.spawn_time, target);
                 gl.viewport(
                     scale * -0.5 + target.position[0],
                     scale * -0.5 + canvas.height - 1 - target.position[1],
@@ -356,7 +390,29 @@ export namespace MouseAccuracy {
                 ShaderBuilder.render_material(gl, material, {
                     ...constant_binds,
                     canvas_dimensions,
-                    scroll: -(state.simulation_tick - target.time) * 1.619 * .2,
+                    blend_color: [1, 1, 1, 1],
+                    scroll: -(state.simulation_tick - target.spawn_time) * 1.619 * .2,
+                });
+            });
+
+            state.targets.map(target => {
+                if (target.despawn == null)
+                    return;
+                const scale = target_diameter(target.despawn.time - target.spawn_time, target);
+                const time = state.simulation_tick - target.despawn.time;
+                gl.viewport(
+                    scale * -0.5 + target.position[0],
+                    scale * -0.5 + canvas.height - 1 - target.position[1],
+                    scale,
+                    scale);
+                const color = target.despawn.cause == "punish" ?
+                    [1, 0, 0] as const :
+                    [0, 1, 0] as const;
+                ShaderBuilder.render_material(gl, material, {
+                    ...constant_binds,
+                    canvas_dimensions,
+                    blend_color: [...color, SmoothCurve.sample(despawn_fade_curve, time)],
+                    scroll: -(state.simulation_tick - target.spawn_time) * 1.619 * .2,
                 });
             });
 
