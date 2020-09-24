@@ -397,6 +397,7 @@ export namespace Forest {
 		]);
 
 		const tree_material = {
+			mode: "TRIANGLES",
 			globals: {
 				...Camera.environment.globals,
 				"triangles": { type: "element" },

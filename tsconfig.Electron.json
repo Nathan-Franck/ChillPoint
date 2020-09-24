@@ -2,7 +2,7 @@
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
         "module": "CommonJS",
-        "outDir": "website/js/",
+        "outDir": "website/js/"
     },
     "files": [
         "source/Entry.Electron.ts"

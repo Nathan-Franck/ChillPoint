@@ -166,6 +166,7 @@ export namespace Meeples {
 
 		// 🙋‍♂️ Meeples
 		const meeple_material = ShaderBuilder.generate_material(gl, {
+			mode: "TRIANGLES",
 			globals: {
 				...Camera.environment.globals,
 				"world_position": {
