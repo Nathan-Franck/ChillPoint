@@ -17,6 +17,6 @@
         "preserveConstEnums": true,
         "newLine": "lf",
         "types": ["node"],
-        "moduleResolution": "node",
+        "moduleResolution": "node"
     }
 }

@@ -1,4 +1,5 @@
 import { Model } from "./Model";
+import { substate_example } from "./SubstateExample";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { Scripting } from "./Util.Scripting";
 import { ShaderBuilder } from "./Util.ShaderBuilder";
@@ -176,19 +177,22 @@ export namespace MouseAccuracy {
             spawn_time: number,
             despawn?: {
                 time: number,
-                cause: "click" | "punish",
+                cause: "hit" | "punish",
             },
         };
 
         const model = Model.create({
-            simulation_tick: 0,
+            simulation_time: 0,
             mouse_position: [0, 0] as Vec2,
             targets: [] as readonly Target[],
             tail: [] as readonly {
-                position: Vec2,
-                distance: number,
+                readonly position: Vec2,
+                readonly distance: number,
             }[],
-            clicks: 0,
+            clicks: [] as readonly {
+                readonly position: Vec2,
+                readonly time: number,
+            }[],
             hits: 0,
         });
 
@@ -204,35 +208,39 @@ export namespace MouseAccuracy {
         })
 
         canvas.addEventListener("mousedown", (e) => {
+            const { state } = model;
             const canvas_position = Vec2.mul(
                 Vec2.div(
                     [e.offsetX, e.offsetY],
                     [canvas.clientWidth, canvas.clientHeight]),
                 [canvas.width, canvas.height]);
-
-            const hit_target = model.state.targets.find(target =>
+            const hit_target = state.targets.find(target =>
                 target.despawn == null &&
                 Vec2.dist(target.position, canvas_position) < target_diameter(
-                    model.state.simulation_tick - target.spawn_time, target) * 0.5);
+                    state.simulation_time - target.spawn_time, target) * 0.5);
+            const clicks: typeof state.clicks = [...state.clicks, {
+                position: canvas_position,
+                time: state.simulation_time,
+            }];
             if (hit_target != null) {
                 // ✅ Clear target clicked
                 model.state = {
-                    ...model.state,
-                    hits: model.state.hits + 1,
-                    clicks: model.state.clicks + 1,
-                    targets: model.state.targets.map(target =>
+                    ...state,
+                    clicks,
+                    hits: state.hits + 1,
+                    targets: state.targets.map(target =>
                         target != hit_target ? target :
                             <Target>{
                                 ...target,
                                 despawn: {
-                                    time: model.state.simulation_tick,
-                                    cause: "click",
+                                    time: state.simulation_time,
+                                    cause: "hit",
                                 }
                             }),
                 };
             } else {
                 // 🛑 Punish player for mis-click
-                const punished = model.state.targets.reduce<{
+                const punished = state.targets.reduce<{
                     target: Target,
                     distance: number,
                 } | undefined>((closest, target) => {
@@ -248,17 +256,15 @@ export namespace MouseAccuracy {
                     return closest;
                 }, undefined);
 
-                console.log(punished);
-
                 model.state = {
-                    ...model.state,
-                    clicks: model.state.clicks + 1,
-                    targets: model.state.targets.map(target =>
+                    ...state,
+                    clicks,
+                    targets: state.targets.map(target =>
                         target != punished?.target ? target :
                             <Target>{
                                 ...target,
                                 despawn: {
-                                    time: model.state.simulation_tick,
+                                    time: state.simulation_time,
                                     cause: "punish",
                                 },
                             }),
@@ -302,7 +308,7 @@ export namespace MouseAccuracy {
         setInterval(() => {
             model.state = {
                 ...model.state,
-                simulation_tick: get_time(),
+                simulation_time: get_time(),
             };
         }, 1000 / 144);
 
@@ -378,10 +384,11 @@ export namespace MouseAccuracy {
 
             const canvas_dimensions = [canvas.width, canvas.height] as const;
 
+            // 🎯 Targets
             state.targets.map(target => {
                 if (target.despawn != null)
                     return;
-                const scale = target_diameter(state.simulation_tick - target.spawn_time, target);
+                const scale = target_diameter(state.simulation_time - target.spawn_time, target);
                 gl.viewport(
                     scale * -0.5 + target.position[0],
                     scale * -0.5 + canvas.height - 1 - target.position[1],
@@ -391,15 +398,16 @@ export namespace MouseAccuracy {
                     ...constant_binds,
                     canvas_dimensions,
                     blend_color: [1, 1, 1, 1],
-                    scroll: -(state.simulation_tick - target.spawn_time) * 1.619 * .2,
+                    scroll: -(state.simulation_time - target.spawn_time) * 1.619 * .2,
                 });
             });
 
+            // ☁ Despawned targets
             state.targets.map(target => {
                 if (target.despawn == null)
                     return;
                 const scale = target_diameter(target.despawn.time - target.spawn_time, target);
-                const time = state.simulation_tick - target.despawn.time;
+                const time = state.simulation_time - target.despawn.time;
                 gl.viewport(
                     scale * -0.5 + target.position[0],
                     scale * -0.5 + canvas.height - 1 - target.position[1],
@@ -412,24 +420,29 @@ export namespace MouseAccuracy {
                     ...constant_binds,
                     canvas_dimensions,
                     blend_color: [...color, SmoothCurve.sample(despawn_fade_curve, time)],
-                    scroll: -(state.simulation_tick - target.spawn_time) * 1.619 * .2,
+                    scroll: -(state.simulation_time - target.spawn_time) * 1.619 * .2,
                 });
             });
 
-            // gl.viewport(
-            //     0, 0,
-            //     canvas.width,
-            //     canvas.height);
-            // ShaderBuilder.render_material(gl, background_material, {
-            //     ...constant_binds,
-            //     ...background_binds,
-            //     mouse_position: state.mouse_position,
-            // });
+            // ⭕ Circle background
             gl.viewport(
                 0, 0,
                 canvas.width,
                 canvas.height);
-            // 🐒 Tail effect here 👇
+            ShaderBuilder.render_material(gl, background_material, {
+                ...constant_binds,
+                ...background_binds,
+                canvas_dimensions,
+                mouse_position: state.mouse_position,
+            });
+
+            substate_example();
+
+            // 🐒 Tail
+            gl.viewport(
+                0, 0,
+                canvas.width,
+                canvas.height);
             const { tail } = append_mouse_to_tail(state, 0);
             const thickery = 2;
             const positions = new Float32Array(tail.length * 4);
@@ -458,7 +471,7 @@ export namespace MouseAccuracy {
                 position: ShaderBuilder.create_buffer(gl, positions),
             });
 
-
+            // 👆 Rendered pointer
             const width = cursor_binds.texture.width;
             const height = cursor_binds.texture.height;
             gl.viewport(
@@ -484,6 +497,7 @@ export namespace MouseAccuracy {
 
             const display_state = {
                 ...state,
+                clicks: state.clicks.length,
                 fps: frame_times.length,
             };
 
