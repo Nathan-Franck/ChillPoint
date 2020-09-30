@@ -53,8 +53,14 @@ export namespace MouseAccuracy {
         const gl = canvas.getContext("webgl2", {
             desynchronized: false,
             preserveDrawingBuffer: true,
-            antialias: false,
+            antialias: true,
         })!;
+
+        const settings = {
+            quantum_size: 64,
+            target_click_rate: 1.73333,
+            target_persistence: 6,
+        };
 
         const constant_binds = {
             vertices: ShaderBuilder.create_element_buffer(gl, Uint16Array.from([0, 1, 2, 2, 1, 3])),
@@ -145,10 +151,10 @@ export namespace MouseAccuracy {
             },
             vert_source: `void main(void) {
                     gl_Position = vec4((position / canvas_dimensions * 2.0 - 1.0) * vec2(1.0, -1.0), 0.0, 1.0);
-                    uv = distance * 0.025;
+                    uv = distance / ${settings.quantum_size / 2}.0;
                 }`,
             frag_source: `void main(void) {
-                gl_FragColor = texture2D(pattern, vec2(uv, 0.5)) * vec4(1.0, 0.2, 0.2, 1.0);
+                gl_FragColor = texture2D(pattern, vec2(uv, 0.5)) * vec4(0.8, 0.8, 0.8, 1.0);
             }`,
         });
         const tail_binds = {
@@ -179,12 +185,6 @@ export namespace MouseAccuracy {
                 time: number,
                 cause: "hit" | "punish",
             },
-        };
-
-        const settings = {
-            quantum_size: 64,
-            target_click_rate: 1.73333,
-            target_persistence: 6,
         };
 
         const model = Model.create({
@@ -324,7 +324,7 @@ export namespace MouseAccuracy {
                 ...model.state,
                 simulation_time: get_time(),
             };
-        }, 1000 / 144);
+        }, 1000 / 30);
 
         setInterval(() => {
             const { canvas_dimensions, targets } = model.state;
@@ -380,7 +380,7 @@ export namespace MouseAccuracy {
             };
         }
 
-        model.respond("mouse_position", state => append_mouse_to_tail(state, 32));
+        model.respond("mouse_position", state => append_mouse_to_tail(state, 16));
 
         model.listen("all-members", state => {
 
@@ -445,7 +445,7 @@ export namespace MouseAccuracy {
             // 🐒 Tail
             gl.viewport(0, 0, ...canvas_dimensions);
             const { tail } = append_mouse_to_tail(state, 0);
-            const thickery = 2;
+            const pixel_thickness = 0.5;
             const positions = new Float32Array(tail.length * 4);
             positions.set(tail.
                 flatMap(({ position }, index) => {
@@ -459,7 +459,7 @@ export namespace MouseAccuracy {
                     const diff = Vec2.sub(next_position, position);
                     const perp = Vec2.scale(
                         Vec2.normal([diff[1], -diff[0]]),
-                        thickery);
+                        pixel_thickness);
                     return [
                         ...Vec2.add(position, perp),
                         ...Vec2.sub(position, perp)];
@@ -472,7 +472,7 @@ export namespace MouseAccuracy {
                 position: ShaderBuilder.create_buffer(gl, positions),
             });
 
-            // // 👆 Rendered pointer - Latency Debug
+            // // 👆 Rendered pointer - Good For Latency Debug
             // const width = cursor_binds.texture.width;
             // const height = cursor_binds.texture.height;
             // gl.viewport(
