@@ -4,8 +4,7 @@ import * as path from 'path';
 export namespace ElectronEntry {
     export function Start() {
         app.commandLine.appendSwitch('disable-frame-rate-limit');
-        app.commandLine.appendSwitch
-            ('disable-gpu-vsync');
+        app.commandLine.appendSwitch('disable-gpu-vsync');
         app.on("ready", () => {
             app.on("window-all-closed", () => { });
             const args = process.argv as [executable: string, entry: string, renderer_entry: string];
