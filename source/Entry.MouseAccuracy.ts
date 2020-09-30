@@ -1,5 +1,5 @@
 import { Model } from "./Model";
-import { substate_example } from "./SubstateExample";
+// import { substate_example } from "./SubstateExample";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { Scripting } from "./Util.Scripting";
 import { ShaderBuilder } from "./Util.ShaderBuilder";
@@ -71,7 +71,7 @@ export namespace MouseAccuracy {
             texture: await ShaderBuilder.load_texture(gl, "./images/cursor.png"),
         } as const;
         const background_binds = {
-            pattern: await ShaderBuilder.load_texture(gl, "./images/circle pattern.png"),
+            pattern: await ShaderBuilder.load_texture(gl, "./images/grid pattern.png"),
         } as const;
 
         const image_vert_source = `void main(void) {
@@ -160,15 +160,15 @@ export namespace MouseAccuracy {
             mode: "TRIANGLES",
             globals: {
                 ...constant_globals,
-                mouse_position: { type: "uniform", unit: "vec2", count: 1 },
+                grid_size: { type: "uniform", unit: "float", count: 1 },
                 pattern: { type: "uniform", unit: "sampler2D", count: 1 },
+                color: { type: "uniform", unit: "vec4", count: 1 },
             },
             vert_source: image_vert_source,
             frag_source: `void main(void) {
-                lowp float tex_uv = length(mouse_position - uv * canvas_dimensions) / 128.0;
-                lowp vec4 pattern_color = texture2D(pattern, vec2(sqrt(tex_uv) * 4.0, 0.5));
-                lowp float alpha = pattern_color.a / (1.0 + tex_uv * 4.0);
-                gl_FragColor = vec4(pattern_color.rgb, alpha);
+                lowp vec2 tex_uv = uv * canvas_dimensions / grid_size;
+                lowp vec4 pattern_color = texture2D(pattern, tex_uv);
+                gl_FragColor = pattern_color * color;
             }`,
         });
 
@@ -181,9 +181,16 @@ export namespace MouseAccuracy {
             },
         };
 
+        const settings = {
+            quantum_size: 64,
+            target_click_rate: 1.73333,
+            target_persistence: 6,
+        };
+
         const model = Model.create({
             simulation_time: 0,
             mouse_position: [0, 0] as Vec2,
+            canvas_dimensions: [canvas.width, canvas.height] as Vec2,
             targets: [] as readonly Target[],
             tail: [] as readonly {
                 readonly position: Vec2,
@@ -194,6 +201,13 @@ export namespace MouseAccuracy {
                 readonly time: number,
             }[],
             hits: 0,
+        });
+
+        canvas.addEventListener("resize", () => {
+            model.state = {
+                ...model.state,
+                canvas_dimensions: [canvas.width, canvas.height],
+            };
         });
 
         canvas.addEventListener("mousemove", (e) => {
@@ -313,20 +327,23 @@ export namespace MouseAccuracy {
         }, 1000 / 144);
 
         setInterval(() => {
+            const { canvas_dimensions, targets } = model.state;
+            const quantize = (value: number, index: number) =>
+                (Math.floor(value * canvas_dimensions[index] / settings.quantum_size) + 0.5) * settings.quantum_size;
             model.state = {
                 ...model.state,
                 targets: [
-                    ...model.state.targets,
+                    ...targets,
                     {
-                        position: [Math.random() * canvas.width, Math.random() * canvas.height],
+                        position: [quantize(Math.random(), 0), quantize(Math.random(), 1)],
                         spawn_time: get_time(),
                     },
                 ],
             };
-        }, 1000 / 2);
+        }, 1000 / settings.target_click_rate);
 
         const diameter_curve: SmoothCurve = {
-            x_range: [0, 4],
+            x_range: [0, settings.target_persistence],
             y_values: [0, 1, 1, 1, .5, .5, 0],
         }
 
@@ -336,19 +353,10 @@ export namespace MouseAccuracy {
         }
 
         const target_diameter = (time: number, target: Target) => {
-            return 64 * SmoothCurve.sample(diameter_curve, time);
+            return settings.quantum_size * SmoothCurve.sample(diameter_curve, time);
         }
 
         let frame_times: readonly number[] = [];
-        // let last_state = model.state;
-        // const render = () => {
-
-        //     const { state } = model;
-
-        //     // if (last_state == state)
-        //     //     return;
-
-        //     last_state = state;
 
         const append_mouse_to_tail = (state: typeof model.state, min_offset_for_grow: number) => {
             const last_first = state.tail[0];
@@ -376,13 +384,23 @@ export namespace MouseAccuracy {
 
         model.listen("all-members", state => {
 
+            const { canvas_dimensions } = state;
+
             gl.clearColor(.2, .2, .2, 1);
             gl.disable(gl.DEPTH_TEST);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.enable(gl.BLEND)
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-            const canvas_dimensions = [canvas.width, canvas.height] as const;
+            // 😁 Grid background
+            gl.viewport(0, 0, ...canvas_dimensions);
+            ShaderBuilder.render_material(gl, background_material, {
+                ...constant_binds,
+                ...background_binds,
+                canvas_dimensions,
+                grid_size: settings.quantum_size,
+                color: [1, 1, 1, .2],
+            });
 
             // 🎯 Targets
             state.targets.map(target => {
@@ -391,7 +409,7 @@ export namespace MouseAccuracy {
                 const scale = target_diameter(state.simulation_time - target.spawn_time, target);
                 gl.viewport(
                     scale * -0.5 + target.position[0],
-                    scale * -0.5 + canvas.height - 1 - target.position[1],
+                    scale * -0.5 + canvas_dimensions[1] - 1 - target.position[1],
                     scale,
                     scale);
                 ShaderBuilder.render_material(gl, material, {
@@ -410,7 +428,7 @@ export namespace MouseAccuracy {
                 const time = state.simulation_time - target.despawn.time;
                 gl.viewport(
                     scale * -0.5 + target.position[0],
-                    scale * -0.5 + canvas.height - 1 - target.position[1],
+                    scale * -0.5 + canvas_dimensions[1] - 1 - target.position[1],
                     scale,
                     scale);
                 const color = target.despawn.cause == "punish" ?
@@ -424,25 +442,8 @@ export namespace MouseAccuracy {
                 });
             });
 
-            // ⭕ Circle background
-            gl.viewport(
-                0, 0,
-                canvas.width,
-                canvas.height);
-            ShaderBuilder.render_material(gl, background_material, {
-                ...constant_binds,
-                ...background_binds,
-                canvas_dimensions,
-                mouse_position: state.mouse_position,
-            });
-
-            substate_example();
-
             // 🐒 Tail
-            gl.viewport(
-                0, 0,
-                canvas.width,
-                canvas.height);
+            gl.viewport(0, 0, ...canvas_dimensions);
             const { tail } = append_mouse_to_tail(state, 0);
             const thickery = 2;
             const positions = new Float32Array(tail.length * 4);
@@ -471,19 +472,19 @@ export namespace MouseAccuracy {
                 position: ShaderBuilder.create_buffer(gl, positions),
             });
 
-            // 👆 Rendered pointer
-            const width = cursor_binds.texture.width;
-            const height = cursor_binds.texture.height;
-            gl.viewport(
-                state.mouse_position[0],
-                -height + canvas.height - 1 - state.mouse_position[1],
-                width,
-                height);
-            ShaderBuilder.render_material(gl, cursor_material, {
-                ...constant_binds,
-                ...cursor_binds,
-                canvas_dimensions,
-            });
+            // // 👆 Rendered pointer - Latency Debug
+            // const width = cursor_binds.texture.width;
+            // const height = cursor_binds.texture.height;
+            // gl.viewport(
+            //     state.mouse_position[0],
+            //     -height + canvas_dimensions[1] - 1 - state.mouse_position[1],
+            //     width,
+            //     height);
+            // ShaderBuilder.render_material(gl, cursor_material, {
+            //     ...constant_binds,
+            //     ...cursor_binds,
+            //     canvas_dimensions,
+            // });
 
             gl.flush();
 
