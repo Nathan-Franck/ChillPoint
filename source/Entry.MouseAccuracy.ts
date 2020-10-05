@@ -1,5 +1,4 @@
 import { Model } from "./Model";
-// import { substate_example } from "./SubstateExample";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { Scripting } from "./Util.Scripting";
 import { ShaderBuilder } from "./Util.ShaderBuilder";

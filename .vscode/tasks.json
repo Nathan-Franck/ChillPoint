@@ -36,5 +36,12 @@
 			"problemMatcher": [],
 			"command": "npx tsc -w -p tsconfig.Server.Web.json"
 		},
+		{
+			"label": "watch ReactiveTester",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": [],
+			"command": "npx tsc -w -p tsconfig.ReactiveTester.json"
+		},
 	]
 }

@@ -60,6 +60,13 @@
             "request": "launch"
         },
         {
+            "name": "Start ReactiveTester",
+            "type": "node",
+            "program": "${workspaceFolder}/distributions/Entry.ReactiveTester.js",
+            "cwd": "${workspaceFolder}",
+            "request": "launch"
+        },
+        {
             "name": "Start Server.PeerAdvertising",
             "type": "node",
             "program": "${workspaceFolder}/distributions/Entry.Server.PeerAdvertising.js",
