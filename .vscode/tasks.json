@@ -15,13 +15,13 @@
 			"problemMatcher": [],
 			"command": "npx tsc -w -p tsconfig.UI.Tests.json"
 		},
-		{
-			"label": "watch MouseAccuracy",
-			"type": "shell",
-			"group": "build",
-			"problemMatcher": [],
-			"command": "npx tsc -w -p tsconfig.MouseAccuracy.json"
-		},
+        {
+            "label": "watch MouseAccuracy",
+            "type": "shell",
+            "command": "npx webpack --watch --config webpack.config.js",
+            "group": "build",
+            "problemMatcher": []
+        },
 		{
 			"label": "watch Server.PeerAdvertising",
 			"type": "shell",

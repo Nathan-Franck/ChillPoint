@@ -2,7 +2,7 @@
     "compilerOptions": {
         "pretty": true,
         "lib": ["DOM", "ES2020"],
-        "module": "AMD",
+        "module": "ES6",
         "target": "ES2019",
 
         "sourceMap": true,

@@ -10,7 +10,10 @@ export type AllowedKeys<Base, Condition> =
 export namespace Scripting {
 	export function get_keys<T>(obj: T): (keyof T)[] {
 		return Object.keys(obj) as (keyof T)[];
-	}
+    }
+    export function get_entries<T>(obj: T) {
+        return get_keys(obj).map(key => ([key, obj[key]] as const));
+    }
     export function key_value_to_object<Key extends string | number, Value>(keys: readonly Key[], key_to_value: (key: Key) => Value) {
         return keys.
             map(key => [key, key_to_value(key)] as const).

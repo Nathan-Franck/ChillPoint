@@ -1,7 +1,7 @@
 {
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
-        "outFile": "website/js/Entry.MouseAccuracy.js"
+        "outDir": "website/js"
     },
     "files": [
         "source/Entry.MouseAccuracy.ts"

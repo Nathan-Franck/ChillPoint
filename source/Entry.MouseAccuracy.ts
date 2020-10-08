@@ -1,9 +1,11 @@
-import { Derivative, derivative, listener, variable } from "./Entry.ReactiveTester";
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { Scripting } from "./Util.Scripting";
 import { ShaderBuilder } from "./Util.ShaderBuilder";
 import { SmoothCurve } from "./Util.SmoothCurve";
 import { Vec2 } from "./Util.VecMath";
+
+import { fromEvent, interval, zip } from "rxjs";
+import { filter, map, mapTo, scan, withLatestFrom } from "rxjs/operators";
 
 export namespace MouseAccuracy {
 
@@ -186,108 +188,69 @@ export namespace MouseAccuracy {
             },
         };
 
-        const model = variable({
-            simulation_time: 0,
-            mouse_position: [0, 0] as Vec2,
-            canvas_dimensions: [canvas.width, canvas.height] as Vec2,
-            targets: [] as readonly Target[],
-            clicks: [] as readonly {
-                readonly position: Vec2,
-                readonly time: number,
-            }[],
-            hits: 0,
-        });
+        // const visuals: Derivative<{ tail: { position: Vec2, distance: number }[] }> = derivative((previous) => {
+        //     const last_first = previous?.tail[0];
+        //     const { mouse_position } = model;
+        //     const distance_offset = last_first == null ? 10000 : Vec2.dist(mouse_position, last_first.position);
+        //     const max_length = 1000;
+        //     if (distance_offset < 10) {
+        //         return { tail: previous?.tail || [] };
+        //     }
+        //     return {
+        //         tail: [
+        //             {
+        //                 position: model.mouse_position,
+        //                 distance: 0,
+        //             },
+        //             ...(previous?.tail.map(particle => ({
+        //                 ...particle,
+        //                 distance: particle.distance + distance_offset,
+        //             })).filter(particle => particle.distance <= max_length) || []),
+        //         ],
+        //     }
+        // });
 
-        const visuals: Derivative<{ tail: { position: Vec2, distance: number }[] }> = derivative((previous) => {
-            const last_first = previous?.tail[0];
-            const { mouse_position } = model;
-            const distance_offset = last_first == null ? 10000 : Vec2.dist(mouse_position, last_first.position);
-            const max_length = 1000;
-            if (distance_offset < 10) {
-                return { tail: previous?.tail || [] };
-            }
-            return {
-                tail: [
-                    {
-                        position: model.mouse_position,
-                        distance: 0,
-                    },
-                    ...(previous?.tail.map(particle => ({
-                        ...particle,
-                        distance: particle.distance + distance_offset,
-                    })).filter(particle => particle.distance <= max_length) || []),
-                ],
-            }
-        });
+        const canvas_dimensions = fromEvent<UIEvent>(canvas, "resize").pipe(
+            map(event => [canvas.width, canvas.height] as const),
+        );
 
-        canvas.addEventListener("resize", () => {
-            model.canvas_dimensions = [canvas.width, canvas.height];
-        });
-
-        canvas.addEventListener("mousemove", (e) => {
-            model.mouse_position = Vec2.mul(
+        const mouse_position = fromEvent<MouseEvent>(canvas, "mousemove").pipe(
+            map(e => Vec2.mul(
                 [canvas.width, canvas.height],
                 Vec2.div(
                     [e.offsetX, e.offsetY],
-                    [canvas.clientWidth, canvas.clientHeight]));
-        })
+                    [canvas.clientWidth, canvas.clientHeight]))),
+        );
 
-        canvas.addEventListener("mousedown", (e) => {
-            const canvas_position = Vec2.mul(
-                Vec2.div(
-                    [e.offsetX, e.offsetY],
-                    [canvas.clientWidth, canvas.clientHeight]),
-                [canvas.width, canvas.height]);
-            const hit_target = model.targets.find(target =>
-                target.despawn == null &&
-                Vec2.dist(target.position, canvas_position) < target_diameter(
-                    model.simulation_time - target.spawn_time, target) * 0.5);
-            const clicks: typeof model.clicks = [...model.clicks, {
-                position: canvas_position,
-                time: model.simulation_time,
-            }];
-            model.clicks = clicks;
-            if (hit_target != null) {
-                // ✅ Clear target clicked
-                model.hits = model.hits + 1;
-                model.targets = model.targets.map(target =>
-                    target != hit_target ? target :
-                        <Target>{
-                            ...target,
-                            despawn: {
-                                time: model.simulation_time,
-                                cause: "hit",
-                            }
-                        });
-            } else {
-                // 🛑 Punish player for mis-click
-                const punished = model.targets.reduce<{
-                    target: Target,
-                    distance: number,
-                } | undefined>((closest, target) => {
-                    if (target.despawn != null)
-                        return closest;
-                    const distance = Vec2.dist(target.position, canvas_position);
-                    if (closest == null ||
-                        closest.distance > distance)
-                        return {
-                            target,
-                            distance,
-                        };
-                    return closest;
-                }, undefined);
+        const targets = interval(1000 / settings.target_click_rate).pipe(
+            mapTo([Math.random(), Math.random()] as const),
+            withLatestFrom(canvas_dimensions),
+            map(([position, canvas_dimensions]) => Vec2.map(position, (value, index) =>
+                (Math.floor(value * canvas_dimensions[index] / settings.quantum_size) + 0.5) * settings.quantum_size)),
+            scan((targets, position) => ([
+                ...targets,
+                <Target>{
+                    position,
+                    spawn_time: get_time(),
+                },
+            ]), [])
+        );
 
-                model.targets = model.targets.map(target =>
-                    target != punished?.target ? target :
-                        <Target>{
-                            ...target,
-                            despawn: {
-                                time: model.simulation_time,
-                                cause: "punish",
-                            },
-                        });
-            };
-        })
+        const mouse_down = fromEvent<MouseEvent>(canvas, "mousedown");
+        const get_time = () => Date.now() / 1000;
+        const simulation_time = interval(1000/30).pipe(mapTo(get_time()));
+        const clicks = mouse_down.pipe(scan(clicks => clicks + 1, 0));
+        const hits = mouse_down.pipe(
+            withLatestFrom(zip(mouse_position, targets, simulation_time)),
+            map(([_, [mouse_position, targets, simulation_time]]) => {
+                return targets.find(target =>
+                    target.despawn == null &&
+                    Vec2.dist(target.position, mouse_position) < target_diameter(
+                        simulation_time - target.spawn_time, target) * 0.5);
+            }),
+            filter((hit): hit is Target => hit != null),
+        );
+        const hits_count = hits.pipe(scan((count) => count + 1, 0));
 
         const readout_style = {
             position: "absolute",
@@ -320,24 +283,6 @@ export namespace MouseAccuracy {
             },
         });
 
-        const get_time = () => Date.now() / 1000;
-
-        setInterval(() => {
-            model.simulation_time = get_time();
-        }, 1000 / 30);
-
-        setInterval(() => {
-            const { canvas_dimensions, targets } = model;
-            const quantize = (value: number, index: number) =>
-                (Math.floor(value * canvas_dimensions[index] / settings.quantum_size) + 0.5) * settings.quantum_size;
-            model.targets = [
-                ...model.targets,
-                {
-                    position: [quantize(Math.random(), 0), quantize(Math.random(), 1)],
-                    spawn_time: get_time(),
-                },
-            ];
-        }, 1000 / settings.target_click_rate);
 
         const diameter_curve: SmoothCurve = {
             x_range: [0, settings.target_persistence],
@@ -355,10 +300,8 @@ export namespace MouseAccuracy {
 
         let frame_times: readonly number[] = [];
 
-
-        listener(() => {
-
-            const { canvas_dimensions } = model;
+        zip(targets, mouse_position, simulation_time, canvas_dimensions, clicks, hits_count).subscribe(
+            ([targets, mouse_position, simulation_time, canvas_dimensions, clicks, hits_count]) => {
 
             gl.clearColor(.2, .2, .2, 1);
             gl.disable(gl.DEPTH_TEST);
@@ -377,10 +320,10 @@ export namespace MouseAccuracy {
             });
 
             // 🎯 Targets
-            model.targets.map(target => {
+            targets.map(target => {
                 if (target.despawn != null)
                     return;
-                const scale = target_diameter(model.simulation_time - target.spawn_time, target);
+                const scale = target_diameter(simulation_time - target.spawn_time, target);
                 gl.viewport(
                     scale * -0.5 + target.position[0],
                     scale * -0.5 + canvas_dimensions[1] - 1 - target.position[1],
@@ -390,16 +333,16 @@ export namespace MouseAccuracy {
                     ...constant_binds,
                     canvas_dimensions,
                     blend_color: [1, 1, 1, 1],
-                    scroll: -(model.simulation_time - target.spawn_time) * 1.619 * .2,
+                    scroll: -(simulation_time - target.spawn_time) * 1.619 * .2,
                 });
             });
 
             // ☁ Despawned targets
-            model.targets.map(target => {
+            targets.map(target => {
                 if (target.despawn == null)
                     return;
                 const scale = target_diameter(target.despawn.time - target.spawn_time, target);
-                const time = model.simulation_time - target.despawn.time;
+                const time = simulation_time - target.despawn.time;
                 gl.viewport(
                     scale * -0.5 + target.position[0],
                     scale * -0.5 + canvas_dimensions[1] - 1 - target.position[1],
@@ -412,48 +355,48 @@ export namespace MouseAccuracy {
                     ...constant_binds,
                     canvas_dimensions,
                     blend_color: [...color, SmoothCurve.sample(despawn_fade_curve, time)],
-                    scroll: -(model.simulation_time - target.spawn_time) * 1.619 * .2,
+                    scroll: -(simulation_time - target.spawn_time) * 1.619 * .2,
                 });
             });
 
-            // 🐒 Tail
-            gl.viewport(0, 0, ...canvas_dimensions);
-            const { tail } = visuals;
-            if (tail.length > 2) {
-                const pixel_thickness = 0.5;
-                const positions = new Float32Array(tail.length * 4);
-                positions.set(tail.
-                    flatMap(({ position }, index) => {
-                        const next_position = index < tail.length - 1 ?
-                            tail[index + 1].position :
-                            Vec2.add(
-                                position,
-                                Vec2.sub(
-                                    position,
-                                    tail[index - 1].position));
-                        const diff = Vec2.sub(next_position, position);
-                        const perp = Vec2.scale(
-                            Vec2.normal([diff[1], -diff[0]]),
-                            pixel_thickness);
-                        return [
-                            ...Vec2.add(position, perp),
-                            ...Vec2.sub(position, perp)];
-                    }));
-                const distances = new Float32Array(tail.length * 2);
-                distances.set(tail.flatMap(({ distance }) => [distance, distance]));
-                ShaderBuilder.render_material(gl, tail_material, {
-                    ...tail_binds,
-                    distance: ShaderBuilder.create_buffer(gl, distances),
-                    position: ShaderBuilder.create_buffer(gl, positions),
-                });
-            }
+            // // 🐒 Tail
+            // gl.viewport(0, 0, ...canvas_dimensions);
+            // const { tail } = visuals;
+            // if (tail.length > 2) {
+            //     const pixel_thickness = 0.5;
+            //     const positions = new Float32Array(tail.length * 4);
+            //     positions.set(tail.
+            //         flatMap(({ position }, index) => {
+            //             const next_position = index < tail.length - 1 ?
+            //                 tail[index + 1].position :
+            //                 Vec2.add(
+            //                     position,
+            //                     Vec2.sub(
+            //                         position,
+            //                         tail[index - 1].position));
+            //             const diff = Vec2.sub(next_position, position);
+            //             const perp = Vec2.scale(
+            //                 Vec2.normal([diff[1], -diff[0]]),
+            //                 pixel_thickness);
+            //             return [
+            //                 ...Vec2.add(position, perp),
+            //                 ...Vec2.sub(position, perp)];
+            //         }));
+            //     const distances = new Float32Array(tail.length * 2);
+            //     distances.set(tail.flatMap(({ distance }) => [distance, distance]));
+            //     ShaderBuilder.render_material(gl, tail_material, {
+            //         ...tail_binds,
+            //         distance: ShaderBuilder.create_buffer(gl, distances),
+            //         position: ShaderBuilder.create_buffer(gl, positions),
+            //     });
+            // }
 
             // // 👆 Rendered pointer - Good For Latency Debug
             // const width = cursor_binds.texture.width;
             // const height = cursor_binds.texture.height;
             // gl.viewport(
-            //     model.mouse_position[0],
-            //     -height + canvas_dimensions[1] - 1 - model.mouse_position[1],
+            //     mouse_position[0],
+            //     -height + canvas_dimensions[1] - 1 - mouse_position[1],
             //     width,
             //     height);
             // ShaderBuilder.render_material(gl, cursor_material, {
@@ -473,8 +416,8 @@ export namespace MouseAccuracy {
             ];
 
             const display_model = {
-                ...model,
-                clicks: model.clicks.length,
+                hits: hits_count,
+                clicks: clicks,
                 fps: frame_times.length,
             };
 
