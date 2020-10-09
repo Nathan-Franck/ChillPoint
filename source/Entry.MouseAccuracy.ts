@@ -204,21 +204,19 @@ export namespace MouseAccuracy {
         });
 
         canvas.addEventListener("resize", () => {
-            model.state = {
-                ...model.state,
+            model.merge({
                 canvas_dimensions: [canvas.width, canvas.height],
-            };
+            });
         });
 
         canvas.addEventListener("mousemove", (e) => {
-            model.state = {
-                ...model.state,
+            model.merge({
                 mouse_position: Vec2.mul(
                     [canvas.width, canvas.height],
                     Vec2.div(
                         [e.offsetX, e.offsetY],
                         [canvas.clientWidth, canvas.clientHeight])),
-            };
+            });
         })
 
         canvas.addEventListener("mousedown", (e) => {
@@ -320,18 +318,16 @@ export namespace MouseAccuracy {
         const get_time = () => Date.now() / 1000;
 
         setInterval(() => {
-            model.state = {
-                ...model.state,
+            model.merge({
                 simulation_time: get_time(),
-            };
+            });
         }, 1000 / 30);
 
         setInterval(() => {
             const { canvas_dimensions, targets } = model.state;
             const quantize = (value: number, index: number) =>
                 (Math.floor(value * canvas_dimensions[index] / settings.quantum_size) + 0.5) * settings.quantum_size;
-            model.state = {
-                ...model.state,
+            model.merge({
                 targets: [
                     ...targets,
                     {
@@ -339,7 +335,7 @@ export namespace MouseAccuracy {
                         spawn_time: get_time(),
                     },
                 ],
-            };
+            })
         }, 1000 / settings.target_click_rate);
 
         const diameter_curve: SmoothCurve = {

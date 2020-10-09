@@ -1,23 +1,14 @@
 
-type Members<T> = "all-members" | keyof T | ReadonlyArray<keyof T>;
-
-export type Model<T> = {
-    listen: (members: Members<T>, callback: (state: T) => void) => void;
-    respond: (members: Members<T>, response: (state: T) => Promise<Partial<T> | undefined> | Partial<T> | undefined) => void;
-    state: Readonly<T>;
-    submodel: <U extends keyof T>(member: U) => Model<T[U]>,
-    refresh_all: () => void,
-};
-
 export namespace Model {
-    export function create<T>(_state: Readonly<T>): Model<T> {
-
+    export function create<T>(_state: Readonly<T>) {
+        type Members = "all-members" | keyof T | ReadonlyArray<keyof T>;
+        
         const _listeners: {
-            members: Members<T>,
+            members: Members,
             callback: (state: Readonly<T>) => void
         }[] = [];
         const _responders: {
-            members: Members<T>,
+            members: Members,
             response: (state: Readonly<T>) => Promise<Partial<T> | undefined> | Partial<T> | undefined
         }[] = [];
         let _last_state: Readonly<T> | undefined = undefined;
@@ -34,7 +25,7 @@ export namespace Model {
                         // 🚥 Filter functions to determine which listeners should run
                         const member_changed = (member: keyof T) =>
                             last_state == null || _state[member] != last_state[member];
-                        const any_member_changed = (listener: { members: Members<T> }) =>
+                        const any_member_changed = (listener: { members: Members }) =>
                             listener.members == "all-members" ? true :
                                 typeof listener.members != "object" ?
                                     member_changed(listener.members) :
@@ -78,39 +69,30 @@ export namespace Model {
         };
 
         return {
-            listen: (members, callback) => {
+            listen: (members: Members, callback: (state: T) => void) => {
                 _listeners.push({ members, callback });
             },
-            respond: (members, response) => {
+            respond: (members: Members, response: (state: T) => Promise<Partial<T> | undefined> | Partial<T> | undefined) => {
                 _responders.push({ members, response });
             },
-            get state() {
+            get state(): Readonly<T> {
                 return _state;
             },
-            set state(value) {
+            set state(value: Readonly<T>) {
                 _state = value;
                 trigger_microtask();
             },
-            submodel: <U extends keyof T>(member: U) => {
-                const submodel = Model.create<T[U]>(_state[member]);
-                submodel.listen("all-members", state => {
-                    _state = {
-                        ..._state,
-                        [member]: state,
-                    };
-                    trigger_microtask();
-                });
-                _listeners.push({
-                    members: member, callback: state => {
-                        submodel.state = state[member];
-                    }
-                });
-                return submodel;
+            merge: (partial_state: Partial<T>) => {
+                _state = {
+                    ..._state,
+                    ...partial_state,
+                };
+                trigger_microtask();
             },
             refresh_all: () => {
                 _last_state = undefined;
                 trigger_microtask();
             }
-        };
+        } as const;
     }
 }
