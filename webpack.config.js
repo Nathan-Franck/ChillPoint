@@ -1,11 +1,11 @@
 const path = require('path');
 const fs = require('fs');
-const crypto = require('crypto');
 
 const outputFileName = "Entry.MouseAccuracy";
 const outputFilePath = "./website/js";
 
 module.exports = {
+    devtool: "source-map",
     mode: "development",
     entry: {
         [outputFileName]: './source/Entry.MouseAccuracy.ts',
@@ -21,7 +21,6 @@ module.exports = {
     },
     resolve: {
         extensions: [
-            '.tsx',
             '.ts',
             '.js',
         ],

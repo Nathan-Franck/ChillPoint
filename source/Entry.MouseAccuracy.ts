@@ -4,8 +4,8 @@ import { ShaderBuilder } from "./Util.ShaderBuilder";
 import { SmoothCurve } from "./Util.SmoothCurve";
 import { Vec2 } from "./Util.VecMath";
 
-import { fromEvent, interval, zip } from "rxjs";
-import { filter, map, mapTo, scan, withLatestFrom } from "rxjs/operators";
+import { combineLatest, fromEvent, interval, zip } from "rxjs";
+import { filter, map, scan, startWith, tap, withLatestFrom } from "rxjs/operators";
 
 export namespace MouseAccuracy {
 
@@ -211,7 +211,8 @@ export namespace MouseAccuracy {
         // });
 
         const canvas_dimensions = fromEvent<UIEvent>(canvas, "resize").pipe(
-            map(event => [canvas.width, canvas.height] as const),
+            map(_ => [canvas.width, canvas.height] as const),
+            startWith<Vec2>([canvas.width, canvas.height] as const),
         );
 
         const mouse_position = fromEvent<MouseEvent>(canvas, "mousemove").pipe(
@@ -220,10 +221,12 @@ export namespace MouseAccuracy {
                 Vec2.div(
                     [e.offsetX, e.offsetY],
                     [canvas.clientWidth, canvas.clientHeight]))),
+            startWith<Vec2>([0, 0]),
         );
 
         const targets = interval(1000 / settings.target_click_rate).pipe(
-            mapTo([Math.random(), Math.random()] as const),
+            startWith([]),
+            map(() => [Math.random(), Math.random()] as const),
             withLatestFrom(canvas_dimensions),
             map(([position, canvas_dimensions]) => Vec2.map(position, (value, index) =>
                 (Math.floor(value * canvas_dimensions[index] / settings.quantum_size) + 0.5) * settings.quantum_size)),
@@ -233,16 +236,22 @@ export namespace MouseAccuracy {
                     position,
                     spawn_time: get_time(),
                 },
-            ]), [])
+            ]), []),
         );
 
         const mouse_down = fromEvent<MouseEvent>(canvas, "mousedown");
         const get_time = () => Date.now() / 1000;
-        const simulation_time = interval(1000/30).pipe(mapTo(get_time()));
-        const clicks = mouse_down.pipe(scan(clicks => clicks + 1, 0));
+        const simulation_time = interval(1000 / 30).pipe(
+            map(get_time),
+        );
+        const clicks = mouse_down.pipe(
+            startWith(0),
+            scan(clicks => clicks + 1, 0)
+        );
         const hits = mouse_down.pipe(
-            withLatestFrom(zip(mouse_position, targets, simulation_time)),
+            withLatestFrom(combineLatest([mouse_position, targets, simulation_time])),
             map(([_, [mouse_position, targets, simulation_time]]) => {
+                console.log(targets[0].position, mouse_position);
                 return targets.find(target =>
                     target.despawn == null &&
                     Vec2.dist(target.position, mouse_position) < target_diameter(
@@ -250,7 +259,10 @@ export namespace MouseAccuracy {
             }),
             filter((hit): hit is Target => hit != null),
         );
-        const hits_count = hits.pipe(scan((count) => count + 1, 0));
+        const hits_count = hits.pipe(
+            startWith(0),
+            scan((count) => count + 1, 0)
+        );
 
         const readout_style = {
             position: "absolute",
@@ -300,13 +312,13 @@ export namespace MouseAccuracy {
 
         let frame_times: readonly number[] = [];
 
-        zip(targets, mouse_position, simulation_time, canvas_dimensions, clicks, hits_count).subscribe(
+        combineLatest([targets, mouse_position, simulation_time, canvas_dimensions, clicks, hits_count]).subscribe(
             ([targets, mouse_position, simulation_time, canvas_dimensions, clicks, hits_count]) => {
 
             gl.clearColor(.2, .2, .2, 1);
             gl.disable(gl.DEPTH_TEST);
             gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.enable(gl.BLEND)
+            gl.enable(gl.BLEND);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
             // 😁 Grid background
@@ -391,19 +403,19 @@ export namespace MouseAccuracy {
             //     });
             // }
 
-            // // 👆 Rendered pointer - Good For Latency Debug
-            // const width = cursor_binds.texture.width;
-            // const height = cursor_binds.texture.height;
-            // gl.viewport(
-            //     mouse_position[0],
-            //     -height + canvas_dimensions[1] - 1 - mouse_position[1],
-            //     width,
-            //     height);
-            // ShaderBuilder.render_material(gl, cursor_material, {
-            //     ...constant_binds,
-            //     ...cursor_binds,
-            //     canvas_dimensions,
-            // });
+            // 👆 Rendered pointer - Good For Latency Debug
+            const width = cursor_binds.texture.width;
+            const height = cursor_binds.texture.height;
+            gl.viewport(
+                mouse_position[0],
+                -height + canvas_dimensions[1] - 1 - mouse_position[1],
+                width,
+                height);
+            ShaderBuilder.render_material(gl, cursor_material, {
+                ...constant_binds,
+                ...cursor_binds,
+                canvas_dimensions,
+            });
 
             gl.flush();
 
