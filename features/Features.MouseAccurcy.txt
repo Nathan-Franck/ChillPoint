@@ -1,0 +1,2 @@
+User clicks the start button
+    New game is started
