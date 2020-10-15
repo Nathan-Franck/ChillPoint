@@ -1,2 +1,4 @@
 User clicks the start button
     New game is started
+User clicks options button
+    Options screen appears
