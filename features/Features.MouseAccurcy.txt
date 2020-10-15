@@ -2,3 +2,5 @@ User clicks the start button
     New game is started
 User clicks options button
     Options screen appears
+User clicks exit
+    Application exits, returning user to their desktop
