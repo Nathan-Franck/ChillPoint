@@ -1,9 +1,0 @@
-{
-    "extends": "./tsconfig.base.json",
-    "compilerOptions": {
-        "outFile": "website/js/Entry.UI.Tests.js",
-    },
-    "files": [
-        "source/Entry.UI.Tests.ts"
-    ]
-}
