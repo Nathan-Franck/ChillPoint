@@ -12,6 +12,6 @@
     "tstl": {
       "luaBundleEntry": "Entry.LuaGame.ts",
       "luaBundle": "main.lua",
-      "luaTarget": "JIT"
+      "luaTarget": "JIT",
     }
   }

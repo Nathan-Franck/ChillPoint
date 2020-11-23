@@ -4,7 +4,7 @@
   "description": "Come hangout and play some board games",
   "scripts": {
     "build": "tsc",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
   },
   "devDependencies": {
     "lua-types": "^2.8.0",
