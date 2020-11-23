@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "lib": [
+            "DOM",
+            "ES2020"
+        ],
+        "module": "AMD",
+        "target": "ES3",
+        "sourceMap": true,
+        "strictNullChecks": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "strictPropertyInitialization": true,
+        "alwaysStrict": true,
+        "preserveConstEnums": true,
+        "newLine": "lf",
+        "moduleResolution": "node",
+        "outFile": "../../website/js/Entry.Viewer.Parser.js",
+    },
+    "files": [
+        "Entry.Viewer.Parser.ts"
+    ],
+}

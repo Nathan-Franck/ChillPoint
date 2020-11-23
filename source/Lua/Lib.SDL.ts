@@ -49,7 +49,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
         /**< window should be treated as a popup menu */
         SDL_WINDOW_POPUP_MENU   : 0x00080000,      
          /**< window usable for Vulkan surface */
-        SDL_WINDOW_VULKAN       : 0x10000000,      
+        SDL_WINDOW_VULKAN       : 0x10000000,
         SDL_INIT_VIDEO: 0x00000020,
         SDL_WINDOWPOS_UNDEFINED: 0x1FFF0000,
     } as const

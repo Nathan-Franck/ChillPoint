@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext"
+    ],
+    "moduleResolution": "node",
+    "types": [
+      "lua-types/jit"
+    ],
+    "sourceMap": true,
+    "alwaysStrict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictPropertyInitialization": true,
+    "preserveConstEnums": true,
+  },
+  "tstl": {
+    "luaBundleEntry": "Entry.LuaGame.ts",
+    "luaBundle": "main.lua",
+    "luaTarget": "JIT",
+  }
+}

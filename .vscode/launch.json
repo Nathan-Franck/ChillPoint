@@ -6,7 +6,7 @@
             "name": "Debug",
             "program": {
                 "lua": "lua_jit/luajit",
-                "file": "source/main.lua"
+                "file": "source/Lua/main.lua"
             }
         },
         {
@@ -18,6 +18,13 @@
                 "file": "source/main.lua"
             },
             "preLaunchTask": "${defaultBuildTask}"
+        },
+        {
+            "name": "Launch Chrome",
+            "request": "launch",
+            "type": "pwa-chrome",
+            "url": "http://127.0.0.1:5500/website/Viewer.Parser.html",
+            "webRoot": "${workspaceFolder}/website"
         }
     ]
 }
