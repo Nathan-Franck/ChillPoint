@@ -1,5 +1,5 @@
 import { Scripting, AllowedKeys } from "./Util.Scripting";
-import { Vec2, Vec3, Vec4 } from "./Util.VecMath";
+import { Vec2, Vec3, Vec4 } from "../Util.VecMath";
 
 export type GLSLUnit = "float" | "vec2" | "vec3" | "vec4";
 export type GLSLUniformUnit = "float" | "vec2" | "vec3" | "vec4" | "sampler2D";

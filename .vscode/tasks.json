@@ -8,18 +8,28 @@
 			"problemMatcher": [],
 			"command": "npx tstl",
 			"options": {
-				"cwd": "source"
+				"cwd": "source/Lua"
 			}
 		},
 		{
-			"label": "🕶 Watch -- Transpile to Lua",
+			"label": "🕶 Watch --Lua",
 			"type": "shell",
 			"group": "build",
 			"problemMatcher": [],
 			"command": "npx tstl --watch",
 			"options": {
-				"cwd": "source"
+				"cwd": "source/Lua"
+			}
+		},
+		{
+			"label": "🕶 Watch -- Html",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": [],
+			"command": "npx tsc --watch",
+			"options": {
+				"cwd": "source/Html"
 			}
 		}
-	]
+	]            
 }

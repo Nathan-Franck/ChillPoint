@@ -1,7 +1,7 @@
 
 import { HtmlBuilder } from "./Util.HtmlBuilder";
 import { Camera } from "./Util.Camera";
-import { Vec3 } from "./Util.VecMath";
+import { Vec3 } from "../Util.VecMath";
 import { ShaderBuilder } from "./Util.ShaderBuilder";
 
 export namespace Meeples {

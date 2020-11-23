@@ -1,6 +1,6 @@
 import { SDL, sdl } from "./Lib.SDL";
-import { SmoothCurve } from "./Util.SmoothCurve";
-import { Vec2 } from "./Util.VecMath";
+import { SmoothCurve } from "../Util.SmoothCurve";
+import { Vec2 } from "../Util.VecMath";
 
 const curve: SmoothCurve = { x_range: [0.0, 1.0], y_values: [0.0, 1.0, 0.0] };
 
