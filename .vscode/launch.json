@@ -6,7 +6,7 @@
             "name": "Debug",
             "program": {
                 "lua": "lua_jit/luajit",
-                "file": "build/main.lua"
+                "file": "source/main.lua"
             }
         }
     ]
