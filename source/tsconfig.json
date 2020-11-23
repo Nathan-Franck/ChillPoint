@@ -1,11 +1,13 @@
 {
     "compilerOptions": {
       "target": "esnext",
-      "lib": ["esnext", "DOM"],
+      "lib": ["esnext"],
       "moduleResolution": "node",
-      "types": [],
+      "types": [
+        "lua-types/jit"
+      ],
       "strict": true,
-      "sourceMap": true
+      "sourceMap": true,
     },
     "tstl": {
       "luaBundleEntry": "Entry.LuaGame.ts",
