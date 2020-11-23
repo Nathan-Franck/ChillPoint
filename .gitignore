@@ -4,4 +4,4 @@
 /package-lock.json
 /website/js/
 /distributions/
-/build/
+/source/main.lua*

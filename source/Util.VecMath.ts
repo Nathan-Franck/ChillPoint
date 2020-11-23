@@ -27,23 +27,13 @@ export namespace Num {
 		return n < 0 ? -n : n;
 	}
 
-	export let acos = Math.acos;
-	export let asin = Math.asin;
-	export let atan2 = Math.atan2;
-	export let ceil = Math.ceil;
-
 	export function clamp(n: number, min: number, max: number): number {
 		return n < min ? min : (n > max ? max : n);
 	}
 
-	export let cos = Math.cos;
-	export let floor = Math.floor;
-
 	export function lerp(a: number, b: number, t: number): number {
 		return a + (b - a) * t;
 	}
-
-	export let log = Math.log;
 
 	export function max(a: number, b: number): number {
 		return a > b ? a : b;
@@ -57,17 +47,11 @@ export namespace Num {
 		return a % b;
 	}
 
-	export let pow = Math.pow;
-	export let round = Math.round;
-	export let sin = Math.sin;
-	export let sqrt = Math.sqrt;
-	export let tan = Math.tan;
-
 	export function flatten_angle(angle: number, rate: number): number {
 		if (rate <= 0) return angle;
 		while (angle < 0) angle += 360;
 		while (angle > 360) angle -= 360;
-		var offset = angle > 90 ? 180 : 0;
+		const offset = angle > 90 ? 180 : 0;
 		return (
 			(angle - offset) *
 			(1 - rate) + offset);
@@ -108,7 +92,7 @@ export namespace Vec2 {
 	}
 
 	export function dist(a: Vec2, b: Vec2): number {
-		return Num.sqrt(len2(sub(a, b)));
+		return Math.sqrt(len2(sub(a, b)));
 	}
 
 	export function dist2(a: Vec2, b: Vec2): number {
@@ -128,7 +112,7 @@ export namespace Vec2 {
 	}
 
 	export function len(a: Vec2): number {
-		return Num.sqrt(len2(a));
+		return Math.sqrt(len2(a));
 	}
 
 	export function len2(a: Vec2): number {
@@ -141,11 +125,11 @@ export namespace Vec2 {
 	}
 
 	export function max(a: Vec2, b: Vec2): Vec2 {
-		return [Num.max(a[0], b[0]), Num.max(a[1], b[1])];
+		return [Math.max(a[0], b[0]), Math.max(a[1], b[1])];
 	}
 
 	export function min(a: Vec2, b: Vec2): Vec2 {
-		return [Num.min(a[0], b[0]), Num.min(a[1], b[1])];
+		return [Math.min(a[0], b[0]), Math.min(a[1], b[1])];
 	}
 
 	export function mul(a: Vec2, b: Vec2): Vec2 {
@@ -160,7 +144,7 @@ export namespace Vec2 {
 		let ax = a[0], ay = a[1],
 			len = ax * ax + ay * ay;
 		if (len > 0) {
-			len = 1 / Num.sqrt(len);
+			len = 1 / Math.sqrt(len);
 			return [ax * len, ay * len];
 		}
 		return a;
@@ -250,7 +234,7 @@ export namespace Vec3 {
 	}
 
 	export function dist(a: Vec3, b: Vec3): number {
-		return Num.sqrt(len2(sub(a, b)));
+		return Math.sqrt(len2(sub(a, b)));
 	}
 
 	export function dist2(a: Vec3, b: Vec3): number {
@@ -270,7 +254,7 @@ export namespace Vec3 {
 	}
 
 	export function len(a: Vec3): number {
-		return Num.sqrt(len2(a));
+		return Math.sqrt(len2(a));
 	}
 
 	export function len2(a: Vec3): number {
@@ -287,11 +271,11 @@ export namespace Vec3 {
 	}
 
 	export function max(a: Vec3, b: Vec3): Vec3 {
-		return [Num.max(a[0], b[0]), Num.max(a[1], b[1]), Num.max(a[2], b[2])];
+		return [Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2])];
 	}
 
 	export function min(a: Vec3, b: Vec3): Vec3 {
-		return [Num.min(a[0], b[0]), Num.min(a[1], b[1]), Num.min(a[2], b[2])];
+		return [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2])];
 	}
 
 	export function mul(a: Vec3, b: Vec3): Vec3 {
@@ -302,7 +286,7 @@ export namespace Vec3 {
 		let c = dot(a, b);
 		if (c < -1 || c > 1)
 			return 0;
-		return Num.acos(c);
+		return Math.acos(c);
 	}
 
 	export function neg(a: Vec3): Vec3 {
@@ -313,7 +297,7 @@ export namespace Vec3 {
 		let ax = a[0], ay = a[1], az = a[2];
 		let len = ax * ax + ay * ay + az * az;
 		if (len > 0) {
-			len = 1 / Num.sqrt(len);
+			len = 1 / Math.sqrt(len);
 			return [ax * len, ay * len, az * len];
 		}
 		return a;
@@ -378,7 +362,7 @@ export namespace Vec4 {
 	}
 
 	export function dist(a: Vec4, b: Vec4): number {
-		return Num.sqrt(len2(sub(a, b)));
+		return Math.sqrt(len2(sub(a, b)));
 	}
 
 	export function dist2(a: Vec4, b: Vec4): number {
@@ -398,7 +382,7 @@ export namespace Vec4 {
 	}
 
 	export function len(a: Vec4): number {
-		return Num.sqrt(len2(a));
+		return Math.sqrt(len2(a));
 	}
 
 	export function len2(a: Vec4): number {
@@ -417,19 +401,19 @@ export namespace Vec4 {
 
 	export function max(a: Vec4, b: Vec4): Vec4 {
 		return [
-			Num.max(a[0], b[0]),
-			Num.max(a[1], b[1]),
-			Num.max(a[2], b[2]),
-			Num.max(a[3], b[3])
+			Math.max(a[0], b[0]),
+			Math.max(a[1], b[1]),
+			Math.max(a[2], b[2]),
+			Math.max(a[3], b[3])
 		];
 	}
 
 	export function min(a: Vec4, b: Vec4): Vec4 {
 		return [
-			Num.min(a[0], b[0]),
-			Num.min(a[1], b[1]),
-			Num.min(a[2], b[2]),
-			Num.min(a[3], b[3])
+			Math.min(a[0], b[0]),
+			Math.min(a[1], b[1]),
+			Math.min(a[2], b[2]),
+			Math.min(a[3], b[3])
 		];
 	}
 
@@ -445,7 +429,7 @@ export namespace Vec4 {
 		let ax = a[0], ay = a[1], az = a[2], aw = a[3];
 		let len = ax * ax + ay * ay + az * az + aw * aw;
 		if (len > 0) {
-			len = 1 / Num.sqrt(len);
+			len = 1 / Math.sqrt(len);
 			return [ax * len, ay * len, az * len, aw * len];
 		}
 		return a;
@@ -482,12 +466,12 @@ export namespace Quat {
 		let a0 = rot[0] * 0.5;
 		let a1 = rot[1] * 0.5;
 		let a2 = rot[2] * 0.5;
-		let cx = Num.cos(a0);
-		let cy = Num.cos(a1);
-		let cz = Num.cos(a2);
-		let sx = Num.sin(a0);
-		let sy = Num.sin(a1);
-		let sz = Num.sin(a2);
+		let cx = Math.cos(a0);
+		let cy = Math.cos(a1);
+		let cz = Math.cos(a2);
+		let sx = Math.sin(a0);
+		let sy = Math.sin(a1);
+		let sz = Math.sin(a2);
 		return [
 			sx * cy * cz + cx * sy * sz,
 			cx * sy * cz - sx * cy * sz,
@@ -500,12 +484,12 @@ export namespace Quat {
 		let a0 = rot[0] * 0.5;
 		let a1 = rot[1] * 0.5;
 		let a2 = rot[2] * 0.5;
-		let cx = Num.cos(a0);
-		let cy = Num.cos(a1);
-		let cz = Num.cos(a2);
-		let sx = Num.sin(a0);
-		let sy = Num.sin(a1);
-		let sz = Num.sin(a2);
+		let cx = Math.cos(a0);
+		let cy = Math.cos(a1);
+		let cz = Math.cos(a2);
+		let sx = Math.sin(a0);
+		let sy = Math.sin(a1);
+		let sz = Math.sin(a2);
 		return [
 			sx * cy * cz - cx * sy * sz,
 			cx * sy * cz - sx * cy * sz,
@@ -518,12 +502,12 @@ export namespace Quat {
 		let a0 = rot[0] * 0.5;
 		let a1 = rot[1] * 0.5;
 		let a2 = rot[2] * 0.5;
-		let cx = Num.cos(a0);
-		let cy = Num.cos(a1);
-		let cz = Num.cos(a2);
-		let sx = Num.sin(a0);
-		let sy = Num.sin(a1);
-		let sz = Num.sin(a2);
+		let cx = Math.cos(a0);
+		let cy = Math.cos(a1);
+		let cz = Math.cos(a2);
+		let sx = Math.sin(a0);
+		let sy = Math.sin(a1);
+		let sz = Math.sin(a2);
 		return [
 			sx * cy * cz + cx * sy * sz,
 			cx * sy * cz - sx * cy * sz,
@@ -536,12 +520,12 @@ export namespace Quat {
 		let a0 = rot[0] * 0.5;
 		let a1 = rot[1] * 0.5;
 		let a2 = rot[2] * 0.5;
-		let cx = Num.cos(a0);
-		let cy = Num.cos(a1);
-		let cz = Num.cos(a2);
-		let sx = Num.sin(a0);
-		let sy = Num.sin(a1);
-		let sz = Num.sin(a2);
+		let cx = Math.cos(a0);
+		let cy = Math.cos(a1);
+		let cz = Math.cos(a2);
+		let sx = Math.sin(a0);
+		let sy = Math.sin(a1);
+		let sz = Math.sin(a2);
 		return [
 			sx * cy * cz + cx * sy * sz,
 			cx * sy * cz + sx * cy * sz,
@@ -554,12 +538,12 @@ export namespace Quat {
 		let a0 = rot[0] * 0.5;
 		let a1 = rot[1] * 0.5;
 		let a2 = rot[2] * 0.5;
-		let cx = Num.cos(a0);
-		let cy = Num.cos(a1);
-		let cz = Num.cos(a2);
-		let sx = Num.sin(a0);
-		let sy = Num.sin(a1);
-		let sz = Num.sin(a2);
+		let cx = Math.cos(a0);
+		let cy = Math.cos(a1);
+		let cz = Math.cos(a2);
+		let sx = Math.sin(a0);
+		let sy = Math.sin(a1);
+		let sz = Math.sin(a2);
 		return [
 			sx * cy * cz - cx * sy * sz,
 			cx * sy * cz + sx * cy * sz,
@@ -572,12 +556,12 @@ export namespace Quat {
 		let a0 = rot[0] * 0.5;
 		let a1 = rot[1] * 0.5;
 		let a2 = rot[2] * 0.5;
-		let cx = Num.cos(a0);
-		let cy = Num.cos(a1);
-		let cz = Num.cos(a2);
-		let sx = Num.sin(a0);
-		let sy = Num.sin(a1);
-		let sz = Num.sin(a2);
+		let cx = Math.cos(a0);
+		let cy = Math.cos(a1);
+		let cz = Math.cos(a2);
+		let sx = Math.sin(a0);
+		let sy = Math.sin(a1);
+		let sz = Math.sin(a2);
 		return [
 			sx * cy * cz - cx * sy * sz,
 			cx * sy * cz + sx * cy * sz,
@@ -627,15 +611,15 @@ export namespace Quat {
 
 	export function naxisang(axis: Vec3, ang: number): Quat { // axis is normalized
 		ang *= 0.5;
-		let s = Num.sin(ang);
-		return [axis[0] * s, axis[1] * s, axis[2] * s, Num.cos(ang)];
+		let s = Math.sin(ang);
+		return [axis[0] * s, axis[1] * s, axis[2] * s, Math.cos(ang)];
 	}
 
 	export function nbetween(from: Vec3, to: Vec3): Quat { // from/to are normalized
 		let r = Vec3.dot(from, to) + 1;
 		let cross;
 		if (r < 0.000001) {
-			if (Num.abs(from[0]) > Num.abs(from[2]))
+			if (Math.abs(from[0]) > Math.abs(from[2]))
 				cross = [-from[1], from[0], 0];
 			else
 				cross = [0, -from[2], from[1]];
@@ -657,7 +641,7 @@ export namespace Quat {
 		let ax = a[0], ay = a[1], az = a[2], aw = a[3];
 		let len = ax * ax + ay * ay + az * az + aw * aw;
 		if (len > 0) {
-			len = 1 / Num.sqrt(len);
+			len = 1 / Math.sqrt(len);
 			return [ax * len, ay * len, az * len, aw * len];
 		}
 		return a;
@@ -676,10 +660,10 @@ export namespace Quat {
 			bw = -bw;
 		}
 		if ((1 - cosom) > 0.000001) {
-			omega = Num.acos(cosom);
-			sinom = Num.sin(omega);
-			scale0 = Num.sin((1 - t) * omega) / sinom;
-			scale1 = Num.sin(t * omega) / sinom;
+			omega = Math.acos(cosom);
+			sinom = Math.sin(omega);
+			scale0 = Math.sin((1 - t) * omega) / sinom;
+			scale1 = Math.sin(t * omega) / sinom;
 		}
 		else {
 			scale0 = 1 - t;
@@ -736,12 +720,12 @@ export namespace Mat2 {
 	}
 
 	export function rotate(a: Mat2, ang: number): Mat2 {
-		let a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3], s = Num.sin(ang), c = Num.cos(ang);
+		let a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3], s = Math.sin(ang), c = Math.cos(ang);
 		return [a0 * c + a2 * s, a1 * c + a3 * s, a0 * -s + a2 * c, a1 * -s + a3 * c];
 	}
 
 	export function rotation(ang: number): Mat2 {
-		let s = Num.sin(ang), c = Num.cos(ang);
+		let s = Math.sin(ang), c = Math.cos(ang);
 		return [c, s, -s, c];
 	}
 
@@ -830,7 +814,7 @@ export namespace Mat3x2 {
 		let
 			a00 = a[0], a01 = a[1],
 			a10 = a[2], a11 = a[3],
-			s = Num.sin(ang), c = Num.cos(ang);
+			s = Math.sin(ang), c = Math.cos(ang);
 		return [
 			c * a00 + s * a10, c * a01 + s * a11,
 			c * a10 - s * a00, c * a11 - s * a01,
@@ -839,7 +823,7 @@ export namespace Mat3x2 {
 	}
 
 	export function rotation(ang: number): Mat3x2 {
-		let s = Num.sin(ang), c = Num.cos(ang);
+		let s = Math.sin(ang), c = Math.cos(ang);
 		return [c, s, -s, c, 0, 0];
 	}
 
@@ -1039,7 +1023,7 @@ export namespace Mat3 {
 			a00 = a[0], a01 = a[1], a02 = a[2],
 			a10 = a[3], a11 = a[4], a12 = a[5],
 			a20 = a[6], a21 = a[7], a22 = a[8],
-			s = Num.sin(ang), c = Num.cos(ang);
+			s = Math.sin(ang), c = Math.cos(ang);
 		out[0] = c * a00 + s * a10;
 		out[1] = c * a01 + s * a11;
 		out[2] = c * a02 + s * a12;
@@ -1053,7 +1037,7 @@ export namespace Mat3 {
 	}
 
 	export function rotation(out: Mat3, ang: number): Mat3 {
-		let s = Num.sin(ang), c = Num.cos(ang);
+		let s = Math.sin(ang), c = Math.cos(ang);
 		out[0] = c;
 		out[1] = s;
 		out[2] = 0;
@@ -1393,14 +1377,14 @@ export namespace Mat4 {
 		let z0 = ex - px, z1 = ey - py, z2 = ez - pz;
 		if (z0 == 0 && z1 == 0 && z2 == 0)
 			return identity(out);
-		let len = 1 / Num.sqrt(z0 * z0 + z1 * z1 + z2 * z2);
+		let len = 1 / Math.sqrt(z0 * z0 + z1 * z1 + z2 * z2);
 		z0 *= len;
 		z1 *= len;
 		z2 *= len;
 		let x0 = uy * z2 - uz * z1;
 		let x1 = uz * z0 - ux * z2;
 		let x2 = ux * z1 - uy * z0;
-		len = Num.sqrt(
+		len = Math.sqrt(
 			x0 * x0 +
 			x1 * x1 +
 			x2 * x2
@@ -1419,7 +1403,7 @@ export namespace Mat4 {
 		let y0 = z1 * x2 - z2 * x1;
 		let y1 = z2 * x0 - z0 * x2;
 		let y2 = z0 * x1 - z1 * x0;
-		len = Num.sqrt(
+		len = Math.sqrt(
 			y0 * y0 +
 			y1 * y1 +
 			y2 * y2
@@ -1520,7 +1504,7 @@ export namespace Mat4 {
 	export function perspective(
 		out: Mat4, fov: number, W: number, H: number, N: number, F: number): Mat4 {
 		let
-			f = 1 / Num.tan(fov * 0.5),
+			f = 1 / Math.tan(fov * 0.5),
 			nf = 1 / (N - F);
 		out[0] = f;
 		out[1] = 0;
@@ -1580,7 +1564,7 @@ export namespace Mat4 {
 			a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
 			a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
 			a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
-			s = Num.sin(ang), c = Num.cos(ang),
+			s = Math.sin(ang), c = Math.cos(ang),
 			t = 1 - c,
 			b00 = x * x * t + c, b01 = y * x * t + z * s, b02 = z * x * t - y * s,
 			b10 = x * y * t - z * s, b11 = y * y * t + c, b12 = z * y * t + x * s,
@@ -1608,7 +1592,7 @@ export namespace Mat4 {
 
 	export function rotation(out: Mat4, axis: Vec3, ang: number): Mat4 {
 		let x = axis[0], y = axis[1], z = axis[2],
-			s = Num.sin(ang), c = Num.cos(ang),
+			s = Math.sin(ang), c = Math.cos(ang),
 			t = 1 - c;
 		out[0] = x * x * t + c;
 		out[1] = y * x * t + z * s;
