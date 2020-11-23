@@ -2,39 +2,14 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "watch Electron",
+			"label": "♻ Transpile to Lua",
 			"type": "shell",
 			"group": "build",
 			"problemMatcher": [],
-			"command": "npx tsc -w -p tsconfig.Electron.json"
-		},
-		{
-			"label": "watch UI.Tests",
-			"type": "shell",
-			"group": "build",
-			"problemMatcher": [],
-			"command": "npx tsc -w -p tsconfig.UI.Tests.json"
-		},
-		{
-			"label": "watch MouseAccuracy",
-			"type": "shell",
-			"group": "build",
-			"problemMatcher": [],
-			"command": "npx tsc -w -p tsconfig.MouseAccuracy.json"
-		},
-		{
-			"label": "watch Server.PeerAdvertising",
-			"type": "shell",
-			"group": "build",
-			"problemMatcher": [],
-			"command": "npx tsc -w -p tsconfig.Server.PeerAdvertising.json"
-		},
-		{
-			"label": "watch Server.Web",
-			"type": "shell",
-			"group": "build",
-			"problemMatcher": [],
-			"command": "npx tsc -w -p tsconfig.Server.Web.json"
-		},
+			"command": "npx tstl",
+			"options": {
+				"cwd": "source"
+			}
+		}
 	]
 }

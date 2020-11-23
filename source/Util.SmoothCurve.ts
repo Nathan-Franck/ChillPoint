@@ -10,7 +10,7 @@ export namespace SmoothCurve {
 		const smooth_index =
 			(time - curve.x_range[0]) /
 			(curve.x_range[1] - curve.x_range[0]) *
-			curve.y_values.length;
+			(curve.y_values.length - 1);
 		const index = Math.floor(smooth_index);
 		const current = Math.min(Math.max(index, 0), curve.y_values.length - 1);
 		const next = Math.min(Math.max(index + 1, 0), curve.y_values.length - 1);
