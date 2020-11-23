@@ -64,7 +64,7 @@ async function display_parser() {
             return statement.split(`\r\n`).reduce((result, line) => `${result}${line.trim()}`);
         });
         return statements.reduce((processed, statement) => {
-            return `${processed}\n${statement}`;
+            return `${processed}\n\n${statement}`;
         }, "");
     })();
 
@@ -83,14 +83,19 @@ async function display_parser() {
 
     const initial_scroll = Number.parseInt(localStorage.getItem("scroll") || "0");
     text_areas.forEach(text_area => {
-        text_area.scrollTop = initial_scroll;
-        text_area.onscroll = () => {
+        text_area.onscroll = (e) => {
             text_areas.
                 filter(other_area => other_area != text_area).
-                forEach(other_area => other_area.scrollTop = text_area.scrollTop);
-            localStorage.setItem("scroll", `${text_area.scrollTop}`);
+                forEach(other_area => {
+                    const scroll = text_area.scrollTop *
+                        (other_area.scrollHeight - other_area.clientHeight) /
+                        (text_area.scrollHeight - text_area.clientHeight);
+                    other_area.scrollTop = scroll
+                });
+            localStorage.setItem("scroll", `${text_areas[0].scrollTop}`);
         };
     });
+    text_areas[0].scrollTop = initial_scroll;
 }
 
 display_parser();
