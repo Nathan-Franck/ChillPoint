@@ -48,7 +48,25 @@ async function display_parser() {
         fontFamily: "verdana",
         height: "100%",
         width: "100%",
+        whiteSpace: "nowrap",
     };
+
+    function range(count: number) {
+        return [...Array(count).keys()];
+    }
+
+    // 🚧 Actual parsing work
+    const processed = (() => {
+        const externs = text.split("extern");
+        const statements = externs.map((extern, index) => {
+            const previous = index > 0 ? externs[index - 1] : "";
+            const statement = extern.split(";")[0];
+            return statement.split(`\r\n`).reduce((result, line) => `${result}${line.trim()}`);
+        });
+        return statements.reduce((processed, statement) => {
+            return `${processed}\n${statement}`;
+        }, "");
+    })();
 
     const text_areas = Object.values(HtmlBuilder.create_children(container, {
         original: {
@@ -58,7 +76,7 @@ async function display_parser() {
         },
         processed: {
             type: "textarea",
-            attributes: { innerHTML: text },
+            attributes: { innerHTML: processed },
             style,
         }
     }));
