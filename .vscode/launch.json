@@ -8,6 +8,16 @@
                 "lua": "lua_jit/luajit",
                 "file": "source/main.lua"
             }
+        },
+        {
+            "type": "lua-local",
+            "request": "launch",
+            "name": "Debug and Run",
+            "program": {
+                "lua": "lua_jit/luajit",
+                "file": "source/main.lua"
+            },
+            "preLaunchTask": "${defaultBuildTask}"
         }
     ]
 }
