@@ -30,12 +30,9 @@ async function display_parser() {
                 display: "grid",
                 justifyItems: "center",
                 alignItems: "center",
-                gridTemplateAreas: `
-                a b
-            `,
+                gridTemplateAreas: `a b`,
                 gridTemplateColumns: "1fr 1fr",
                 gridTemplateRows: "1fr",
-                gridGap: "1em",
             },
         }
     });
@@ -54,18 +51,43 @@ async function display_parser() {
     function range(count: number) {
         return [...Array(count).keys()];
     }
+    function assert(statement: boolean) {
+        if (!statement) throw new Error("assertion failed");
+    }
 
     // 🚧 Actual parsing work
     const processed = (() => {
         const externs = text.split("extern");
-        const statements = externs.map((extern, index) => {
+        const statements = externs.reduce((statements, extern, index) => {
             const previous = index > 0 ? externs[index - 1] : "";
             const statement = extern.split(";")[0];
-            return statement.split(`\r\n`).reduce((result, line) => `${result}${line.trim()}`);
-        });
-        return statements.reduce((processed, statement) => {
-            return `${processed}\n\n${statement}`;
-        }, "");
+            const flattened = statement.split(`\r\n`).map(elem => elem.trim()).join('');
+            const ignored = flattened.split(/DECLSPEC|SDLCALL|const/).
+                map(elem => elem.trim()).
+                filter(elem => elem.length > 0).
+                join(' ');
+            const [outer, inner] = ignored.split(/\(|\)/);
+            const type_name = (word: string) => {
+                const outer_elems = word.split(" ").map(elem => elem.trim());
+                if (outer_elems.length == 1) {
+                    const [ type ] = outer_elems;
+                    return { type };
+                }
+                // const type = outer_elems.slice(0, outer_elems.length - 1).join(" ");
+                // const name = outer_elems[outer_elems.length - 1];
+                const [name, ...type] = outer_elems.reverse();
+                return { type: type.reverse().join(''), name };
+            }
+            const { type: output, name: function_name } = type_name(outer);
+
+            const params = inner.split(",").map(param => type_name(param));
+
+            return {
+                ...statements,
+                [function_name || "undefined"]: { output, params },
+            };
+        }, {});
+        return JSON.stringify(statements, undefined, 1);
     })();
 
     const text_areas = Object.values(HtmlBuilder.create_children(container, {
@@ -84,18 +106,10 @@ async function display_parser() {
     const initial_scroll = Number.parseInt(localStorage.getItem("scroll") || "0");
     text_areas.forEach(text_area => {
         text_area.onscroll = (e) => {
-            text_areas.
-                filter(other_area => other_area != text_area).
-                forEach(other_area => {
-                    const scroll = text_area.scrollTop *
-                        (other_area.scrollHeight - other_area.clientHeight) /
-                        (text_area.scrollHeight - text_area.clientHeight);
-                    other_area.scrollTop = scroll
-                });
-            localStorage.setItem("scroll", `${text_areas[0].scrollTop}`);
+            localStorage.setItem("scroll", `${text_areas[1].scrollTop}`);
         };
     });
-    text_areas[0].scrollTop = initial_scroll;
+    text_areas[1].scrollTop = initial_scroll;
 }
 
 display_parser();

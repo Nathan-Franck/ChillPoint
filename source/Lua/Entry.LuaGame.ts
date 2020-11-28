@@ -1,6 +1,6 @@
 import { SDL, sdl } from "./Lib.SDL";
-import { SmoothCurve } from "../Util.SmoothCurve";
-import { Vec2 } from "../Util.VecMath";
+import { SmoothCurve } from "./Util.SmoothCurve";
+import { Vec2 } from "./Util.VecMath";
 
 const curve: SmoothCurve = { x_range: [0.0, 1.0], y_values: [0.0, 1.0, 0.0] };
 
@@ -18,3 +18,4 @@ sdl.SDL_Init(SDL.SDL_INIT_VIDEO);
 const window = sdl.SDL_CreateWindow( "SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, screen_width, screen_height, SDL.SDL_WINDOW_SHOWN );
 
 
+print("done");
