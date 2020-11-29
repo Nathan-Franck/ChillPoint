@@ -58,9 +58,12 @@ async function display_parser() {
     // 🚧 Actual parsing work
     const processed = (() => {
         const externs = text.split("extern");
-        const statements = externs.reduce((statements, extern, index) => {
+        const statements = externs.map((extern, index) => {
             const previous = index > 0 ? externs[index - 1] : "";
-            const statement = extern.split(";")[0];
+            const star_spaced = extern.
+                split("*").
+                join("* ");
+            const statement = star_spaced.split(";")[0];
             const flattened = statement.split(`\r\n`).map(elem => elem.trim()).join('');
             const ignored = flattened.split(/DECLSPEC|SDLCALL|const/).
                 map(elem => elem.trim()).
@@ -82,12 +85,21 @@ async function display_parser() {
 
             const params = inner.split(",").map(param => type_name(param));
 
+            const comments = previous?.match(/\/\*(\*(?!\/)|[^*])*\*\//g);
+
             return {
-                ...statements,
-                [function_name || "undefined"]: { output, params },
+                function_name,
+                comment: comments == null ? undefined : comments[comments.length - 1],
+                guts: { output, params },
             };
-        }, {});
-        return JSON.stringify(statements, undefined, 1);
+        });
+        return `{\n${
+            statements.map(statement =>
+                `${
+                    statement.comment
+                }\n${statement.function_name}: ${
+                    JSON.stringify(statement.guts, undefined, 4)
+                }`).join(",\n")}\n}`;
     })();
 
     const text_areas = Object.values(HtmlBuilder.create_children(container, {
