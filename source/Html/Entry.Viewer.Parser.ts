@@ -66,26 +66,25 @@ async function display_parser() {
 
     // 🚧 Actual parsing work
     const processed = (() => {
-        const externs = text.split("extern");
-        const statements = externs.
-            slice(1, externs.length).
-            map((extern, index) => {
-                const previous = index > 0 ? externs[index - 1] : "";
-                const star_spaced = extern.
+        const split_by_externs = text.split("extern");
+        const externs = split_by_externs.slice(1, split_by_externs.length);
+        const statements = externs.map((extern, index) => {
+            const previous = index > 0 ? externs[index - 1] : "";
+            const statement = extern.split(";")[0];
+            const flattened = statement.split(`\r\n`).map(elem => elem.trim()).join('');
+            const ignored = flattened.split(/DECLSPEC|SDLCALL|const/).
+                map(elem => elem.trim()).
+                filter(elem => elem.length > 0).
+                join(' ');
+            const [outer, inner] = ignored.split(/\(|\)/);
+            const type_name = (word: string) => {
+                const star_spaced = word.
                     split("*").
                     join("* ");
-                const statement = star_spaced.split(";")[0];
-                const flattened = statement.split(`\r\n`).map(elem => elem.trim()).join('');
-                const ignored = flattened.split(/DECLSPEC|SDLCALL|const/).
-                    map(elem => elem.trim()).
-                    filter(elem => elem.length > 0).
-                    join(' ');
-                const [outer, inner] = ignored.split(/\(|\)/);
-                const type_name = (word: string) => {
-                    const outer_elems = word.split(" ").map(elem => elem.trim());
-                    if (outer_elems.length == 1) {
-                        const [type] = outer_elems;
-                        return { type };
+                const outer_elems = star_spaced.split(" ").map(elem => elem.trim());
+                if (outer_elems.length == 1) {
+                    const [type] = outer_elems;
+                    return { type };
                     }
                     // const type = outer_elems.slice(0, outer_elems.length - 1).join(" ");
                     // const name = outer_elems[outer_elems.length - 1];
