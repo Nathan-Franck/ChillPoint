@@ -1822,8 +1822,13 @@ local ____exports = {}
 ____exports.ForeignFunction = {}
 local ForeignFunction = ____exports.ForeignFunction
 do
+    local FFIHeaderLookup = {uint = "int", ["char*"] = "char*", ["const char*"] = "const char*", SDL_TimerCallback = "void*", SDL_bool = "bool", SDL_TimerID = "int", SDL_DisplayOrientation = "int", SDL_GLContext = "void*", SDL_GLattr = "int", Uint32 = "int", Uint64 = "uint64_t", SDL_HitTest = "int"}
     local function void_star_fallback(____type)
-        return ((____type == "uint") and "int") or (((____type == "const char*") and ____type) or ((__TS__StringEndsWith(____type, "*") and "void*") or ____type))
+        local lookup_result = FFIHeaderLookup[____type]
+        if lookup_result ~= nil then
+            return lookup_result
+        end
+        return (__TS__StringEndsWith(____type, "*") and "void*") or ____type
     end
     local function generate_cdef_header(header)
         return table.concat(
@@ -1898,7 +1903,7 @@ do
         ffi.cdef(cdef_header)
         local extern_interface = ffi.load(args.file_name)
         local wrapped_interface = wrap_interface(args.header, extern_interface)
-        return {types = wrapped_interface, values = args.values}
+        return {types = extern_interface, values = args.values}
     end
 end
 return ____exports
@@ -3798,9 +3803,9 @@ local new_vec = Vec2.add({1, 2}, {3, 4})
 print("Hey! HO!")
 local screen_width = 640
 local screen_height = 480
-sdl.SDL_Init({flags = SDL.SDL_INIT_VIDEO})
-local window = sdl.SDL_CreateWindow({title = "SDL Tutorial", x = SDL.SDL_WINDOWPOS_UNDEFINED, y = SDL.SDL_WINDOWPOS_UNDEFINED, w = screen_width, h = screen_height, flags = SDL.SDL_WINDOW_SHOWN})
-sdl.SDL_Delay({ms = 2000})
+sdl.SDL_Init(SDL.SDL_INIT_VIDEO)
+local window = sdl.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, screen_width, screen_height, SDL.SDL_WINDOW_SHOWN)
+sdl.SDL_Delay(2000)
 print("done")
 return ____exports
 end,
