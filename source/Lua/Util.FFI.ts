@@ -9,12 +9,36 @@ export namespace ForeignFunction {
         "void": void,
         "int": number,
         "uint": number,
-        "uint64_t": number,
         "float": number,
         "double": number,
         "char*": string,
         "const char*": string,
         "string": string,
+
+        // 🚧 Temp SDL specific 🚧
+        "SDL_bool": boolean,
+        "Uint32": number,
+        "Uint64": number,
+        "SDL_DisplayOrientation": number,
+        "SDL_GLattr": number,
+        "SDL_HitTest": number,
+    };
+
+    const FFIHeaderLookup = {
+        "uint": "int",
+        "char*": "char*",
+        "const char*": "const char*",
+
+        // 🚧 Temp SDL specific 🚧
+        "SDL_TimerCallback": "void*",
+        "SDL_bool": "bool",
+        "SDL_TimerID": "int",
+        "SDL_DisplayOrientation": "int",
+        "SDL_GLContext": "void*",
+        "SDL_GLattr": "int",
+        "Uint32": "int",
+        "Uint64": "uint64_t",
+        "SDL_HitTest": "int",
     };
 
     type External<T extends string> = {
@@ -52,8 +76,11 @@ export namespace ForeignFunction {
     }
 
     function void_star_fallback(type: string) {
-
-        return type == "uint" ? "int" : type == "const char*" ? type : type.endsWith("*") ? "void*" : type;   
+        const lookup_result: string | undefined = FFIHeaderLookup[type as keyof typeof FFIHeaderLookup]
+        if (lookup_result != null) {
+            return lookup_result;
+        }
+        return type.endsWith("*") ? "void*" : type;   
     }
 
     function generate_cdef_header(header: HeaderFile) {
@@ -107,7 +134,7 @@ export namespace ForeignFunction {
         const extern_interface = ffi.load<ExternInterface<H>>(args.file_name);
         const wrapped_interface = wrap_interface(args.header, extern_interface);
         return {
-            types: wrapped_interface,
+            types: extern_interface,
             values: args.values,
         };
     }
