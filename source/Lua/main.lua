@@ -1816,31 +1816,101 @@ function __TS__TypeOf(value)
 end
 
 end,
-["Lua.Util.FFI"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+["Util.FFI"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+require("lualib_bundle");
 local ____exports = {}
 ____exports.ForeignFunction = {}
 local ForeignFunction = ____exports.ForeignFunction
 do
-    local ffi = require(nil, "ffi")
-    function ForeignFunction.load_library(self, args)
-        ffi.cdef(args.simplified_header)
-        return {
-            types = ffi.load(args.file_name),
-            values = args.values
-        }
+    local function void_star_fallback(____type)
+        return ((____type == "uint") and "int") or (((____type == "const char*") and ____type) or ((__TS__StringEndsWith(____type, "*") and "void*") or ____type))
+    end
+    local function generate_cdef_header(header)
+        return table.concat(
+            __TS__ArrayMap(
+                __TS__ObjectEntries(header),
+                function(____, ____bindingPattern0)
+                    local function_name
+                    function_name = ____bindingPattern0[1]
+                    local func
+                    func = ____bindingPattern0[2]
+                    return ((((tostring(
+                        void_star_fallback(func.output)
+                    ) .. " ") .. tostring(function_name)) .. "(") .. tostring(
+                        table.concat(
+                            __TS__ArrayMap(
+                                __TS__ArrayFilter(
+                                    func.params,
+                                    function(____, arg) return arg.name ~= nil end
+                                ),
+                                function(____, arg) return (tostring(
+                                    void_star_fallback(arg.type)
+                                ) .. " ") .. tostring(arg.name) end
+                            ),
+                            ", " or ","
+                        )
+                    )) .. ");"
+                end
+            ),
+            "\n" or ","
+        )
+    end
+    local function entries(obj)
+        return __TS__ObjectEntries(obj)
+    end
+    local function wrap_interface(header, extern_interface)
+        return __TS__ArrayReduce(
+            __TS__ArrayMap(
+                entries(header),
+                function(____, ____bindingPattern0)
+                    local function_name
+                    function_name = ____bindingPattern0[1]
+                    local func
+                    func = ____bindingPattern0[2]
+                    local params = func.params
+                    return {
+                        function_name,
+                        function(args)
+                            local ordered_args = __TS__ArrayMap(
+                                params,
+                                function(____, param) return args[param.name] end
+                            )
+                            return extern_interface[function_name](
+                                unpack(ordered_args)
+                            )
+                        end
+                    }
+                end
+            ),
+            function(____, result, ____bindingPattern0)
+                local function_name
+                function_name = ____bindingPattern0[1]
+                local new_func
+                new_func = ____bindingPattern0[2]
+                return __TS__ObjectAssign({}, result, {[function_name] = new_func})
+            end,
+            {}
+        )
+    end
+    local ffi = require("ffi")
+    function ForeignFunction.load_library(args)
+        local cdef_header = generate_cdef_header(args.header)
+        ffi.cdef(cdef_header)
+        local extern_interface = ffi.load(args.file_name)
+        local wrapped_interface = wrap_interface(args.header, extern_interface)
+        return {types = wrapped_interface, values = args.values}
     end
 end
 return ____exports
 end,
-["Lua.Lib.SDL"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+["Lib.SDL"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 local ____exports = {}
 local ____Util_2EFFI = require("Util.FFI")
 local ForeignFunction = ____Util_2EFFI.ForeignFunction
-local ____ = ForeignFunction:load_library(
+local ____ = ForeignFunction.load_library(
     {
         file_name = "SDL2",
-        simplified_header = "\n        int SDL_Init(int flags);\n        extern void* SDL_CreateWindow(const char *title, int x, int y, int w, int h, int flags);\n    ",
-        types = {},
+        header = {SDL_GetTicks = {output = "uint", params = {}}, SDL_GetPerformanceCounter = {output = "uint64_t", params = {}}, SDL_GetPerformanceFrequency = {output = "uint64_t", params = {}}, SDL_Delay = {output = "void", params = {{type = "uint", name = "ms"}}}, SDL_AddTimer = {output = "uint", params = {{type = "uint", name = "interval"}, {type = "void*", name = "callback"}, {type = "void*", name = "param"}}}, SDL_RemoveTimer = {output = "bool", params = {{type = "uint", name = "id"}}}, SDL_Init = {output = "int", params = {{type = "uint", name = "flags"}}}, SDL_InitSubSystem = {output = "int", params = {{type = "uint", name = "flags"}}}, SDL_QuitSubSystem = {output = "void", params = {{type = "uint", name = "flags"}}}, SDL_WasInit = {output = "uint", params = {{type = "uint", name = "flags"}}}, SDL_Quit = {output = "void", params = {}}, SDL_GetNumVideoDrivers = {output = "int", params = {}}, SDL_GetVideoDriver = {output = "char*", params = {{type = "int", name = "index"}}}, SDL_VideoInit = {output = "int", params = {{type = "char*", name = "driver_name"}}}, SDL_VideoQuit = {output = "void", params = {}}, SDL_GetCurrentVideoDriver = {output = "char*", params = {}}, SDL_GetNumVideoDisplays = {output = "int", params = {}}, SDL_GetDisplayName = {output = "char*", params = {{type = "int", name = "displayIndex"}}}, SDL_GetDisplayBounds = {output = "int", params = {{type = "int", name = "displayIndex"}, {type = "SDL_Rect*", name = "rect"}}}, SDL_GetDisplayUsableBounds = {output = "int", params = {{type = "int", name = "displayIndex"}, {type = "SDL_Rect*", name = "rect"}}}, SDL_GetDisplayDPI = {output = "int", params = {{type = "int", name = "displayIndex"}, {type = "float*", name = "ddpi"}, {type = "float*", name = "hdpi"}, {type = "float*", name = "vdpi"}}}, SDL_GetDisplayOrientation = {output = "uint", params = {{type = "int", name = "displayIndex"}}}, SDL_GetNumDisplayModes = {output = "int", params = {{type = "int", name = "displayIndex"}}}, SDL_GetDisplayMode = {output = "int", params = {{type = "int", name = "displayIndex"}, {type = "int", name = "modeIndex"}, {type = "SDL_DisplayMode*", name = "mode"}}}, SDL_GetDesktopDisplayMode = {output = "int", params = {{type = "int", name = "displayIndex"}, {type = "SDL_DisplayMode*", name = "mode"}}}, SDL_GetCurrentDisplayMode = {output = "int", params = {{type = "int", name = "displayIndex"}, {type = "SDL_DisplayMode*", name = "mode"}}}, SDL_GetClosestDisplayMode = {output = "SDL_DisplayMode*", params = {{type = "int", name = "displayIndex"}, {type = "SDL_DisplayMode*", name = "mode"}, {type = "SDL_DisplayMode*", name = "closest"}}}, SDL_GetWindowDisplayIndex = {output = "int", params = {{type = "SDL_Window*", name = "window"}}}, SDL_SetWindowDisplayMode = {output = "int", params = {{type = "SDL_Window*", name = "window"}, {type = "SDL_DisplayMode*", name = "mode"}}}, SDL_GetWindowDisplayMode = {output = "int", params = {{type = "SDL_Window*", name = "window"}, {type = "SDL_DisplayMode*", name = "mode"}}}, SDL_GetWindowPixelFormat = {output = "uint", params = {{type = "SDL_Window*", name = "window"}}}, SDL_CreateWindow = {output = "SDL_Window*", params = {{type = "const char*", name = "title"}, {type = "int", name = "x"}, {type = "int", name = "y"}, {type = "int", name = "w"}, {type = "int", name = "h"}, {type = "uint", name = "flags"}}}, SDL_CreateWindowFrom = {output = "SDL_Window*", params = {{type = "void*", name = "data"}}}, SDL_GetWindowID = {output = "uint", params = {{type = "SDL_Window*", name = "window"}}}, SDL_GetWindowFromID = {output = "SDL_Window*", params = {{type = "uint", name = "id"}}}, SDL_GetWindowFlags = {output = "uint", params = {{type = "SDL_Window*", name = "window"}}}, SDL_SetWindowTitle = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "char*", name = "title"}}}, SDL_GetWindowTitle = {output = "char*", params = {{type = "SDL_Window*", name = "window"}}}, SDL_SetWindowIcon = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "SDL_Surface*", name = "icon"}}}, SDL_SetWindowData = {output = "void*", params = {{type = "SDL_Window*", name = "window"}, {type = "char*", name = "name"}, {type = "void*", name = "userdata"}}}, SDL_GetWindowData = {output = "void*", params = {{type = "SDL_Window*", name = "window"}, {type = "char*", name = "name"}}}, SDL_SetWindowPosition = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "int", name = "x"}, {type = "int", name = "y"}}}, SDL_GetWindowPosition = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "int*", name = "x"}, {type = "int*", name = "y"}}}, SDL_SetWindowSize = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "int", name = "w"}, {type = "int", name = "h"}}}, SDL_GetWindowSize = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "int*", name = "w"}, {type = "int*", name = "h"}}}, SDL_GetWindowBordersSize = {output = "int", params = {{type = "SDL_Window*", name = "window"}, {type = "int*", name = "top"}, {type = "int*", name = "left"}, {type = "int*", name = "bottom"}, {type = "int*", name = "right"}}}, SDL_SetWindowMinimumSize = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "int", name = "min_w"}, {type = "int", name = "min_h"}}}, SDL_GetWindowMinimumSize = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "int*", name = "w"}, {type = "int*", name = "h"}}}, SDL_SetWindowMaximumSize = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "int", name = "max_w"}, {type = "int", name = "max_h"}}}, SDL_GetWindowMaximumSize = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "int*", name = "w"}, {type = "int*", name = "h"}}}, SDL_SetWindowBordered = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "bool", name = "bordered"}}}, SDL_SetWindowResizable = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "bool", name = "resizable"}}}, SDL_ShowWindow = {output = "void", params = {{type = "SDL_Window*", name = "window"}}}, SDL_HideWindow = {output = "void", params = {{type = "SDL_Window*", name = "window"}}}, SDL_RaiseWindow = {output = "void", params = {{type = "SDL_Window*", name = "window"}}}, SDL_MaximizeWindow = {output = "void", params = {{type = "SDL_Window*", name = "window"}}}, SDL_MinimizeWindow = {output = "void", params = {{type = "SDL_Window*", name = "window"}}}, SDL_RestoreWindow = {output = "void", params = {{type = "SDL_Window*", name = "window"}}}, SDL_SetWindowFullscreen = {output = "int", params = {{type = "SDL_Window*", name = "window"}, {type = "uint", name = "flags"}}}, SDL_GetWindowSurface = {output = "SDL_Surface*", params = {{type = "SDL_Window*", name = "window"}}}, SDL_UpdateWindowSurface = {output = "int", params = {{type = "SDL_Window*", name = "window"}}}, SDL_UpdateWindowSurfaceRects = {output = "int", params = {{type = "SDL_Window*", name = "window"}, {type = "SDL_Rect*", name = "rects"}, {type = "int", name = "numrects"}}}, SDL_SetWindowGrab = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "bool", name = "grabbed"}}}, SDL_GetWindowGrab = {output = "bool", params = {{type = "SDL_Window*", name = "window"}}}, SDL_GetGrabbedWindow = {output = "SDL_Window*", params = {}}, SDL_SetWindowBrightness = {output = "int", params = {{type = "SDL_Window*", name = "window"}, {type = "float", name = "brightness"}}}, SDL_GetWindowBrightness = {output = "float", params = {{type = "SDL_Window*", name = "window"}}}, SDL_SetWindowOpacity = {output = "int", params = {{type = "SDL_Window*", name = "window"}, {type = "float", name = "opacity"}}}, SDL_GetWindowOpacity = {output = "int", params = {{type = "SDL_Window*", name = "window"}, {type = "float*", name = "out_opacity"}}}, SDL_SetWindowModalFor = {output = "int", params = {{type = "SDL_Window*", name = "modal_window"}, {type = "SDL_Window*", name = "parent_window"}}}, SDL_SetWindowInputFocus = {output = "int", params = {{type = "SDL_Window*", name = "window"}}}, SDL_SetWindowGammaRamp = {output = "int", params = {{type = "SDL_Window*", name = "window"}, {type = "Uint16*", name = "red"}, {type = "Uint16*", name = "green"}, {type = "Uint16*", name = "blue"}}}, SDL_GetWindowGammaRamp = {output = "int", params = {{type = "SDL_Window*", name = "window"}, {type = "Uint16*", name = "red"}, {type = "Uint16*", name = "green"}, {type = "Uint16*", name = "blue"}}}, SDL_SetWindowHitTest = {output = "int", params = {{type = "SDL_Window*", name = "window"}, {type = "uint", name = "callback"}, {type = "void*", name = "callback_data"}}}, SDL_DestroyWindow = {output = "void", params = {{type = "SDL_Window*", name = "window"}}}, SDL_IsScreenSaverEnabled = {output = "bool", params = {}}, SDL_EnableScreenSaver = {output = "void", params = {}}, SDL_DisableScreenSaver = {output = "void", params = {}}, SDL_GL_LoadLibrary = {output = "int", params = {{type = "char*", name = "path"}}}, SDL_GL_GetProcAddress = {output = "void*", params = {{type = "char*", name = "proc"}}}, SDL_GL_UnloadLibrary = {output = "void", params = {}}, SDL_GL_ExtensionSupported = {output = "bool", params = {{type = "char*", name = "extension"}}}, SDL_GL_ResetAttributes = {output = "void", params = {}}, SDL_GL_SetAttribute = {output = "int", params = {{type = "uint", name = "attr"}, {type = "int", name = "value"}}}, SDL_GL_GetAttribute = {output = "int", params = {{type = "uint", name = "attr"}, {type = "int*", name = "value"}}}, SDL_GL_CreateContext = {output = "void*", params = {{type = "SDL_Window*", name = "window"}}}, SDL_GL_MakeCurrent = {output = "int", params = {{type = "SDL_Window*", name = "window"}, {type = "void*", name = "context"}}}, SDL_GL_GetCurrentWindow = {output = "SDL_Window*", params = {}}, SDL_GL_GetCurrentContext = {output = "void*", params = {}}, SDL_GL_GetDrawableSize = {output = "void", params = {{type = "SDL_Window*", name = "window"}, {type = "int*", name = "w"}, {type = "int*", name = "h"}}}, SDL_GL_SetSwapInterval = {output = "int", params = {{type = "int", name = "interval"}}}, SDL_GL_GetSwapInterval = {output = "int", params = {}}, SDL_GL_SwapWindow = {output = "void", params = {{type = "SDL_Window*", name = "window"}}}, SDL_GL_DeleteContext = {output = "void", params = {{type = "void*", name = "context"}}}},
         values = {
             SDL_WINDOW_FULLSCREEN = 1,
             SDL_WINDOW_OPENGL = 2,
@@ -1876,19 +1946,19 @@ local ____exports = {}
 ____exports.SmoothCurve = {}
 local SmoothCurve = ____exports.SmoothCurve
 do
-    function SmoothCurve.sample(self, curve, time)
-        local smooth_index = ((time - curve.x_range[1]) / (curve.x_range[2] - curve.x_range[1])) * (curve.y_values.length - 1)
-        local index = Math:floor(smooth_index)
-        local current = Math:min(
-            Math:max(index, 0),
-            curve.y_values.length - 1
+    function SmoothCurve.sample(curve, time)
+        local smooth_index = ((time - curve.x_range[1]) / (curve.x_range[2] - curve.x_range[1])) * (#curve.y_values - 1)
+        local index = math.floor(smooth_index)
+        local current = math.min(
+            math.max(index, 0),
+            #curve.y_values - 1
         )
-        local next = Math:min(
-            Math:max(index + 1, 0),
-            curve.y_values.length - 1
+        local next = math.min(
+            math.max(index + 1, 0),
+            #curve.y_values - 1
         )
         local lerp = smooth_index - index
-        return (curve.y_values[current] * (1 - lerp)) + (curve.y_values[next] * lerp)
+        return (curve.y_values[current + 1] * (1 - lerp)) + (curve.y_values[next + 1] * lerp)
     end
 end
 return ____exports
@@ -1900,25 +1970,25 @@ ____exports.TAU = 6.283185307179586
 ____exports.Num = {}
 local Num = ____exports.Num
 do
-    function Num.abs(self, n)
+    function Num.abs(n)
         return ((n < 0) and -n) or n
     end
-    function Num.clamp(self, n, min, max)
+    function Num.clamp(n, min, max)
         return ((n < min) and min) or (((n > max) and max) or n)
     end
-    function Num.lerp(self, a, b, t)
+    function Num.lerp(a, b, t)
         return a + ((b - a) * t)
     end
-    function Num.max(self, a, b)
+    function Num.max(a, b)
         return ((a > b) and a) or b
     end
-    function Num.min(self, a, b)
+    function Num.min(a, b)
         return ((a > b) and b) or a
     end
-    function Num.mod(self, a, b)
+    function Num.mod(a, b)
         return a % b
     end
-    function Num.flatten_angle(self, angle, rate)
+    function Num.flatten_angle(angle, rate)
         if rate <= 0 then
             return angle
         end
@@ -1935,165 +2005,162 @@ end
 ____exports.Vec2 = {}
 local Vec2 = ____exports.Vec2
 do
-    function Vec2.len2(self, a)
+    function Vec2.len2(a)
         local ax = a[1]
         local ay = a[2]
         return (ax * ax) + (ay * ay)
     end
-    function Vec2.sub(self, a, b)
+    function Vec2.sub(a, b)
         return {a[1] - b[1], a[2] - b[2]}
     end
-    function Vec2.add(self, a, b)
+    function Vec2.add(a, b)
         return {a[1] + b[1], a[2] + b[2]}
     end
-    function Vec2.applymat2(self, a, b)
+    function Vec2.applymat2(a, b)
         local ax = a[1]
         local ay = a[2]
         return {(b[1] * ax) + (b[3] * ay), (b[2] * ax) + (b[4] * ay)}
     end
-    function Vec2.applymat3x2(self, a, b)
+    function Vec2.applymat3x2(a, b)
         local ax = a[1]
         local ay = a[2]
         return {((b[1] * ax) + (b[3] * ay)) + b[5], ((b[2] * ax) + (b[4] * ay)) + b[6]}
     end
-    function Vec2.applymat3(self, a, b)
+    function Vec2.applymat3(a, b)
         local ax = a[1]
         local ay = a[2]
         return {((b[1] * ax) + (b[4] * ay)) + b[7], ((b[2] * ax) + (b[5] * ay)) + b[8]}
     end
-    function Vec2.applymat4(self, a, b)
+    function Vec2.applymat4(a, b)
         local ax = a[1]
         local ay = a[2]
         return {((b[1] * ax) + (b[5] * ay)) + b[13], ((b[2] * ax) + (b[6] * ay)) + b[14]}
     end
-    function Vec2.clamp(self, a, min, max)
+    function Vec2.clamp(a, min, max)
         return {
-            ____exports.Num:clamp(a[1], min[1], max[1]),
-            ____exports.Num:clamp(a[2], min[2], max[2])
+            ____exports.Num.clamp(a[1], min[1], max[1]),
+            ____exports.Num.clamp(a[2], min[2], max[2])
         }
     end
-    function Vec2.dist(self, a, b)
-        return Math:sqrt(
+    function Vec2.dist(a, b)
+        return math.sqrt(
             Vec2.len2(
-                nil,
-                Vec2.sub(nil, a, b)
+                Vec2.sub(a, b)
             )
         )
     end
-    function Vec2.dist2(self, a, b)
+    function Vec2.dist2(a, b)
         return Vec2.len2(
-            nil,
-            Vec2.sub(nil, b, a)
+            Vec2.sub(b, a)
         )
     end
-    function Vec2.div(self, a, b)
+    function Vec2.div(a, b)
         return {a[1] / b[1], a[2] / b[2]}
     end
-    function Vec2.dot(self, a, b)
+    function Vec2.dot(a, b)
         return (a[1] * b[1]) + (a[2] * b[2])
     end
-    function Vec2.inverse(self, a)
+    function Vec2.inverse(a)
         return {1 / a[1], 1 / a[2]}
     end
-    function Vec2.len(self, a)
-        return Math:sqrt(
-            Vec2.len2(nil, a)
+    function Vec2.len(a)
+        return math.sqrt(
+            Vec2.len2(a)
         )
     end
-    function Vec2.lerp(self, a, b, t)
+    function Vec2.lerp(a, b, t)
         return {
-            ____exports.Num:lerp(a[1], b[1], t),
-            ____exports.Num:lerp(a[2], b[2], t)
+            ____exports.Num.lerp(a[1], b[1], t),
+            ____exports.Num.lerp(a[2], b[2], t)
         }
     end
-    function Vec2.max(self, a, b)
+    function Vec2.max(a, b)
         return {
-            Math:max(a[1], b[1]),
-            Math:max(a[2], b[2])
+            math.max(a[1], b[1]),
+            math.max(a[2], b[2])
         }
     end
-    function Vec2.min(self, a, b)
+    function Vec2.min(a, b)
         return {
-            Math:min(a[1], b[1]),
-            Math:min(a[2], b[2])
+            math.min(a[1], b[1]),
+            math.min(a[2], b[2])
         }
     end
-    function Vec2.mul(self, a, b)
+    function Vec2.mul(a, b)
         return {a[1] * b[1], a[2] * b[2]}
     end
-    function Vec2.neg(self, a)
+    function Vec2.neg(a)
         return {-a[1], -a[2]}
     end
-    function Vec2.normal(self, a)
+    function Vec2.normal(a)
         local ax = a[1]
         local ay = a[2]
         local len = (ax * ax) + (ay * ay)
         if len > 0 then
-            len = 1 / Math:sqrt(len)
+            len = 1 / math.sqrt(len)
             return {ax * len, ay * len}
         end
         return a
     end
-    function Vec2.scale(self, a, s)
+    function Vec2.scale(a, s)
         return {a[1] * s, a[2] * s}
     end
 end
 ____exports.Vec3 = {}
 local Vec3 = ____exports.Vec3
 do
-    function Vec3.dot(self, a, b)
+    function Vec3.dot(a, b)
         return ((a[1] * b[1]) + (a[2] * b[2])) + (a[3] * b[3])
     end
-    function Vec3.len2(self, a)
+    function Vec3.len2(a)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
         return ((ax * ax) + (ay * ay)) + (az * az)
     end
-    function Vec3.nangle(self, a, b)
-        local c = Vec3.dot(nil, a, b)
+    function Vec3.nangle(a, b)
+        local c = Vec3.dot(a, b)
         if (c < -1) or (c > 1) then
             return 0
         end
-        return Math:acos(c)
+        return math.acos(c)
     end
-    function Vec3.normal(self, a)
+    function Vec3.normal(a)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
         local len = ((ax * ax) + (ay * ay)) + (az * az)
         if len > 0 then
-            len = 1 / Math:sqrt(len)
+            len = 1 / math.sqrt(len)
             return {ax * len, ay * len, az * len}
         end
         return a
     end
-    function Vec3.sub(self, a, b)
+    function Vec3.sub(a, b)
         return {a[1] - b[1], a[2] - b[2], a[3] - b[3]}
     end
-    function Vec3.add(self, a, b)
+    function Vec3.add(a, b)
         return {a[1] + b[1], a[2] + b[2], a[3] + b[3]}
     end
-    function Vec3.angle(self, a, b)
+    function Vec3.angle(a, b)
         return Vec3.nangle(
-            nil,
-            Vec3.normal(nil, a),
-            Vec3.normal(nil, b)
+            Vec3.normal(a),
+            Vec3.normal(b)
         )
     end
-    function Vec3.applymat3x2(self, a, b)
+    function Vec3.applymat3x2(a, b)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
         return {((ax * b[1]) + (ay * b[3])) + (az * b[5]), ((ax * b[2]) + (ay * b[4])) + (az * b[6]), az}
     end
-    function Vec3.applymat3(self, a, b)
+    function Vec3.applymat3(a, b)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
         return {((ax * b[1]) + (ay * b[4])) + (az * b[7]), ((ax * b[2]) + (ay * b[5])) + (az * b[8]), ((ax * b[3]) + (ay * b[6])) + (az * b[9])}
     end
-    function Vec3.apply_mat4(self, a, b)
+    function Vec3.apply_mat4(a, b)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
@@ -2103,7 +2170,7 @@ do
         end
         return {((((b[1] * ax) + (b[5] * ay)) + (b[9] * az)) + b[13]) / w, ((((b[2] * ax) + (b[6] * ay)) + (b[10] * az)) + b[14]) / w, ((((b[3] * ax) + (b[7] * ay)) + (b[11] * az)) + b[15]) / w}
     end
-    function Vec3.apply_quat(self, a, b)
+    function Vec3.apply_quat(a, b)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
@@ -2117,14 +2184,14 @@ do
         local iw = ((-bx * ax) - (by * ay)) - (bz * az)
         return {(((ix * bw) + (iw * -bx)) + (iy * -bz)) - (iz * -by), (((iy * bw) + (iw * -by)) + (iz * -bx)) - (ix * -bz), (((iz * bw) + (iw * -bz)) + (ix * -by)) - (iy * -bx)}
     end
-    function Vec3.clamp(self, a, min, max)
+    function Vec3.clamp(a, min, max)
         return {
-            ____exports.Num:clamp(a[1], min[1], max[1]),
-            ____exports.Num:clamp(a[2], min[2], max[2]),
-            ____exports.Num:clamp(a[3], min[3], max[3])
+            ____exports.Num.clamp(a[1], min[1], max[1]),
+            ____exports.Num.clamp(a[2], min[2], max[2]),
+            ____exports.Num.clamp(a[3], min[3], max[3])
         }
     end
-    function Vec3.cross(self, a, b)
+    function Vec3.cross(a, b)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
@@ -2133,92 +2200,89 @@ do
         local bz = b[3]
         return {(ay * bz) - (az * by), (az * bx) - (ax * bz), (ax * by) - (ay * bx)}
     end
-    function Vec3.dist(self, a, b)
-        return Math:sqrt(
+    function Vec3.dist(a, b)
+        return math.sqrt(
             Vec3.len2(
-                nil,
-                Vec3.sub(nil, a, b)
+                Vec3.sub(a, b)
             )
         )
     end
-    function Vec3.dist2(self, a, b)
+    function Vec3.dist2(a, b)
         return Vec3.len2(
-            nil,
-            Vec3.sub(nil, b, a)
+            Vec3.sub(b, a)
         )
     end
-    function Vec3.div(self, a, b)
+    function Vec3.div(a, b)
         return {a[1] / b[1], a[2] / b[2], a[3] / b[3]}
     end
-    function Vec3.inverse(self, a)
+    function Vec3.inverse(a)
         return {1 / a[1], 1 / a[2], 1 / a[3]}
     end
-    function Vec3.len(self, a)
-        return Math:sqrt(
-            Vec3.len2(nil, a)
+    function Vec3.len(a)
+        return math.sqrt(
+            Vec3.len2(a)
         )
     end
-    function Vec3.lerp(self, a, b, t)
+    function Vec3.lerp(a, b, t)
         return {
-            ____exports.Num:lerp(a[1], b[1], t),
-            ____exports.Num:lerp(a[2], b[2], t),
-            ____exports.Num:lerp(a[3], b[3], t)
+            ____exports.Num.lerp(a[1], b[1], t),
+            ____exports.Num.lerp(a[2], b[2], t),
+            ____exports.Num.lerp(a[3], b[3], t)
         }
     end
-    function Vec3.max(self, a, b)
+    function Vec3.max(a, b)
         return {
-            Math:max(a[1], b[1]),
-            Math:max(a[2], b[2]),
-            Math:max(a[3], b[3])
+            math.max(a[1], b[1]),
+            math.max(a[2], b[2]),
+            math.max(a[3], b[3])
         }
     end
-    function Vec3.min(self, a, b)
+    function Vec3.min(a, b)
         return {
-            Math:min(a[1], b[1]),
-            Math:min(a[2], b[2]),
-            Math:min(a[3], b[3])
+            math.min(a[1], b[1]),
+            math.min(a[2], b[2]),
+            math.min(a[3], b[3])
         }
     end
-    function Vec3.mul(self, a, b)
+    function Vec3.mul(a, b)
         return {a[1] * b[1], a[2] * b[2], a[3] * b[3]}
     end
-    function Vec3.neg(self, a)
+    function Vec3.neg(a)
         return {-a[1], -a[2], -a[3]}
     end
-    function Vec3.orthogonal(self, a, b)
+    function Vec3.orthogonal(a, b)
         return Vec3.normal(
-            nil,
-            Vec3.cross(nil, a, b)
+            Vec3.cross(a, b)
         )
     end
-    function Vec3.scale(self, a, s)
+    function Vec3.scale(a, s)
         return {a[1] * s, a[2] * s, a[3] * s}
     end
 end
 ____exports.Vec4 = {}
 local Vec4 = ____exports.Vec4
 do
-    function Vec4.len2(self, a)
+    function Vec4.len2(a)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
         local aw = a[4]
         return (((ax * ax) + (ay * ay)) + (az * az)) + (aw * aw)
     end
-    function Vec4.sub(self, a, b)
+    function Vec4.sub(a, b)
         return {a[1] - b[1], a[2] - b[2], a[3] - b[3], a[4] - b[4]}
     end
-    function Vec4.add(self, a, b)
+    function Vec4.add(a, b)
         return {a[1] + b[1], a[2] + b[2], a[3] + b[3], a[4] + b[4]}
     end
-    function Vec4.applymat4(self, a, b)
+    function Vec4.applymat4(a, b)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
         local aw = a[4]
         return {(((b[1] * ax) + (b[5] * ay)) + (b[9] * az)) + (b[13] * aw), (((b[2] * ax) + (b[6] * ay)) + (b[10] * az)) + (b[14] * aw), (((b[3] * ax) + (b[7] * ay)) + (b[11] * az)) + (b[15] * aw), (((b[4] * ax) + (b[8] * ay)) + (b[12] * az)) + (b[16] * aw)}
     end
-    function Vec4.applyquat(self, a, b)
+    function Vec4.applyquat(a, b)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
@@ -2233,220 +2297,216 @@ do
         local iw = ((-bx * ax) - (by * ay)) - (bz * az)
         return {(((ix * bw) + (iw * -bx)) + (iy * -bz)) - (iz * -by), (((iy * bw) + (iw * -by)) + (iz * -bx)) - (ix * -bz), (((iz * bw) + (iw * -bz)) + (ix * -by)) - (iy * -bx), aw}
     end
-    function Vec4.clamp(self, a, min, max)
+    function Vec4.clamp(a, min, max)
         return {
-            ____exports.Num:clamp(a[1], min[1], max[1]),
-            ____exports.Num:clamp(a[2], min[2], max[2]),
-            ____exports.Num:clamp(a[3], min[3], max[3]),
-            ____exports.Num:clamp(a[4], min[4], max[4])
+            ____exports.Num.clamp(a[1], min[1], max[1]),
+            ____exports.Num.clamp(a[2], min[2], max[2]),
+            ____exports.Num.clamp(a[3], min[3], max[3]),
+            ____exports.Num.clamp(a[4], min[4], max[4])
         }
     end
-    function Vec4.dist(self, a, b)
-        return Math:sqrt(
+    function Vec4.dist(a, b)
+        return math.sqrt(
             Vec4.len2(
-                nil,
-                Vec4.sub(nil, a, b)
+                Vec4.sub(a, b)
             )
         )
     end
-    function Vec4.dist2(self, a, b)
+    function Vec4.dist2(a, b)
         return Vec4.len2(
-            nil,
-            Vec4.sub(nil, b, a)
+            Vec4.sub(b, a)
         )
     end
-    function Vec4.div(self, a, b)
+    function Vec4.div(a, b)
         return {a[1] / b[1], a[2] / b[2], a[3] / b[3], a[4] / b[4]}
     end
-    function Vec4.dot(self, a, b)
+    function Vec4.dot(a, b)
         return (((a[1] * b[1]) + (a[2] * b[2])) + (a[3] * b[3])) + (a[4] * b[4])
     end
-    function Vec4.inverse(self, a)
+    function Vec4.inverse(a)
         return {1 / a[1], 1 / a[2], 1 / a[3], 1 / a[4]}
     end
-    function Vec4.len(self, a)
-        return Math:sqrt(
-            Vec4.len2(nil, a)
+    function Vec4.len(a)
+        return math.sqrt(
+            Vec4.len2(a)
         )
     end
-    function Vec4.lerp(self, a, b, t)
+    function Vec4.lerp(a, b, t)
         return {
-            ____exports.Num:lerp(a[1], b[1], t),
-            ____exports.Num:lerp(a[2], b[2], t),
-            ____exports.Num:lerp(a[3], b[3], t),
-            ____exports.Num:lerp(a[4], b[4], t)
+            ____exports.Num.lerp(a[1], b[1], t),
+            ____exports.Num.lerp(a[2], b[2], t),
+            ____exports.Num.lerp(a[3], b[3], t),
+            ____exports.Num.lerp(a[4], b[4], t)
         }
     end
-    function Vec4.max(self, a, b)
+    function Vec4.max(a, b)
         return {
-            Math:max(a[1], b[1]),
-            Math:max(a[2], b[2]),
-            Math:max(a[3], b[3]),
-            Math:max(a[4], b[4])
+            math.max(a[1], b[1]),
+            math.max(a[2], b[2]),
+            math.max(a[3], b[3]),
+            math.max(a[4], b[4])
         }
     end
-    function Vec4.min(self, a, b)
+    function Vec4.min(a, b)
         return {
-            Math:min(a[1], b[1]),
-            Math:min(a[2], b[2]),
-            Math:min(a[3], b[3]),
-            Math:min(a[4], b[4])
+            math.min(a[1], b[1]),
+            math.min(a[2], b[2]),
+            math.min(a[3], b[3]),
+            math.min(a[4], b[4])
         }
     end
-    function Vec4.mul(self, a, b)
+    function Vec4.mul(a, b)
         return {a[1] * b[1], a[2] * b[2], a[3] * b[3], a[4] * b[4]}
     end
-    function Vec4.neg(self, a)
+    function Vec4.neg(a)
         return {-a[1], -a[2], -a[3], -a[4]}
     end
-    function Vec4.normal(self, a)
+    function Vec4.normal(a)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
         local aw = a[4]
         local len = (((ax * ax) + (ay * ay)) + (az * az)) + (aw * aw)
         if len > 0 then
-            len = 1 / Math:sqrt(len)
+            len = 1 / math.sqrt(len)
             return {ax * len, ay * len, az * len, aw * len}
         end
         return a
     end
-    function Vec4.scale(self, a, s)
+    function Vec4.scale(a, s)
         return {a[1] * s, a[2] * s, a[3] * s, a[4] * s}
     end
 end
 ____exports.Quat = {}
 local Quat = ____exports.Quat
 do
-    function Quat.naxisang(self, axis, ang)
+    function Quat.naxisang(axis, ang)
         ang = ang * 0.5
-        local s = Math:sin(ang)
+        local s = math.sin(ang)
         return {
             axis[1] * s,
             axis[2] * s,
             axis[3] * s,
-            Math:cos(ang)
+            math.cos(ang)
         }
     end
-    function Quat.nbetween(self, from, to)
-        local r = ____exports.Vec3:dot(from, to) + 1
+    function Quat.nbetween(from, to)
+        local r = ____exports.Vec3.dot(from, to) + 1
         local cross
         if r < 0.000001 then
-            if Math:abs(from[1]) > Math:abs(from[3]) then
+            if math.abs(from[1]) > math.abs(from[3]) then
                 cross = {-from[2], from[1], 0}
             else
                 cross = {0, -from[3], from[2]}
             end
         else
-            cross = ____exports.Vec3:cross(from, to)
+            cross = ____exports.Vec3.cross(from, to)
         end
-        return Quat.normal(nil, {cross[0], cross[1], cross[2], r})
+        return Quat.normal({cross[1], cross[2], cross[3], r})
     end
-    function Quat.normal(self, a)
+    function Quat.normal(a)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
         local aw = a[4]
         local len = (((ax * ax) + (ay * ay)) + (az * az)) + (aw * aw)
         if len > 0 then
-            len = 1 / Math:sqrt(len)
+            len = 1 / math.sqrt(len)
             return {ax * len, ay * len, az * len, aw * len}
         end
         return a
     end
-    function Quat.axis_angle(self, axis, ang)
+    function Quat.axis_angle(axis, ang)
         return Quat.naxisang(
-            nil,
-            ____exports.Vec3:normal(axis),
+            ____exports.Vec3.normal(axis),
             ang
         )
     end
-    function Quat.between(self, from, to)
+    function Quat.between(from, to)
         return Quat.nbetween(
-            nil,
-            ____exports.Vec3:normal(from),
-            ____exports.Vec3:normal(to)
+            ____exports.Vec3.normal(from),
+            ____exports.Vec3.normal(to)
         )
     end
-    function Quat.dot(self, a, b)
+    function Quat.dot(a, b)
         return (((a[1] * b[1]) + (a[2] * b[2])) + (a[3] * b[3])) + (a[4] * b[4])
     end
-    function Quat.euler_xyz(self, rot)
+    function Quat.euler_xyz(rot)
         local a0 = rot[1] * 0.5
         local a1 = rot[2] * 0.5
         local a2 = rot[3] * 0.5
-        local cx = Math:cos(a0)
-        local cy = Math:cos(a1)
-        local cz = Math:cos(a2)
-        local sx = Math:sin(a0)
-        local sy = Math:sin(a1)
-        local sz = Math:sin(a2)
+        local cx = math.cos(a0)
+        local cy = math.cos(a1)
+        local cz = math.cos(a2)
+        local sx = math.sin(a0)
+        local sy = math.sin(a1)
+        local sz = math.sin(a2)
         return {((sx * cy) * cz) + ((cx * sy) * sz), ((cx * sy) * cz) - ((sx * cy) * sz), ((cx * cy) * sz) + ((sx * sy) * cz), ((cx * cy) * cz) - ((sx * sy) * sz)}
     end
-    function Quat.euler_xzy(self, rot)
+    function Quat.euler_xzy(rot)
         local a0 = rot[1] * 0.5
         local a1 = rot[2] * 0.5
         local a2 = rot[3] * 0.5
-        local cx = Math:cos(a0)
-        local cy = Math:cos(a1)
-        local cz = Math:cos(a2)
-        local sx = Math:sin(a0)
-        local sy = Math:sin(a1)
-        local sz = Math:sin(a2)
+        local cx = math.cos(a0)
+        local cy = math.cos(a1)
+        local cz = math.cos(a2)
+        local sx = math.sin(a0)
+        local sy = math.sin(a1)
+        local sz = math.sin(a2)
         return {((sx * cy) * cz) - ((cx * sy) * sz), ((cx * sy) * cz) - ((sx * cy) * sz), ((cx * cy) * sz) + ((sx * sy) * cz), ((cx * cy) * cz) + ((sx * sy) * sz)}
     end
-    function Quat.euler_yxz(self, rot)
+    function Quat.euler_yxz(rot)
         local a0 = rot[1] * 0.5
         local a1 = rot[2] * 0.5
         local a2 = rot[3] * 0.5
-        local cx = Math:cos(a0)
-        local cy = Math:cos(a1)
-        local cz = Math:cos(a2)
-        local sx = Math:sin(a0)
-        local sy = Math:sin(a1)
-        local sz = Math:sin(a2)
+        local cx = math.cos(a0)
+        local cy = math.cos(a1)
+        local cz = math.cos(a2)
+        local sx = math.sin(a0)
+        local sy = math.sin(a1)
+        local sz = math.sin(a2)
         return {((sx * cy) * cz) + ((cx * sy) * sz), ((cx * sy) * cz) - ((sx * cy) * sz), ((cx * cy) * sz) - ((sx * sy) * cz), ((cx * cy) * cz) + ((sx * sy) * sz)}
     end
-    function Quat.euler_yzx(self, rot)
+    function Quat.euler_yzx(rot)
         local a0 = rot[1] * 0.5
         local a1 = rot[2] * 0.5
         local a2 = rot[3] * 0.5
-        local cx = Math:cos(a0)
-        local cy = Math:cos(a1)
-        local cz = Math:cos(a2)
-        local sx = Math:sin(a0)
-        local sy = Math:sin(a1)
-        local sz = Math:sin(a2)
+        local cx = math.cos(a0)
+        local cy = math.cos(a1)
+        local cz = math.cos(a2)
+        local sx = math.sin(a0)
+        local sy = math.sin(a1)
+        local sz = math.sin(a2)
         return {((sx * cy) * cz) + ((cx * sy) * sz), ((cx * sy) * cz) + ((sx * cy) * sz), ((cx * cy) * sz) - ((sx * sy) * cz), ((cx * cy) * cz) - ((sx * sy) * sz)}
     end
-    function Quat.euler_zxy(self, rot)
+    function Quat.euler_zxy(rot)
         local a0 = rot[1] * 0.5
         local a1 = rot[2] * 0.5
         local a2 = rot[3] * 0.5
-        local cx = Math:cos(a0)
-        local cy = Math:cos(a1)
-        local cz = Math:cos(a2)
-        local sx = Math:sin(a0)
-        local sy = Math:sin(a1)
-        local sz = Math:sin(a2)
+        local cx = math.cos(a0)
+        local cy = math.cos(a1)
+        local cz = math.cos(a2)
+        local sx = math.sin(a0)
+        local sy = math.sin(a1)
+        local sz = math.sin(a2)
         return {((sx * cy) * cz) - ((cx * sy) * sz), ((cx * sy) * cz) + ((sx * cy) * sz), ((cx * cy) * sz) + ((sx * sy) * cz), ((cx * cy) * cz) - ((sx * sy) * sz)}
     end
-    function Quat.euler_zyx(self, rot)
+    function Quat.euler_zyx(rot)
         local a0 = rot[1] * 0.5
         local a1 = rot[2] * 0.5
         local a2 = rot[3] * 0.5
-        local cx = Math:cos(a0)
-        local cy = Math:cos(a1)
-        local cz = Math:cos(a2)
-        local sx = Math:sin(a0)
-        local sy = Math:sin(a1)
-        local sz = Math:sin(a2)
+        local cx = math.cos(a0)
+        local cy = math.cos(a1)
+        local cz = math.cos(a2)
+        local sx = math.sin(a0)
+        local sy = math.sin(a1)
+        local sz = math.sin(a2)
         return {((sx * cy) * cz) - ((cx * sy) * sz), ((cx * sy) * cz) + ((sx * cy) * sz), ((cx * cy) * sz) - ((sx * sy) * cz), ((cx * cy) * cz) + ((sx * sy) * sz)}
     end
-    function Quat.identity(self)
+    function Quat.identity()
         return {0, 0, 0, 1}
     end
-    function Quat.invert(self, a)
+    function Quat.invert(a)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
@@ -2458,15 +2518,15 @@ do
         end
         return {-ax * invDot, -ay * invDot, -az * invDot, aw * invDot}
     end
-    function Quat.lerp(self, a, b, t)
+    function Quat.lerp(a, b, t)
         return {
-            ____exports.Num:lerp(a[1], b[1], t),
-            ____exports.Num:lerp(a[2], b[2], t),
-            ____exports.Num:lerp(a[3], b[3], t),
-            ____exports.Num:lerp(a[4], b[4], t)
+            ____exports.Num.lerp(a[1], b[1], t),
+            ____exports.Num.lerp(a[2], b[2], t),
+            ____exports.Num.lerp(a[3], b[3], t),
+            ____exports.Num.lerp(a[4], b[4], t)
         }
     end
-    function Quat.mul(self, a, b)
+    function Quat.mul(a, b)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
@@ -2477,16 +2537,15 @@ do
         local bw = b[4]
         return {(((ax * bw) + (aw * bx)) + (ay * bz)) - (az * by), (((ay * bw) + (aw * by)) + (az * bx)) - (ax * bz), (((az * bw) + (aw * bz)) + (ax * by)) - (ay * bx), (((aw * bw) - (ax * bx)) - (ay * by)) - (az * bz)}
     end
-    function Quat.neg(self, a)
+    function Quat.neg(a)
         return {-a[1], -a[2], -a[3], -a[4]}
     end
-    function Quat.nlerp(self, a, b, t)
+    function Quat.nlerp(a, b, t)
         return Quat.normal(
-            nil,
-            Quat.lerp(nil, a, b, t)
+            Quat.lerp(a, b, t)
         )
     end
-    function Quat.slerp(self, a, b, t)
+    function Quat.slerp(a, b, t)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
@@ -2509,10 +2568,10 @@ do
             bw = -bw
         end
         if (1 - cosom) > 0.000001 then
-            omega = Math:acos(cosom)
-            sinom = Math:sin(omega)
-            scale0 = Math:sin((1 - t) * omega) / sinom
-            scale1 = Math:sin(t * omega) / sinom
+            omega = math.acos(cosom)
+            sinom = math.sin(omega)
+            scale0 = math.sin((1 - t) * omega) / sinom
+            scale1 = math.sin(t * omega) / sinom
         else
             scale0 = 1 - t
             scale1 = t
@@ -2523,22 +2582,22 @@ end
 ____exports.Mat2 = {}
 local Mat2 = ____exports.Mat2
 do
-    function Mat2.add(self, a, b)
+    function Mat2.add(a, b)
         return {a[1] + b[1], a[2] + b[2], a[3] + b[3], a[4] + b[4]}
     end
-    function Mat2.adjoint(self, a)
+    function Mat2.adjoint(a)
         return {a[4], -a[2], -a[3], a[1]}
     end
-    function Mat2.compmul(self, a, b)
+    function Mat2.compmul(a, b)
         return {a[1] * b[1], a[2] * b[2], a[3] * b[3], a[4] * b[4]}
     end
-    function Mat2.det(self, a)
+    function Mat2.det(a)
         return (a[1] * a[4]) - (a[3] * a[2])
     end
-    function Mat2.identity(self)
+    function Mat2.identity()
         return {1, 0, 0, 1}
     end
-    function Mat2.invert(self, a)
+    function Mat2.invert(a)
         local a0 = a[1]
         local a1 = a[2]
         local a2 = a[3]
@@ -2550,7 +2609,7 @@ do
         det = 1 / det
         return {a3 * det, -a1 * det, -a2 * det, a0 * det}
     end
-    function Mat2.mul(self, a, b)
+    function Mat2.mul(a, b)
         local a0 = a[1]
         local a1 = a[2]
         local a2 = a[3]
@@ -2561,21 +2620,21 @@ do
         local b3 = b[4]
         return {(a0 * b0) + (a2 * b1), (a1 * b0) + (a3 * b1), (a0 * b2) + (a2 * b3), (a1 * b2) + (a3 * b3)}
     end
-    function Mat2.rotate(self, a, ang)
+    function Mat2.rotate(a, ang)
         local a0 = a[1]
         local a1 = a[2]
         local a2 = a[3]
         local a3 = a[4]
-        local s = Math:sin(ang)
-        local c = Math:cos(ang)
+        local s = math.sin(ang)
+        local c = math.cos(ang)
         return {(a0 * c) + (a2 * s), (a1 * c) + (a3 * s), (a0 * -s) + (a2 * c), (a1 * -s) + (a3 * c)}
     end
-    function Mat2.rotation(self, ang)
-        local s = Math:sin(ang)
-        local c = Math:cos(ang)
+    function Mat2.rotation(ang)
+        local s = math.sin(ang)
+        local c = math.cos(ang)
         return {c, s, -s, c}
     end
-    function Mat2.scale(self, a, b)
+    function Mat2.scale(a, b)
         local a0 = a[1]
         local a1 = a[2]
         local a2 = a[3]
@@ -2584,32 +2643,32 @@ do
         local b1 = b[2]
         return {a0 * b0, a1 * b0, a2 * b1, a3 * b1}
     end
-    function Mat2.scaling(self, a)
+    function Mat2.scaling(a)
         return {a[1], 0, 0, a[2]}
     end
-    function Mat2.sub(self, a, b)
+    function Mat2.sub(a, b)
         return {a[1] - b[1], a[2] - b[2], a[3] - b[3], a[4] - b[4]}
     end
-    function Mat2.transpose(self, a)
+    function Mat2.transpose(a)
         return {a[1], a[3], a[2], a[4]}
     end
 end
 ____exports.Mat3x2 = {}
 local Mat3x2 = ____exports.Mat3x2
 do
-    function Mat3x2.add(self, a, b)
+    function Mat3x2.add(a, b)
         return {a[1] + b[1], a[2] + b[2], a[3] + b[3], a[4] + b[4], a[5] + b[5], a[6] + b[6]}
     end
-    function Mat3x2.compmul(self, a, b)
+    function Mat3x2.compmul(a, b)
         return {a[1] * b[1], a[2] * b[2], a[3] * b[3], a[4] * b[4], a[5] * b[5], a[6] * b[6]}
     end
-    function Mat3x2.det(self, a)
+    function Mat3x2.det(a)
         return (a[1] * a[4]) - (a[3] * a[2])
     end
-    function Mat3x2.identity(self)
+    function Mat3x2.identity()
         return {1, 0, 0, 1, 0, 0}
     end
-    function Mat3x2.invert(self, a)
+    function Mat3x2.invert(a)
         local a00 = a[1]
         local a01 = a[2]
         local a10 = a[3]
@@ -2623,7 +2682,7 @@ do
         det = 1 / det
         return {a11 * det, -a01 * det, -a10 * det, a00 * det, ((a21 * a10) - (a11 * a20)) * det, ((-a21 * a00) + (a01 * a20)) * det}
     end
-    function Mat3x2.mul(self, a, b)
+    function Mat3x2.mul(a, b)
         local a00 = a[1]
         local a01 = a[2]
         local a10 = a[3]
@@ -2638,21 +2697,21 @@ do
         local b21 = b[6]
         return {(b00 * a00) + (b01 * a10), (b00 * a01) + (b01 * a11), (b10 * a00) + (b11 * a10), (b10 * a01) + (b11 * a11), ((b20 * a00) + (b21 * a10)) + a20, ((b20 * a01) + (b21 * a11)) + a21}
     end
-    function Mat3x2.rotate(self, a, ang)
+    function Mat3x2.rotate(a, ang)
         local a00 = a[1]
         local a01 = a[2]
         local a10 = a[3]
         local a11 = a[4]
-        local s = Math:sin(ang)
-        local c = Math:cos(ang)
+        local s = math.sin(ang)
+        local c = math.cos(ang)
         return {(c * a00) + (s * a10), (c * a01) + (s * a11), (c * a10) - (s * a00), (c * a11) - (s * a01), a[5], a[6]}
     end
-    function Mat3x2.rotation(self, ang)
-        local s = Math:sin(ang)
-        local c = Math:cos(ang)
+    function Mat3x2.rotation(ang)
+        local s = math.sin(ang)
+        local c = math.cos(ang)
         return {c, s, -s, c, 0, 0}
     end
-    function Mat3x2.scale(self, a, b)
+    function Mat3x2.scale(a, b)
         local bx
         local by
         if type(b) == "number" then
@@ -2666,16 +2725,16 @@ do
         end
         return {bx * a[1], bx * a[2], by * a[3], by * a[4], a[5], a[6]}
     end
-    function Mat3x2.scaling(self, a)
+    function Mat3x2.scaling(a)
         if type(a) == "number" then
             return {a, 0, 0, a, 0, 0}
         end
         return {a[1], 0, 0, a[2], 0, 0}
     end
-    function Mat3x2.sub(self, a, b)
+    function Mat3x2.sub(a, b)
         return {a[1] - b[1], a[2] - b[2], a[3] - b[3], a[4] - b[4], a[5] - b[5], a[6] - b[6]}
     end
-    function Mat3x2.translate(self, a, b)
+    function Mat3x2.translate(a, b)
         local a00 = a[1]
         local a01 = a[2]
         local a10 = a[3]
@@ -2684,14 +2743,14 @@ do
         local by = b[2]
         return {a00, a01, a10, a11, ((bx * a00) + (by * a10)) + a[5], ((bx * a01) + (by * a11)) + a[6]}
     end
-    function Mat3x2.translation(self, a)
+    function Mat3x2.translation(a)
         return {1, 0, 0, 1, a[1], a[2]}
     end
 end
 ____exports.Mat3 = {}
 local Mat3 = ____exports.Mat3
 do
-    function Mat3.add(self, out, a, b)
+    function Mat3.add(out, a, b)
         out[1] = a[1] + b[1]
         out[2] = a[2] + b[2]
         out[3] = a[3] + b[3]
@@ -2703,7 +2762,7 @@ do
         out[9] = a[9] + b[9]
         return out
     end
-    function Mat3.adjoint(self, out, a)
+    function Mat3.adjoint(out, a)
         local a00 = a[1]
         local a01 = a[2]
         local a02 = a[3]
@@ -2724,7 +2783,7 @@ do
         out[9] = (a00 * a11) - (a01 * a10)
         return out
     end
-    function Mat3.compmul(self, out, a, b)
+    function Mat3.compmul(out, a, b)
         out[1] = a[1] * b[1]
         out[2] = a[2] * b[2]
         out[3] = a[3] * b[3]
@@ -2736,7 +2795,7 @@ do
         out[9] = a[9] * b[9]
         return out
     end
-    function Mat3.copy(self, out, a)
+    function Mat3.copy(out, a)
         out[1] = a[1]
         out[2] = a[2]
         out[3] = a[3]
@@ -2748,7 +2807,7 @@ do
         out[9] = a[9]
         return out
     end
-    function Mat3.det(self, a)
+    function Mat3.det(a)
         local a00 = a[1]
         local a01 = a[2]
         local a02 = a[3]
@@ -2760,7 +2819,7 @@ do
         local a22 = a[9]
         return ((a00 * ((a22 * a11) - (a12 * a21))) + (a01 * ((-a22 * a10) + (a12 * a20)))) + (a02 * ((a21 * a10) - (a11 * a20)))
     end
-    function Mat3.identity(self, out)
+    function Mat3.identity(out)
         if type(out) == "nil" then
             return {1, 0, 0, 0, 1, 0, 0, 0, 1}
         end
@@ -2775,7 +2834,7 @@ do
         out[9] = 1
         return out
     end
-    function Mat3.invert(self, out, a)
+    function Mat3.invert(out, a)
         local a00 = a[1]
         local a01 = a[2]
         local a02 = a[3]
@@ -2807,7 +2866,7 @@ do
         out[9] = ((a11 * a00) - (a01 * a10)) * det
         return out
     end
-    function Mat3.mul(self, out, a, b)
+    function Mat3.mul(out, a, b)
         local a00 = a[1]
         local a01 = a[2]
         local a02 = a[3]
@@ -2837,7 +2896,7 @@ do
         out[9] = ((b20 * a02) + (b21 * a12)) + (b22 * a22)
         return out
     end
-    function Mat3.quat(self, out, a)
+    function Mat3.quat(out, a)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
@@ -2865,7 +2924,7 @@ do
         out[9] = (1 - axx) - ayy
         return out
     end
-    function Mat3.rotate(self, out, a, ang)
+    function Mat3.rotate(out, a, ang)
         local a00 = a[1]
         local a01 = a[2]
         local a02 = a[3]
@@ -2875,8 +2934,8 @@ do
         local a20 = a[7]
         local a21 = a[8]
         local a22 = a[9]
-        local s = Math:sin(ang)
-        local c = Math:cos(ang)
+        local s = math.sin(ang)
+        local c = math.cos(ang)
         out[1] = (c * a00) + (s * a10)
         out[2] = (c * a01) + (s * a11)
         out[3] = (c * a02) + (s * a12)
@@ -2888,9 +2947,9 @@ do
         out[9] = a22
         return out
     end
-    function Mat3.rotation(self, out, ang)
-        local s = Math:sin(ang)
-        local c = Math:cos(ang)
+    function Mat3.rotation(out, ang)
+        local s = math.sin(ang)
+        local c = math.cos(ang)
         out[1] = c
         out[2] = s
         out[3] = 0
@@ -2902,7 +2961,7 @@ do
         out[9] = 1
         return out
     end
-    function Mat3.scale(self, out, a, b)
+    function Mat3.scale(out, a, b)
         local bx = b[1]
         local by = b[2]
         out[1] = bx * a[1]
@@ -2916,7 +2975,7 @@ do
         out[9] = a[9]
         return out
     end
-    function Mat3.scaling(self, out, a)
+    function Mat3.scaling(out, a)
         out[1] = a[1]
         out[2] = 0
         out[3] = 0
@@ -2928,7 +2987,7 @@ do
         out[9] = 1
         return out
     end
-    function Mat3.sub(self, out, a, b)
+    function Mat3.sub(out, a, b)
         out[1] = a[1] - b[1]
         out[2] = a[2] - b[2]
         out[3] = a[3] - b[3]
@@ -2940,7 +2999,7 @@ do
         out[9] = a[9] - b[9]
         return out
     end
-    function Mat3.translate(self, out, a, b)
+    function Mat3.translate(out, a, b)
         local a00 = a[1]
         local a01 = a[2]
         local a02 = a[3]
@@ -2963,7 +3022,7 @@ do
         out[9] = ((bx * a02) + (by * a12)) + a22
         return out
     end
-    function Mat3.translation(self, out, a)
+    function Mat3.translation(out, a)
         out[1] = 1
         out[2] = 0
         out[3] = 0
@@ -2975,7 +3034,7 @@ do
         out[9] = 1
         return out
     end
-    function Mat3.transpose(self, out, a)
+    function Mat3.transpose(out, a)
         if out == a then
             local a01 = a[2]
             local a02 = a[3]
@@ -3003,7 +3062,7 @@ end
 ____exports.Mat4 = {}
 local Mat4 = ____exports.Mat4
 do
-    function Mat4.add(self, out, a, b)
+    function Mat4.add(out, a, b)
         out[1] = a[1] + b[1]
         out[2] = a[2] + b[2]
         out[3] = a[3] + b[3]
@@ -3022,7 +3081,7 @@ do
         out[16] = a[16] + b[16]
         return out
     end
-    function Mat4.adjoint(self, out, a)
+    function Mat4.adjoint(out, a)
         local a00 = a[1]
         local a01 = a[2]
         local a02 = a[3]
@@ -3057,7 +3116,7 @@ do
         out[16] = ((a00 * ((a11 * a22) - (a12 * a21))) - (a10 * ((a01 * a22) - (a02 * a21)))) + (a20 * ((a01 * a12) - (a02 * a11)))
         return out
     end
-    function Mat4.compmul(self, out, a, b)
+    function Mat4.compmul(out, a, b)
         out[1] = a[1] * b[1]
         out[2] = a[2] * b[2]
         out[3] = a[3] * b[3]
@@ -3076,7 +3135,7 @@ do
         out[16] = a[16] * b[16]
         return out
     end
-    function Mat4.copy(self, out, a)
+    function Mat4.copy(out, a)
         out[1] = a[1]
         out[2] = a[2]
         out[3] = a[3]
@@ -3095,7 +3154,7 @@ do
         out[16] = a[16]
         return out
     end
-    function Mat4.det(self, a)
+    function Mat4.det(a)
         local a00 = a[1]
         local a01 = a[2]
         local a02 = a[3]
@@ -3126,7 +3185,7 @@ do
         local b11 = (a22 * a33) - (a23 * a32)
         return (((((b00 * b11) - (b01 * b10)) + (b02 * b09)) + (b03 * b08)) - (b04 * b07)) + (b05 * b06)
     end
-    function Mat4.frustum(self, out, L, R, B, T, N, F)
+    function Mat4.frustum(out, L, R, B, T, N, F)
         local rl = 1 / (R - L)
         local tb = 1 / (T - B)
         local nf = 1 / (N - F)
@@ -3148,7 +3207,7 @@ do
         out[16] = 0
         return out
     end
-    function Mat4.identity(self, out)
+    function Mat4.identity(out)
         if type(out) == "nil" then
             return {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}
         end
@@ -3170,7 +3229,7 @@ do
         out[16] = 1
         return out
     end
-    function Mat4.invert(self, out, a)
+    function Mat4.invert(out, a)
         local a00 = a[1]
         local a01 = a[2]
         local a02 = a[3]
@@ -3225,7 +3284,7 @@ do
         out[16] = (((a20 * b03) - (a21 * b01)) + (a22 * b00)) * det
         return out
     end
-    function Mat4.lookat(self, out, eye, position, up)
+    function Mat4.lookat(out, eye, position, up)
         local ex = eye[1]
         local ey = eye[2]
         local ez = eye[3]
@@ -3239,16 +3298,16 @@ do
         local z1 = ey - py
         local z2 = ez - pz
         if ((z0 == 0) and (z1 == 0)) and (z2 == 0) then
-            return Mat4.identity(nil, out)
+            return Mat4.identity(out)
         end
-        local len = 1 / Math:sqrt(((z0 * z0) + (z1 * z1)) + (z2 * z2))
+        local len = 1 / math.sqrt(((z0 * z0) + (z1 * z1)) + (z2 * z2))
         z0 = z0 * len
         z1 = z1 * len
         z2 = z2 * len
         local x0 = (uy * z2) - (uz * z1)
         local x1 = (uz * z0) - (ux * z2)
         local x2 = (ux * z1) - (uy * z0)
-        len = Math:sqrt(((x0 * x0) + (x1 * x1)) + (x2 * x2))
+        len = math.sqrt(((x0 * x0) + (x1 * x1)) + (x2 * x2))
         if len == 0 then
             x0 = 0
             x1 = 0
@@ -3262,7 +3321,7 @@ do
         local y0 = (z1 * x2) - (z2 * x1)
         local y1 = (z2 * x0) - (z0 * x2)
         local y2 = (z0 * x1) - (z1 * x0)
-        len = Math:sqrt(((y0 * y0) + (y1 * y1)) + (y2 * y2))
+        len = math.sqrt(((y0 * y0) + (y1 * y1)) + (y2 * y2))
         if len == 0 then
             y0 = 0
             y1 = 0
@@ -3291,7 +3350,7 @@ do
         out[16] = 1
         return out
     end
-    function Mat4.mul(self, out, a, b)
+    function Mat4.mul(out, a, b)
         local a00 = a[1]
         local a01 = a[2]
         local a02 = a[3]
@@ -3346,7 +3405,7 @@ do
         out[16] = (((b0 * a03) + (b1 * a13)) + (b2 * a23)) + (b3 * a33)
         return out
     end
-    function Mat4.orthogonal(self, out, W, H, N, F)
+    function Mat4.orthogonal(out, W, H, N, F)
         local nf = 1 / (N - F)
         out[1] = 2 / W
         out[2] = 0
@@ -3366,8 +3425,8 @@ do
         out[16] = 1
         return out
     end
-    function Mat4.perspective(self, out, fov, W, H, N, F)
-        local f = 1 / Math:tan(fov * 0.5)
+    function Mat4.perspective(out, fov, W, H, N, F)
+        local f = 1 / math.tan(fov * 0.5)
         local nf = 1 / (N - F)
         out[1] = f
         out[2] = 0
@@ -3387,7 +3446,7 @@ do
         out[16] = 0
         return out
     end
-    function Mat4.quat(self, out, a)
+    function Mat4.quat(out, a)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
@@ -3422,7 +3481,7 @@ do
         out[16] = 1
         return out
     end
-    function Mat4.rotate(self, out, a, axis, ang)
+    function Mat4.rotate(out, a, axis, ang)
         local x = axis[1]
         local y = axis[2]
         local z = axis[3]
@@ -3438,8 +3497,8 @@ do
         local a21 = a[10]
         local a22 = a[11]
         local a23 = a[12]
-        local s = Math:sin(ang)
-        local c = Math:cos(ang)
+        local s = math.sin(ang)
+        local c = math.cos(ang)
         local t = 1 - c
         local b00 = ((x * x) * t) + c
         local b01 = ((y * x) * t) + (z * s)
@@ -3470,12 +3529,12 @@ do
         end
         return out
     end
-    function Mat4.rotation(self, out, axis, ang)
+    function Mat4.rotation(out, axis, ang)
         local x = axis[1]
         local y = axis[2]
         local z = axis[3]
-        local s = Math:sin(ang)
-        local c = Math:cos(ang)
+        local s = math.sin(ang)
+        local c = math.cos(ang)
         local t = 1 - c
         out[1] = ((x * x) * t) + c
         out[2] = ((y * x) * t) + (z * s)
@@ -3495,7 +3554,7 @@ do
         out[16] = 1
         return out
     end
-    function Mat4.rot_trans(self, a, b)
+    function Mat4.rot_trans(a, b)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
@@ -3514,7 +3573,7 @@ do
         local awz = aw * az2
         return {(1 - ayy) - azz, axy + awz, axz - awy, 0, axy - awz, (1 - axx) - azz, ayz + awx, 0, axz + awy, ayz - awx, (1 - axx) - ayy, 0, b[1], b[2], b[3], 1}
     end
-    function Mat4.rottransorigin(self, out, a, b, origin)
+    function Mat4.rottransorigin(out, a, b, origin)
         local ax = a[1]
         local ay = a[2]
         local az = a[3]
@@ -3552,7 +3611,7 @@ do
         out[16] = 1
         return out
     end
-    function Mat4.scale(self, out, a, b)
+    function Mat4.scale(out, a, b)
         local bx = b[1]
         local by = b[2]
         local bz = b[3]
@@ -3574,7 +3633,7 @@ do
         out[16] = a[16]
         return out
     end
-    function Mat4.scaling(self, out, a)
+    function Mat4.scaling(out, a)
         out[1] = a[1]
         out[2] = 0
         out[3] = 0
@@ -3593,7 +3652,7 @@ do
         out[16] = 1
         return out
     end
-    function Mat4.sub(self, out, a, b)
+    function Mat4.sub(out, a, b)
         out[1] = a[1] - b[1]
         out[2] = a[2] - b[2]
         out[3] = a[3] - b[3]
@@ -3612,7 +3671,7 @@ do
         out[16] = a[16] - b[16]
         return out
     end
-    function Mat4.translate(self, out, a, b)
+    function Mat4.translate(out, a, b)
         local bx = b[1]
         local by = b[2]
         local bz = b[3]
@@ -3653,7 +3712,7 @@ do
         end
         return out
     end
-    function Mat4.translation(self, out, a)
+    function Mat4.translation(out, a)
         out[1] = 1
         out[2] = 0
         out[3] = 0
@@ -3672,7 +3731,7 @@ do
         out[16] = 1
         return out
     end
-    function Mat4.transpose(self, out, a)
+    function Mat4.transpose(out, a)
         if out == a then
             local a01 = a[2]
             local a02 = a[3]
@@ -3715,32 +3774,35 @@ do
 end
 return ____exports
 end,
-["Lua.Entry.LuaGame"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+["Entry.LuaGame"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+require("lualib_bundle");
 local ____exports = {}
 local ____Lib_2ESDL = require("Lib.SDL")
-local SDL = ____Lib_2ESDL.SDL
 local sdl = ____Lib_2ESDL.sdl
-local ____Util_2ESmoothCurve = require("../Util.SmoothCurve")
+local SDL = ____Lib_2ESDL.SDL
+local ____Util_2ESmoothCurve = require("Util.SmoothCurve")
 local SmoothCurve = ____Util_2ESmoothCurve.SmoothCurve
-local ____Util_2EVecMath = require("../Util.VecMath")
+local ____Util_2EVecMath = require("Util.VecMath")
 local Vec2 = ____Util_2EVecMath.Vec2
-local curve = {x_range = {0, 1}, y_values = {0, 1, 0}};
-({1, 2, 3, 4, 5, 6, 7, 8, 9, 10}):map(
+local curve = {x_range = {0, 1}, y_values = {0, 1, 0}}
+__TS__ArrayMap(
+    {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
     function(____, val)
         print(
-            nil,
             val / 10,
-            SmoothCurve:sample(curve, val / 10)
+            SmoothCurve.sample(curve, val / 10)
         )
     end
 )
-local new_vec = Vec2:add({1, 2}, {3, 4})
-print(nil, "Hey! HO!")
+local new_vec = Vec2.add({1, 2}, {3, 4})
+print("Hey! HO!")
 local screen_width = 640
 local screen_height = 480
-sdl.SDL_Init(SDL.SDL_INIT_VIDEO)
-local window = sdl.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, screen_width, screen_height, SDL.SDL_WINDOW_SHOWN)
+sdl.SDL_Init({flags = SDL.SDL_INIT_VIDEO})
+local window = sdl.SDL_CreateWindow({title = "SDL Tutorial", x = SDL.SDL_WINDOWPOS_UNDEFINED, y = SDL.SDL_WINDOWPOS_UNDEFINED, w = screen_width, h = screen_height, flags = SDL.SDL_WINDOW_SHOWN})
+sdl.SDL_Delay({ms = 2000})
+print("done")
 return ____exports
 end,
 }
-return require("Lua.Entry.LuaGame")
+return require("Entry.LuaGame")
