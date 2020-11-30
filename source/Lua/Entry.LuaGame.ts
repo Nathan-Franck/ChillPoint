@@ -1,4 +1,6 @@
 import { sdl, SDL } from "./Lib.SDL";
+import { sdl_img } from "./Lib.SDL.Img";
+
 import { SmoothCurve } from "./Util.SmoothCurve";
 import { Vec2 } from "./Util.VecMath";
 
@@ -23,6 +25,10 @@ const window = sdl.SDL_CreateWindow(
     screen_height,
     SDL.SDL_WINDOW_SHOWN,
 );
+const renderer = sdl.SDL_CreateRenderer(window, -1, SDL.SDL_RENDERER_ACCELERATED);
+// load our image
+const img = sdl_img.IMG_LoadTexture(renderer, "ball.png");
+const result = sdl.SDL_RenderCopy(renderer, img, null, null);
 
 sdl.SDL_Delay(2000);
 
