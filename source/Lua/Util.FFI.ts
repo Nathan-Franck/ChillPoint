@@ -1,8 +1,9 @@
 export namespace ForeignFunction {
 
-    type NamedParameter = {
-        type: keyof BaseTypeLookup | string,
-        name: string,
+    type Type = keyof BaseTypeLookup | string;
+        
+    type Parameters = {
+        readonly [P: string]: Type;
     };
 
     type BaseTypeLookup = {
@@ -21,39 +22,41 @@ export namespace ForeignFunction {
         [key in T]: void;
     };
 
-    type FuncParam<T extends NamedParameter> = T["type"] extends keyof BaseTypeLookup ? BaseTypeLookup[T["type"]] : External<T["type"]>;
+    type FuncParam<T extends Type> = T extends keyof BaseTypeLookup ? BaseTypeLookup[T] : External<T>;
 
-    type FuncParams<T extends readonly NamedParameter[]> = {
-        [key in keyof T]: T[key] extends NamedParameter ? FuncParam<T[key]> : never;
-    };
+    // type FuncParams<T extends Parameters> = {
+    //     [key in keyof T as ]: T[key] extends Type ? FuncParam<T[key]> : never;
+    // };
 
-    type NamedFuncParams<T extends readonly NamedParameter[]> = {
-        [key in keyof T as T[key] extends NamedParameter ? T[key]["name"] : never]: T[key] extends NamedParameter ? FuncParam<T[key]> : never;
+    type NamedFuncParams<T extends Parameters> = {
+        [key in keyof T]: FuncParam<T[key]>;
     };
 
     type HeaderFile = {
         readonly [function_name: string]: {
             readonly output: keyof BaseTypeLookup | string,
-            readonly params: readonly NamedParameter[]
+            readonly params: Parameters,
         }
     }
 
     type ExternInterface<H extends HeaderFile> = {
         [key in keyof H]: (
-            /*@ts-ignore*/
-            ...args: FuncParams<H[key]["params"]>
-        ) => FuncParam<{ name: "output", type: H[key]["output"] }>
+            args: FuncParam<H[key]["params"][string]>[]
+        ) => FuncParam<H[key]["output"]>
     }
 
     type UsefulInterface<H extends HeaderFile> = {
         [key in keyof H]: (
             args: NamedFuncParams<H[key]["params"]>
-        ) => FuncParam<{ name: "output", type: H[key]["output"] }>
+        ) => FuncParam<H[key]["output"]>
     }
 
     function void_star_fallback(type: string) {
-
-        return type == "uint" ? "int" : type == "const char*" ? type : type.endsWith("*") ? "void*" : type;   
+        const lookup_result: string | undefined = FFIHeaderLookup[type as keyof typeof FFIHeaderLookup]
+        if (lookup_result != null) {
+            return lookup_result;
+        }
+        return type.endsWith("*") ? "void*" : type;   
     }
 
     function generate_cdef_header(header: HeaderFile) {
@@ -61,9 +64,9 @@ export namespace ForeignFunction {
             entries(header).
             map(([function_name, func]) => `${void_star_fallback(func.output)
                 } ${function_name
-                }(${func.params.
-                    filter((arg): arg is NamedParameter => "name" in arg).
-                    map(arg => `${void_star_fallback(arg.type)} ${arg.name}`).
+                }(${Object.
+                    entries(func.params).
+                    map(([name, type]) => `${void_star_fallback(type)} ${name}`).
                     join(", ")
                 });`).
             join("\n");
@@ -76,11 +79,11 @@ export namespace ForeignFunction {
     function wrap_interface<H extends HeaderFile>(header: H, extern_interface: ExternInterface<H>): UsefulInterface<H> {
         return entries(header).
             map(([function_name, func]) => {
-                const { params } = func;
+                const params = Object.entries(func.params);
                 return [
                     function_name,
                     <UsefulInterface<H>[typeof function_name]>((args) => {
-                        const ordered_args = params.map(param => args[param.name as keyof typeof args]);
+                        const ordered_args = params.map(([name]) => args[name as keyof typeof args]);
                         // @ts-ignore
                         return extern_interface[function_name](...ordered_args);
                     }),
@@ -107,7 +110,7 @@ export namespace ForeignFunction {
         const extern_interface = ffi.load<ExternInterface<H>>(args.file_name);
         const wrapped_interface = wrap_interface(args.header, extern_interface);
         return {
-            types: wrapped_interface,
+            types: wrapped_interface, // extern_interface,
             values: args.values,
         };
     }

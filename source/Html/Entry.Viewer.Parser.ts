@@ -66,6 +66,10 @@ async function display_parser() {
 
     // 🚧 Actual parsing work
     const processed = (() => {
+        type TypeName = {
+            type: string;
+            name: string;
+        };
         const split_by_externs = text.split("extern");
         const externs = split_by_externs.slice(1, split_by_externs.length);
         const statements = externs.
@@ -79,7 +83,7 @@ async function display_parser() {
                         filter(elem => elem.length > 0).
                         join(' ');
                     const [outer, inner] = ignored.split(/\(|\)/);
-                    const type_name = (word: string) => {
+                    const type_name = (word: string): TypeName | undefined => {
                         const star_spaced = word.
                             split("*").
                             join("* ");
@@ -94,7 +98,11 @@ async function display_parser() {
 
                     const params = inner.split(",").
                         map(param => type_name(param)).
-                        filter(param => param != null);
+                        filter((param): param is TypeName => param != null).
+                        reduce((params, param) => ({
+                            ...params,
+                            [param.name]: param?.type,
+                        }), {} as { [key: string]: TypeName });
 
                     const comments = previous?.match(/\/\*(\*(?!\/)|[^*])*\*\//g);
                     const comment = comments == null ? undefined : comments[comments.length - 1];
@@ -114,10 +122,7 @@ async function display_parser() {
                 comment: string | undefined;
                 guts: {
                     output: string;
-                    params: ({
-                        type: string;
-                        name: string;
-                    } | undefined)[];
+                    params: { [key: string]: TypeName };
                 };
             } => statement != null);
         return `{\n${statements.map(statement =>
