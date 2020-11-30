@@ -22,11 +22,14 @@ export namespace ForeignFunction {
         "SDL_DisplayOrientation": number,
         "SDL_GLattr": number,
         "SDL_HitTest": number,
+        "SDL_RendererFlip": number,
+        "SDL_ScaleMode": number,
+        "SDL_BlendMode": number,
     };
 
     const FFIHeaderLookup = {
         "uint": "int",
-        "char*": "char*",
+        "char*": "const char*",
         "const char*": "const char*",
 
         // 🚧 Temp SDL specific 🚧
@@ -36,14 +39,18 @@ export namespace ForeignFunction {
         "SDL_DisplayOrientation": "int",
         "SDL_GLContext": "void*",
         "SDL_GLattr": "int",
+        "Uint8": "int",
         "Uint32": "int",
         "Uint64": "uint64_t",
         "SDL_HitTest": "int",
+        "SDL_RendererFlip": "int",
+        "SDL_ScaleMode": "int",
+        "SDL_BlendMode": "int",
     };
 
     type External<T extends string> = {
         [key in T]: void;
-    };
+    } | null;
 
     type FuncParam<T extends NamedParameter> = T["type"] extends keyof BaseTypeLookup ? BaseTypeLookup[T["type"]] : External<T["type"]>;
 

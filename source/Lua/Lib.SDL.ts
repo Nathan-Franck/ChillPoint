@@ -4,86 +4,13 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
     file_name: "SDL2",
     header: {
         /**
-         * Get the number of milliseconds since the SDL library initialization.
-         *
-         * @remarks This value wraps if the program runs for more than ~49 days.
+         *  This function initializes  the subsystems specified by \c flags
          */
-        SDL_GetTicks: {
-            "output": "uint",
-            "params": []
-        },
-        /**
-         * Get the current value of the high resolution counter
-         */
-        SDL_GetPerformanceCounter: {
-            "output": "uint64_t",
-            "params": []
-        },
-        /**
-         * Get the count per second of the high resolution counter
-         */
-        SDL_GetPerformanceFrequency: {
-            "output": "uint64_t",
-            "params": []
-        },
-        /**
-         * Wait a specified number of milliseconds before returning.
-         */
-        SDL_Delay: {
-            "output": "void",
-            "params": [
-                {
-                    "type": "uint",
-                    "name": "ms"
-                }
-            ]
-        },
-        /**
-         * Add a new timer to the pool of timers already running.
-         *
-         * @returns A timer ID, or 0 when an error occurs.
-         */
-        SDL_AddTimer: {
-            "output": "uint",
-            "params": [
-                {
-                    "type": "uint",
-                    "name": "interval"
-                },
-                {
-                    "type": "void*",
-                    "name": "callback"
-                },
-                {
-                    "type": "void*",
-                    "name": "param"
-                }
-            ]
-        },
-        /**
-         * Remove a timer knowing its ID.
-         *
-         * @returns A boolean value indicating success or failure.
-         *
-         * \warning It is not safe to remove a timer multiple times.
-         */
-        SDL_RemoveTimer: {
-            "output": "bool",
-            "params": [
-                {
-                    "type": "uint",
-                    "name": "id"
-                }
-            ]
-        },
-        /**
-        *  This function initializes  the subsystems specified by \c flags
-        */
         SDL_Init: {
             "output": "int",
             "params": [
                 {
-                    "type": "uint",
+                    "type": "Uint32",
                     "name": "flags"
                 }
             ]
@@ -101,7 +28,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
             "output": "int",
             "params": [
                 {
-                    "type": "uint",
+                    "type": "Uint32",
                     "name": "flags"
                 }
             ]
@@ -113,7 +40,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
             "output": "void",
             "params": [
                 {
-                    "type": "uint",
+                    "type": "Uint32",
                     "name": "flags"
                 }
             ]
@@ -125,10 +52,10 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
          *  If \c flags is 0, it returns a mask of all initialized subsystems.
          */
         SDL_WasInit: {
-            "output": "uint",
+            "output": "Uint32",
             "params": [
                 {
-                    "type": "uint",
+                    "type": "Uint32",
                     "name": "flags"
                 }
             ]
@@ -140,6 +67,79 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
         SDL_Quit: {
             "output": "void",
             "params": []
+        },
+        /**
+         * Get the number of milliseconds since the SDL library initialization.
+         *
+         * @remarks This value wraps if the program runs for more than ~49 days.
+         */
+        SDL_GetTicks: {
+            "output": "Uint32",
+            "params": []
+        },
+        /**
+         * Get the current value of the high resolution counter
+         */
+        SDL_GetPerformanceCounter: {
+            "output": "Uint64",
+            "params": []
+        },
+        /**
+         * Get the count per second of the high resolution counter
+         */
+        SDL_GetPerformanceFrequency: {
+            "output": "Uint64",
+            "params": []
+        },
+        /**
+         * Wait a specified number of milliseconds before returning.
+         */
+        SDL_Delay: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "Uint32",
+                    "name": "ms"
+                }
+            ]
+        },
+        /**
+         * Add a new timer to the pool of timers already running.
+         *
+         * @returns A timer ID, or 0 when an error occurs.
+         */
+        SDL_AddTimer: {
+            "output": "SDL_TimerID",
+            "params": [
+                {
+                    "type": "Uint32",
+                    "name": "interval"
+                },
+                {
+                    "type": "SDL_TimerCallback",
+                    "name": "callback"
+                },
+                {
+                    "type": "void*",
+                    "name": "param"
+                }
+            ]
+        },
+        /**
+         * Remove a timer knowing its ID.
+         *
+         * @returns A boolean value indicating success or failure.
+         *
+         * \warning It is not safe to remove a timer multiple times.
+         */
+        SDL_RemoveTimer: {
+            "output": "SDL_bool",
+            "params": [
+                {
+                    "type": "SDL_TimerID",
+                    "name": "id"
+                }
+            ]
         },
         /**
          *  Get the number of video drivers compiled into SDL
@@ -329,7 +329,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
          *  @see SDL_GetNumVideoDisplays()
          */
         SDL_GetDisplayOrientation: {
-            "output": "uint",
+            "output": "SDL_DisplayOrientation",
             "params": [
                 {
                     "type": "int",
@@ -515,7 +515,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
          *  Get the pixel format associated with the window.
          */
         SDL_GetWindowPixelFormat: {
-            "output": "uint",
+            "output": "Uint32",
             "params": [
                 {
                     "type": "SDL_Window*",
@@ -569,7 +569,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
             "output": "SDL_Window*",
             "params": [
                 {
-                    "type": "const char*",
+                    "type": "char*",
                     "name": "title"
                 },
                 {
@@ -589,7 +589,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
                     "name": "h"
                 },
                 {
-                    "type": "uint",
+                    "type": "Uint32",
                     "name": "flags"
                 }
             ]
@@ -616,7 +616,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
          *  Get the numeric ID of a window, for logging purposes.
          */
         SDL_GetWindowID: {
-            "output": "uint",
+            "output": "Uint32",
             "params": [
                 {
                     "type": "SDL_Window*",
@@ -631,7 +631,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
             "output": "SDL_Window*",
             "params": [
                 {
-                    "type": "uint",
+                    "type": "Uint32",
                     "name": "id"
                 }
             ]
@@ -640,7 +640,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
          *  Get the window flags.
          */
         SDL_GetWindowFlags: {
-            "output": "uint",
+            "output": "Uint32",
             "params": [
                 {
                     "type": "SDL_Window*",
@@ -1054,7 +1054,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
                     "name": "window"
                 },
                 {
-                    "type": "bool",
+                    "type": "SDL_bool",
                     "name": "bordered"
                 }
             ]
@@ -1081,7 +1081,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
                     "name": "window"
                 },
                 {
-                    "type": "bool",
+                    "type": "SDL_bool",
                     "name": "resizable"
                 }
             ]
@@ -1185,7 +1185,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
                     "name": "window"
                 },
                 {
-                    "type": "uint",
+                    "type": "Uint32",
                     "name": "flags"
                 }
             ]
@@ -1273,7 +1273,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
                     "name": "window"
                 },
                 {
-                    "type": "bool",
+                    "type": "SDL_bool",
                     "name": "grabbed"
                 }
             ]
@@ -1286,7 +1286,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
          *  @see SDL_SetWindowGrab()
          */
         SDL_GetWindowGrab: {
-            "output": "bool",
+            "output": "SDL_bool",
             "params": [
                 {
                     "type": "SDL_Window*",
@@ -1554,7 +1554,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
                     "name": "window"
                 },
                 {
-                    "type": "uint",
+                    "type": "SDL_HitTest",
                     "name": "callback"
                 },
                 {
@@ -1582,7 +1582,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
          *  @see SDL_DisableScreenSaver()
          */
         SDL_IsScreenSaverEnabled: {
-            "output": "bool",
+            "output": "SDL_bool",
             "params": []
         },
         /**
@@ -1658,7 +1658,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
          *         context.
          */
         SDL_GL_ExtensionSupported: {
-            "output": "bool",
+            "output": "SDL_bool",
             "params": [
                 {
                     "type": "char*",
@@ -1682,7 +1682,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
             "output": "int",
             "params": [
                 {
-                    "type": "uint",
+                    "type": "SDL_GLattr",
                     "name": "attr"
                 },
                 {
@@ -1701,7 +1701,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
             "output": "int",
             "params": [
                 {
-                    "type": "uint",
+                    "type": "SDL_GLattr",
                     "name": "attr"
                 },
                 {
@@ -1717,7 +1717,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
          *  @see SDL_GL_DeleteContext()
          */
         SDL_GL_CreateContext: {
-            "output": "void*",
+            "output": "SDL_GLContext",
             "params": [
                 {
                     "type": "SDL_Window*",
@@ -1738,7 +1738,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
                     "name": "window"
                 },
                 {
-                    "type": "void*",
+                    "type": "SDL_GLContext",
                     "name": "context"
                 }
             ]
@@ -1754,7 +1754,7 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
          *  Get the currently active OpenGL context.
          */
         SDL_GL_GetCurrentContext: {
-            "output": "void*",
+            "output": "SDL_GLContext",
             "params": []
         },
         /**
@@ -1848,11 +1848,1927 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
             "output": "void",
             "params": [
                 {
-                    "type": "void*",
+                    "type": "SDL_GLContext",
                     "name": "context"
                 }
             ]
-        }
+        },
+        /**
+         *  Get the number of 2D rendering drivers available for the current
+         *         display.
+         *
+         *  A render driver is a set of code that handles rendering and texture
+         *  management on a particular display.  Normally there is only one, but
+         *  some drivers may have several available with different capabilities.
+         *
+         *  @see SDL_GetRenderDriverInfo()
+         *  @see SDL_CreateRenderer()
+         */
+        SDL_GetNumRenderDrivers: {
+            "output": "int",
+            "params": []
+        },
+        /**
+         *  Get information about a specific 2D rendering driver for the current
+         *         display.
+         *
+         *  @param index The index of the driver to query information about.
+         *  @param info  A pointer to an SDL_RendererInfo struct to be filled with
+         *               information on the rendering driver.
+         *
+         *  @returns 0 on success, -1 if the index was out of range.
+         *
+         *  @see SDL_CreateRenderer()
+         */
+        SDL_GetRenderDriverInfo: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "int",
+                    "name": "index"
+                },
+                {
+                    "type": "SDL_RendererInfo*",
+                    "name": "info"
+                }
+            ]
+        },
+        /**
+         *  Create a window and default renderer
+         *
+         *  @param width    The width of the window
+         *  @param height   The height of the window
+         *  @param window_flags The flags used to create the window
+         *  @param window   A pointer filled with the window, or NULL on error
+         *  @param renderer A pointer filled with the renderer, or NULL on error
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_CreateWindowAndRenderer: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "int",
+                    "name": "width"
+                },
+                {
+                    "type": "int",
+                    "name": "height"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "window_flags"
+                },
+                {
+                    "type": "SDL_Window**",
+                    "name": "window"
+                },
+                {
+                    "type": "SDL_Renderer**",
+                    "name": "renderer"
+                }
+            ]
+        },
+        /**
+         *  Create a 2D rendering context for a window.
+         *
+         *  @param window The window where rendering is displayed.
+         *  @param index    The index of the rendering driver to initialize, or -1 to
+         *                  initialize the first one supporting the requested flags.
+         *  @param flags    ::SDL_RendererFlags.
+         *
+         *  @returns A valid rendering context or NULL if there was an error.
+         *
+         *  @see SDL_CreateSoftwareRenderer()
+         *  @see SDL_GetRendererInfo()
+         *  @see SDL_DestroyRenderer()
+         */
+        SDL_CreateRenderer: {
+            "output": "SDL_Renderer*",
+            "params": [
+                {
+                    "type": "SDL_Window*",
+                    "name": "window"
+                },
+                {
+                    "type": "int",
+                    "name": "index"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "flags"
+                }
+            ]
+        },
+        /**
+         *  Create a 2D software rendering context for a surface.
+         *
+         *  @param surface The surface where rendering is done.
+         *
+         *  @returns A valid rendering context or NULL if there was an error.
+         *
+         *  @see SDL_CreateRenderer()
+         *  @see SDL_DestroyRenderer()
+         */
+        SDL_CreateSoftwareRenderer: {
+            "output": "SDL_Renderer*",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                }
+            ]
+        },
+        /**
+         *  Get the renderer associated with a window.
+         */
+        SDL_GetRenderer: {
+            "output": "SDL_Renderer*",
+            "params": [
+                {
+                    "type": "SDL_Window*",
+                    "name": "window"
+                }
+            ]
+        },
+        /**
+         *  Get information about a rendering context.
+         */
+        SDL_GetRendererInfo: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_RendererInfo*",
+                    "name": "info"
+                }
+            ]
+        },
+        /**
+         *  Get the output size in pixels of a rendering context.
+         */
+        SDL_GetRendererOutputSize: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "int*",
+                    "name": "w"
+                },
+                {
+                    "type": "int*",
+                    "name": "h"
+                }
+            ]
+        },
+        /**
+         *  Create a texture for a rendering context.
+         *
+         *  @param renderer The renderer.
+         *  @param format The format of the texture.
+         *  @param access One of the enumerated values in ::SDL_TextureAccess.
+         *  @param w      The width of the texture in pixels.
+         *  @param h      The height of the texture in pixels.
+         *
+         *  @returns The created texture is returned, or NULL if no rendering context was
+         *          active,  the format was unsupported, or the width or height were out
+         *          of range.
+         *
+         *  @remarks The contents of the texture are not defined at creation.
+         *
+         *  @see SDL_QueryTexture()
+         *  @see SDL_UpdateTexture()
+         *  @see SDL_DestroyTexture()
+         */
+        SDL_CreateTexture: {
+            "output": "SDL_Texture*",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "format"
+                },
+                {
+                    "type": "int",
+                    "name": "access"
+                },
+                {
+                    "type": "int",
+                    "name": "w"
+                },
+                {
+                    "type": "int",
+                    "name": "h"
+                }
+            ]
+        },
+        /**
+         *  Create a texture from an existing surface.
+         *
+         *  @param renderer The renderer.
+         *  @param surface The surface containing pixel data used to fill the texture.
+         *
+         *  @returns The created texture is returned, or NULL on error.
+         *
+         *  @remarks The surface is not modified or freed by this function.
+         *
+         *  @see SDL_QueryTexture()
+         *  @see SDL_DestroyTexture()
+         */
+        SDL_CreateTextureFromSurface: {
+            "output": "SDL_Texture*",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                }
+            ]
+        },
+        /**
+         *  Query the attributes of a texture
+         *
+         *  @param texture A texture to be queried.
+         *  @param format  A pointer filled in with the raw format of the texture.  The
+         *                 actual format may differ, but pixel transfers will use this
+         *                 format.
+         *  @param access  A pointer filled in with the actual access to the texture.
+         *  @param w       A pointer filled in with the width of the texture in pixels.
+         *  @param h       A pointer filled in with the height of the texture in pixels.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid.
+         */
+        SDL_QueryTexture: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "Uint32*",
+                    "name": "format"
+                },
+                {
+                    "type": "int*",
+                    "name": "access"
+                },
+                {
+                    "type": "int*",
+                    "name": "w"
+                },
+                {
+                    "type": "int*",
+                    "name": "h"
+                }
+            ]
+        },
+        /**
+         *  Set an additional color value used in render copy operations.
+         *
+         *  @param texture The texture to update.
+         *  @param r       The red color value multiplied into copy operations.
+         *  @param g       The green color value multiplied into copy operations.
+         *  @param b       The blue color value multiplied into copy operations.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid or color modulation
+         *          is not supported.
+         *
+         *  @see SDL_GetTextureColorMod()
+         */
+        SDL_SetTextureColorMod: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "Uint8",
+                    "name": "r"
+                },
+                {
+                    "type": "Uint8",
+                    "name": "g"
+                },
+                {
+                    "type": "Uint8",
+                    "name": "b"
+                }
+            ]
+        },
+        /**
+         *  Get the additional color value used in render copy operations.
+         *
+         *  @param texture The texture to query.
+         *  @param r         A pointer filled in with the current red color value.
+         *  @param g         A pointer filled in with the current green color value.
+         *  @param b         A pointer filled in with the current blue color value.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid.
+         *
+         *  @see SDL_SetTextureColorMod()
+         */
+        SDL_GetTextureColorMod: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "r"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "g"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "b"
+                }
+            ]
+        },
+        /**
+         *  Set an additional alpha value used in render copy operations.
+         *
+         *  @param texture The texture to update.
+         *  @param alpha     The alpha value multiplied into copy operations.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid or alpha modulation
+         *          is not supported.
+         *
+         *  @see SDL_GetTextureAlphaMod()
+         */
+        SDL_SetTextureAlphaMod: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "Uint8",
+                    "name": "alpha"
+                }
+            ]
+        },
+        /**
+         *  Get the additional alpha value used in render copy operations.
+         *
+         *  @param texture The texture to query.
+         *  @param alpha     A pointer filled in with the current alpha value.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid.
+         *
+         *  @see SDL_SetTextureAlphaMod()
+         */
+        SDL_GetTextureAlphaMod: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "alpha"
+                }
+            ]
+        },
+        /**
+         *  Set the blend mode used for texture copy operations.
+         *
+         *  @param texture The texture to update.
+         *  @param blendMode ::SDL_BlendMode to use for texture blending.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid or the blend mode is
+         *          not supported.
+         *
+         *  @remarks If the blend mode is not supported, the closest supported mode is
+         *        chosen.
+         *
+         *  @see SDL_GetTextureBlendMode()
+         */
+        SDL_SetTextureBlendMode: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "SDL_BlendMode",
+                    "name": "blendMode"
+                }
+            ]
+        },
+        /**
+         *  Get the blend mode used for texture copy operations.
+         *
+         *  @param texture   The texture to query.
+         *  @param blendMode A pointer filled in with the current blend mode.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid.
+         *
+         *  @see SDL_SetTextureBlendMode()
+         */
+        SDL_GetTextureBlendMode: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "SDL_BlendMode*",
+                    "name": "blendMode"
+                }
+            ]
+        },
+        /**
+         *  Set the scale mode used for texture scale operations.
+         *
+         *  @param texture The texture to update.
+         *  @param scaleMode ::SDL_ScaleMode to use for texture scaling.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid.
+         *
+         *  @remarks If the scale mode is not supported, the closest supported mode is
+         *        chosen.
+         *
+         *  @see SDL_GetTextureScaleMode()
+         */
+        SDL_SetTextureScaleMode: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "SDL_ScaleMode",
+                    "name": "scaleMode"
+                }
+            ]
+        },
+        /**
+         *  Get the scale mode used for texture scale operations.
+         *
+         *  @param texture   The texture to query.
+         *  @param scaleMode A pointer filled in with the current scale mode.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid.
+         *
+         *  @see SDL_SetTextureScaleMode()
+         */
+        SDL_GetTextureScaleMode: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "SDL_ScaleMode*",
+                    "name": "scaleMode"
+                }
+            ]
+        },
+        /**
+         *  Update the given texture rectangle with new pixel data.
+         *
+         *  @param texture   The texture to update
+         *  @param rect      A pointer to the rectangle of pixels to update, or NULL to
+         *                   update the entire texture.
+         *  @param pixels    The raw pixel data in the format of the texture.
+         *  @param pitch     The number of bytes in a row of pixel data, including padding between lines.
+         *
+         *  The pixel data must be in the format of the texture. The pixel format can be
+         *  queried with SDL_QueryTexture.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid.
+         *
+         *  @remarks This is a fairly slow function.
+         */
+        SDL_UpdateTexture: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                },
+                {
+                    "type": "void*",
+                    "name": "pixels"
+                },
+                {
+                    "type": "int",
+                    "name": "pitch"
+                }
+            ]
+        },
+        /**
+         *  Update a rectangle within a planar YV12 or IYUV texture with new pixel data.
+         *
+         *  @param texture   The texture to update
+         *  @param rect      A pointer to the rectangle of pixels to update, or NULL to
+         *                   update the entire texture.
+         *  @param Yplane    The raw pixel data for the Y plane.
+         *  @param Ypitch    The number of bytes between rows of pixel data for the Y plane.
+         *  @param Uplane    The raw pixel data for the U plane.
+         *  @param Upitch    The number of bytes between rows of pixel data for the U plane.
+         *  @param Vplane    The raw pixel data for the V plane.
+         *  @param Vpitch    The number of bytes between rows of pixel data for the V plane.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid.
+         *
+         *  @remarks You can use SDL_UpdateTexture() as long as your pixel data is
+         *        a contiguous block of Y and U/V planes in the proper order, but
+         *        this function is available if your pixel data is not contiguous.
+         */
+        SDL_UpdateYUVTexture: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "Yplane"
+                },
+                {
+                    "type": "int",
+                    "name": "Ypitch"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "Uplane"
+                },
+                {
+                    "type": "int",
+                    "name": "Upitch"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "Vplane"
+                },
+                {
+                    "type": "int",
+                    "name": "Vpitch"
+                }
+            ]
+        },
+        /**
+         *  Lock a portion of the texture for write-only pixel access.
+         *
+         *  @param texture   The texture to lock for access, which was created with
+         *                   ::SDL_TEXTUREACCESS_STREAMING.
+         *  @param rect      A pointer to the rectangle to lock for access. If the rect
+         *                   is NULL, the entire texture will be locked.
+         *  @param pixels    This is filled in with a pointer to the locked pixels,
+         *                   appropriately offset by the locked area.
+         *  @param pitch     This is filled in with the pitch of the locked pixels.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid or was not created with ::SDL_TEXTUREACCESS_STREAMING.
+         *
+         *  @see SDL_UnlockTexture()
+         */
+        SDL_LockTexture: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                },
+                {
+                    "type": "void**",
+                    "name": "pixels"
+                },
+                {
+                    "type": "int*",
+                    "name": "pitch"
+                }
+            ]
+        },
+        /**
+         *  Lock a portion of the texture for write-only pixel access.
+         *         Expose it as a SDL surface.
+         *
+         *  @param texture   The texture to lock for access, which was created with
+         *                   ::SDL_TEXTUREACCESS_STREAMING.
+         *  @param rect      A pointer to the rectangle to lock for access. If the rect
+         *                   is NULL, the entire texture will be locked.
+         *  @param surface   This is filled in with a SDL surface representing the locked area
+         *                   Surface is freed internally after calling SDL_UnlockTexture or SDL_DestroyTexture.
+         *
+         *  @returns 0 on success, or -1 if the texture is not valid or was not created with ::SDL_TEXTUREACCESS_STREAMING.
+         *
+         *  @see SDL_UnlockTexture()
+         */
+        SDL_LockTextureToSurface: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                },
+                {
+                    "type": "SDL_Surface**",
+                    "name": "surface"
+                }
+            ]
+        },
+        /**
+         *  Unlock a texture, uploading the changes to video memory, if needed.
+         *         If SDL_LockTextureToSurface() was called for locking, the SDL surface is freed.
+         *
+         *  @see SDL_LockTexture()
+         *  @see SDL_LockTextureToSurface()
+         */
+        SDL_UnlockTexture: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                }
+            ]
+        },
+        /**
+         * Determines whether a window supports the use of render targets
+         *
+         * @param renderer The renderer that will be checked
+         *
+         * @returns SDL_TRUE if supported, SDL_FALSE if not.
+         */
+        SDL_RenderTargetSupported: {
+            "output": "SDL_bool",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                }
+            ]
+        },
+        /**
+         * Set a texture as the current rendering target.
+         *
+         * @param renderer The renderer.
+         * @param texture The targeted texture, which must be created with the SDL_TEXTUREACCESS_TARGET flag, or NULL for the default render target
+         *
+         * @returns 0 on success, or -1 on error
+         *
+         *  @see SDL_GetRenderTarget()
+         */
+        SDL_SetRenderTarget: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                }
+            ]
+        },
+        /**
+         * Get the current render target or NULL for the default render target.
+         *
+         * @returns The current render target
+         *
+         *  @see SDL_SetRenderTarget()
+         */
+        SDL_GetRenderTarget: {
+            "output": "SDL_Texture*",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                }
+            ]
+        },
+        /**
+         *  Set device independent resolution for rendering
+         *
+         *  @param renderer The renderer for which resolution should be set.
+         *  @param w      The width of the logical resolution
+         *  @param h      The height of the logical resolution
+         *
+         *  This function uses the viewport and scaling functionality to allow a fixed logical
+         *  resolution for rendering, regardless of the actual output resolution.  If the actual
+         *  output resolution doesn't have the same aspect ratio the output rendering will be
+         *  centered within the output display.
+         *
+         *  If the output display is a window, mouse events in the window will be filtered
+         *  and scaled so they seem to arrive within the logical resolution.
+         *
+         *  @remarks If this function results in scaling or subpixel drawing by the
+         *        rendering backend, it will be handled using the appropriate
+         *        quality hints.
+         *
+         *  @see SDL_RenderGetLogicalSize()
+         *  @see SDL_RenderSetScale()
+         *  @see SDL_RenderSetViewport()
+         */
+        SDL_RenderSetLogicalSize: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "int",
+                    "name": "w"
+                },
+                {
+                    "type": "int",
+                    "name": "h"
+                }
+            ]
+        },
+        /**
+         *  Get device independent resolution for rendering
+         *
+         *  @param renderer The renderer from which resolution should be queried.
+         *  @param w      A pointer filled with the width of the logical resolution
+         *  @param h      A pointer filled with the height of the logical resolution
+         *
+         *  @see SDL_RenderSetLogicalSize()
+         */
+        SDL_RenderGetLogicalSize: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "int*",
+                    "name": "w"
+                },
+                {
+                    "type": "int*",
+                    "name": "h"
+                }
+            ]
+        },
+        /**
+         *  Set whether to force integer scales for resolution-independent rendering
+         *
+         *  @param renderer The renderer for which integer scaling should be set.
+         *  @param enable   Enable or disable integer scaling
+         *
+         *  This function restricts the logical viewport to integer values - that is, when
+         *  a resolution is between two multiples of a logical size, the viewport size is
+         *  rounded down to the lower multiple.
+         *
+         *  @see SDL_RenderSetLogicalSize()
+         */
+        SDL_RenderSetIntegerScale: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_bool",
+                    "name": "enable"
+                }
+            ]
+        },
+        /**
+         *  Get whether integer scales are forced for resolution-independent rendering
+         *
+         *  @param renderer The renderer from which integer scaling should be queried.
+         *
+         *  @see SDL_RenderSetIntegerScale()
+         */
+        SDL_RenderGetIntegerScale: {
+            "output": "SDL_bool",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                }
+            ]
+        },
+        /**
+         *  Set the drawing area for rendering on the current target.
+         *
+         *  @param renderer The renderer for which the drawing area should be set.
+         *  @param rect The rectangle representing the drawing area, or NULL to set the viewport to the entire target.
+         *
+         *  The x,y of the viewport rect represents the origin for rendering.
+         *
+         *  @returns 0 on success, or -1 on error
+         *
+         *  @remarks If the window associated with the renderer is resized, the viewport is automatically reset.
+         *
+         *  @see SDL_RenderGetViewport()
+         *  @see SDL_RenderSetLogicalSize()
+         */
+        SDL_RenderSetViewport: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                }
+            ]
+        },
+        /**
+         *  Get the drawing area for the current target.
+         *
+         *  @see SDL_RenderSetViewport()
+         */
+        SDL_RenderGetViewport: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                }
+            ]
+        },
+        /**
+         *  Set the clip rectangle for the current target.
+         *
+         *  @param renderer The renderer for which clip rectangle should be set.
+         *  @param rect   A pointer to the rectangle to set as the clip rectangle,
+         *                relative to the viewport, or NULL to disable clipping.
+         *
+         *  @returns 0 on success, or -1 on error
+         *
+         *  @see SDL_RenderGetClipRect()
+         */
+        SDL_RenderSetClipRect: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                }
+            ]
+        },
+        /**
+         *  Get the clip rectangle for the current target.
+         *
+         *  @param renderer The renderer from which clip rectangle should be queried.
+         *  @param rect   A pointer filled in with the current clip rectangle, or
+         *                an empty rectangle if clipping is disabled.
+         *
+         *  @see SDL_RenderSetClipRect()
+         */
+        SDL_RenderGetClipRect: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                }
+            ]
+        },
+        /**
+         *  Get whether clipping is enabled on the given renderer.
+         *
+         *  @param renderer The renderer from which clip state should be queried.
+         *
+         *  @see SDL_RenderGetClipRect()
+         */
+        SDL_RenderIsClipEnabled: {
+            "output": "SDL_bool",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                }
+            ]
+        },
+        /**
+         *  Set the drawing scale for rendering on the current target.
+         *
+         *  @param renderer The renderer for which the drawing scale should be set.
+         *  @param scaleX The horizontal scaling factor
+         *  @param scaleY The vertical scaling factor
+         *
+         *  The drawing coordinates are scaled by the x/y scaling factors
+         *  before they are used by the renderer.  This allows resolution
+         *  independent drawing with a single coordinate system.
+         *
+         *  @remarks If this results in scaling or subpixel drawing by the
+         *        rendering backend, it will be handled using the appropriate
+         *        quality hints.  For best results use integer scaling factors.
+         *
+         *  @see SDL_RenderGetScale()
+         *  @see SDL_RenderSetLogicalSize()
+         */
+        SDL_RenderSetScale: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "float",
+                    "name": "scaleX"
+                },
+                {
+                    "type": "float",
+                    "name": "scaleY"
+                }
+            ]
+        },
+        /**
+         *  Get the drawing scale for the current target.
+         *
+         *  @param renderer The renderer from which drawing scale should be queried.
+         *  @param scaleX A pointer filled in with the horizontal scaling factor
+         *  @param scaleY A pointer filled in with the vertical scaling factor
+         *
+         *  @see SDL_RenderSetScale()
+         */
+        SDL_RenderGetScale: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "float*",
+                    "name": "scaleX"
+                },
+                {
+                    "type": "float*",
+                    "name": "scaleY"
+                }
+            ]
+        },
+        /**
+         *  Set the color used for drawing operations (Rect, Line and Clear).
+         *
+         *  @param renderer The renderer for which drawing color should be set.
+         *  @param r The red value used to draw on the rendering target.
+         *  @param g The green value used to draw on the rendering target.
+         *  @param b The blue value used to draw on the rendering target.
+         *  @param a The alpha value used to draw on the rendering target, usually
+         *           ::SDL_ALPHA_OPAQUE (255).
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_SetRenderDrawColor: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "Uint8",
+                    "name": "r"
+                },
+                {
+                    "type": "Uint8",
+                    "name": "g"
+                },
+                {
+                    "type": "Uint8",
+                    "name": "b"
+                },
+                {
+                    "type": "Uint8",
+                    "name": "a"
+                }
+            ]
+        },
+        /**
+         *  Get the color used for drawing operations (Rect, Line and Clear).
+         *
+         *  @param renderer The renderer from which drawing color should be queried.
+         *  @param r A pointer to the red value used to draw on the rendering target.
+         *  @param g A pointer to the green value used to draw on the rendering target.
+         *  @param b A pointer to the blue value used to draw on the rendering target.
+         *  @param a A pointer to the alpha value used to draw on the rendering target,
+         *           usually ::SDL_ALPHA_OPAQUE (255).
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_GetRenderDrawColor: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "r"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "g"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "b"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "a"
+                }
+            ]
+        },
+        /**
+         *  Set the blend mode used for drawing operations (Fill and Line).
+         *
+         *  @param renderer The renderer for which blend mode should be set.
+         *  @param blendMode ::SDL_BlendMode to use for blending.
+         *
+         *  @returns 0 on success, or -1 on error
+         *
+         *  @remarks If the blend mode is not supported, the closest supported mode is
+         *        chosen.
+         *
+         *  @see SDL_GetRenderDrawBlendMode()
+         */
+        SDL_SetRenderDrawBlendMode: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_BlendMode",
+                    "name": "blendMode"
+                }
+            ]
+        },
+        /**
+         *  Get the blend mode used for drawing operations.
+         *
+         *  @param renderer The renderer from which blend mode should be queried.
+         *  @param blendMode A pointer filled in with the current blend mode.
+         *
+         *  @returns 0 on success, or -1 on error
+         *
+         *  @see SDL_SetRenderDrawBlendMode()
+         */
+        SDL_GetRenderDrawBlendMode: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_BlendMode*",
+                    "name": "blendMode"
+                }
+            ]
+        },
+        /**
+         *  Clear the current rendering target with the drawing color
+         *
+         *  This function clears the entire rendering target, ignoring the viewport and
+         *  the clip rectangle.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderClear: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                }
+            ]
+        },
+        /**
+         *  Draw a point on the current rendering target.
+         *
+         *  @param renderer The renderer which should draw a point.
+         *  @param x The x coordinate of the point.
+         *  @param y The y coordinate of the point.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderDrawPoint: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "int",
+                    "name": "x"
+                },
+                {
+                    "type": "int",
+                    "name": "y"
+                }
+            ]
+        },
+        /**
+         *  Draw multiple points on the current rendering target.
+         *
+         *  @param renderer The renderer which should draw multiple points.
+         *  @param points The points to draw
+         *  @param count The number of points to draw
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderDrawPoints: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Point*",
+                    "name": "points"
+                },
+                {
+                    "type": "int",
+                    "name": "count"
+                }
+            ]
+        },
+        /**
+         *  Draw a line on the current rendering target.
+         *
+         *  @param renderer The renderer which should draw a line.
+         *  @param x1 The x coordinate of the start point.
+         *  @param y1 The y coordinate of the start point.
+         *  @param x2 The x coordinate of the end point.
+         *  @param y2 The y coordinate of the end point.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderDrawLine: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "int",
+                    "name": "x1"
+                },
+                {
+                    "type": "int",
+                    "name": "y1"
+                },
+                {
+                    "type": "int",
+                    "name": "x2"
+                },
+                {
+                    "type": "int",
+                    "name": "y2"
+                }
+            ]
+        },
+        /**
+         *  Draw a series of connected lines on the current rendering target.
+         *
+         *  @param renderer The renderer which should draw multiple lines.
+         *  @param points The points along the lines
+         *  @param count The number of points, drawing count-1 lines
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderDrawLines: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Point*",
+                    "name": "points"
+                },
+                {
+                    "type": "int",
+                    "name": "count"
+                }
+            ]
+        },
+        /**
+         *  Draw a rectangle on the current rendering target.
+         *
+         *  @param renderer The renderer which should draw a rectangle.
+         *  @param rect A pointer to the destination rectangle, or NULL to outline the entire rendering target.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderDrawRect: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                }
+            ]
+        },
+        /**
+         *  Draw some number of rectangles on the current rendering target.
+         *
+         *  @param renderer The renderer which should draw multiple rectangles.
+         *  @param rects A pointer to an array of destination rectangles.
+         *  @param count The number of rectangles.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderDrawRects: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rects"
+                },
+                {
+                    "type": "int",
+                    "name": "count"
+                }
+            ]
+        },
+        /**
+         *  Fill a rectangle on the current rendering target with the drawing color.
+         *
+         *  @param renderer The renderer which should fill a rectangle.
+         *  @param rect A pointer to the destination rectangle, or NULL for the entire
+         *              rendering target.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderFillRect: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                }
+            ]
+        },
+        /**
+         *  Fill some number of rectangles on the current rendering target with the drawing color.
+         *
+         *  @param renderer The renderer which should fill multiple rectangles.
+         *  @param rects A pointer to an array of destination rectangles.
+         *  @param count The number of rectangles.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderFillRects: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rects"
+                },
+                {
+                    "type": "int",
+                    "name": "count"
+                }
+            ]
+        },
+        /**
+         *  Copy a portion of the texture to the current rendering target.
+         *
+         *  @param renderer The renderer which should copy parts of a texture.
+         *  @param texture The source texture.
+         *  @param srcrect   A pointer to the source rectangle, or NULL for the entire
+         *                   texture.
+         *  @param dstrect   A pointer to the destination rectangle, or NULL for the
+         *                   entire rendering target.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderCopy: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "srcrect"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "dstrect"
+                }
+            ]
+        },
+        /**
+         *  Copy a portion of the source texture to the current rendering target, rotating it by angle around the given center
+         *
+         *  @param renderer The renderer which should copy parts of a texture.
+         *  @param texture The source texture.
+         *  @param srcrect   A pointer to the source rectangle, or NULL for the entire
+         *                   texture.
+         *  @param dstrect   A pointer to the destination rectangle, or NULL for the
+         *                   entire rendering target.
+         *  @param angle    An angle in degrees that indicates the rotation that will be applied to dstrect, rotating it in a clockwise direction
+         *  @param center   A pointer to a point indicating the point around which dstrect will be rotated (if NULL, rotation will be done around dstrect.w/2, dstrect.h/2).
+         *  @param flip     An SDL_RendererFlip value stating which flipping actions should be performed on the texture
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderCopyEx: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "srcrect"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "dstrect"
+                },
+                {
+                    "type": "double",
+                    "name": "angle"
+                },
+                {
+                    "type": "SDL_Point*",
+                    "name": "center"
+                },
+                {
+                    "type": "SDL_RendererFlip",
+                    "name": "flip"
+                }
+            ]
+        },
+        /**
+         *  Draw a point on the current rendering target.
+         *
+         *  @param renderer The renderer which should draw a point.
+         *  @param x The x coordinate of the point.
+         *  @param y The y coordinate of the point.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderDrawPointF: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "float",
+                    "name": "x"
+                },
+                {
+                    "type": "float",
+                    "name": "y"
+                }
+            ]
+        },
+        /**
+         *  Draw multiple points on the current rendering target.
+         *
+         *  @param renderer The renderer which should draw multiple points.
+         *  @param points The points to draw
+         *  @param count The number of points to draw
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderDrawPointsF: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_FPoint*",
+                    "name": "points"
+                },
+                {
+                    "type": "int",
+                    "name": "count"
+                }
+            ]
+        },
+        /**
+         *  Draw a line on the current rendering target.
+         *
+         *  @param renderer The renderer which should draw a line.
+         *  @param x1 The x coordinate of the start point.
+         *  @param y1 The y coordinate of the start point.
+         *  @param x2 The x coordinate of the end point.
+         *  @param y2 The y coordinate of the end point.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderDrawLineF: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "float",
+                    "name": "x1"
+                },
+                {
+                    "type": "float",
+                    "name": "y1"
+                },
+                {
+                    "type": "float",
+                    "name": "x2"
+                },
+                {
+                    "type": "float",
+                    "name": "y2"
+                }
+            ]
+        },
+        /**
+         *  Draw a series of connected lines on the current rendering target.
+         *
+         *  @param renderer The renderer which should draw multiple lines.
+         *  @param points The points along the lines
+         *  @param count The number of points, drawing count-1 lines
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderDrawLinesF: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_FPoint*",
+                    "name": "points"
+                },
+                {
+                    "type": "int",
+                    "name": "count"
+                }
+            ]
+        },
+        /**
+         *  Draw a rectangle on the current rendering target.
+         *
+         *  @param renderer The renderer which should draw a rectangle.
+         *  @param rect A pointer to the destination rectangle, or NULL to outline the entire rendering target.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderDrawRectF: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_FRect*",
+                    "name": "rect"
+                }
+            ]
+        },
+        /**
+         *  Draw some number of rectangles on the current rendering target.
+         *
+         *  @param renderer The renderer which should draw multiple rectangles.
+         *  @param rects A pointer to an array of destination rectangles.
+         *  @param count The number of rectangles.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderDrawRectsF: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_FRect*",
+                    "name": "rects"
+                },
+                {
+                    "type": "int",
+                    "name": "count"
+                }
+            ]
+        },
+        /**
+         *  Fill a rectangle on the current rendering target with the drawing color.
+         *
+         *  @param renderer The renderer which should fill a rectangle.
+         *  @param rect A pointer to the destination rectangle, or NULL for the entire
+         *              rendering target.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderFillRectF: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_FRect*",
+                    "name": "rect"
+                }
+            ]
+        },
+        /**
+         *  Fill some number of rectangles on the current rendering target with the drawing color.
+         *
+         *  @param renderer The renderer which should fill multiple rectangles.
+         *  @param rects A pointer to an array of destination rectangles.
+         *  @param count The number of rectangles.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderFillRectsF: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_FRect*",
+                    "name": "rects"
+                },
+                {
+                    "type": "int",
+                    "name": "count"
+                }
+            ]
+        },
+        /**
+         *  Copy a portion of the texture to the current rendering target.
+         *
+         *  @param renderer The renderer which should copy parts of a texture.
+         *  @param texture The source texture.
+         *  @param srcrect   A pointer to the source rectangle, or NULL for the entire
+         *                   texture.
+         *  @param dstrect   A pointer to the destination rectangle, or NULL for the
+         *                   entire rendering target.
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderCopyF: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "srcrect"
+                },
+                {
+                    "type": "SDL_FRect*",
+                    "name": "dstrect"
+                }
+            ]
+        },
+        /**
+         *  Copy a portion of the source texture to the current rendering target, rotating it by angle around the given center
+         *
+         *  @param renderer The renderer which should copy parts of a texture.
+         *  @param texture The source texture.
+         *  @param srcrect   A pointer to the source rectangle, or NULL for the entire
+         *                   texture.
+         *  @param dstrect   A pointer to the destination rectangle, or NULL for the
+         *                   entire rendering target.
+         *  @param angle    An angle in degrees that indicates the rotation that will be applied to dstrect, rotating it in a clockwise direction
+         *  @param center   A pointer to a point indicating the point around which dstrect will be rotated (if NULL, rotation will be done around dstrect.w/2, dstrect.h/2).
+         *  @param flip     An SDL_RendererFlip value stating which flipping actions should be performed on the texture
+         *
+         *  @returns 0 on success, or -1 on error
+         */
+        SDL_RenderCopyExF: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "srcrect"
+                },
+                {
+                    "type": "SDL_FRect*",
+                    "name": "dstrect"
+                },
+                {
+                    "type": "double",
+                    "name": "angle"
+                },
+                {
+                    "type": "SDL_FPoint*",
+                    "name": "center"
+                },
+                {
+                    "type": "SDL_RendererFlip",
+                    "name": "flip"
+                }
+            ]
+        },
+        /**
+         *  Read pixels from the current rendering target.
+         *
+         *  @param renderer The renderer from which pixels should be read.
+         *  @param rect   A pointer to the rectangle to read, or NULL for the entire
+         *                render target.
+         *  @param format The desired format of the pixel data, or 0 to use the format
+         *                of the rendering target
+         *  @param pixels A pointer to be filled in with the pixel data
+         *  @param pitch  The pitch of the pixels parameter.
+         *
+         *  @returns 0 on success, or -1 if pixel reading is not supported.
+         *
+         *  \warning This is a very slow operation, and should not be used frequently.
+         */
+        SDL_RenderReadPixels: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "format"
+                },
+                {
+                    "type": "void*",
+                    "name": "pixels"
+                },
+                {
+                    "type": "int",
+                    "name": "pitch"
+                }
+            ]
+        },
+        /**
+         *  Update the screen with rendering performed.
+         */
+        SDL_RenderPresent: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                }
+            ]
+        },
+        /**
+         *  Destroy the specified texture.
+         *
+         *  @see SDL_CreateTexture()
+         *  @see SDL_CreateTextureFromSurface()
+         */
+        SDL_DestroyTexture: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                }
+            ]
+        },
+        /**
+         *  Destroy the rendering context for a window and free associated
+         *         textures.
+         *
+         *  @see SDL_CreateRenderer()
+         */
+        SDL_DestroyRenderer: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                }
+            ]
+        },
+        /**
+         *  Force the rendering context to flush any pending commands to the
+         *         underlying rendering API.
+         *
+         *  You do not need to (and in fact, shouldn't) call this function unless
+         *  you are planning to call into OpenGL/Direct3D/Metal/whatever directly
+         *  in addition to using an SDL_Renderer.
+         *
+         *  This is for a very-specific case: if you are using SDL's render API,
+         *  you asked for a specific renderer backend (OpenGL, Direct3D, etc),
+         *  you set SDL_HINT_RENDER_BATCHING to "1", and you plan to make
+         *  OpenGL/D3D/whatever calls in addition to SDL render API calls. If all of
+         *  this applies, you should call SDL_RenderFlush() between calls to SDL's
+         *  render API and the low-level API you're using in cooperation.
+         *
+         *  In all other cases, you can ignore this function. This is only here to
+         *  get maximum performance out of a specific situation. In all other cases,
+         *  SDL will do the right thing, perhaps at a performance loss.
+         *
+         *  This function is first available in SDL 2.0.10, and is not needed in
+         *  2.0.9 and earlier, as earlier versions did not queue rendering commands
+         *  at all, instead flushing them to the OS immediately.
+         */
+        SDL_RenderFlush: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                }
+            ]
+        },
+        /**
+         *  Bind the texture to the current OpenGL/ES/ES2 context for use with
+         *         OpenGL instructions.
+         *
+         *  @param texture  The SDL texture to bind
+         *  @param texw     A pointer to a float that will be filled with the texture width
+         *  @param texh     A pointer to a float that will be filled with the texture height
+         *
+         *  @returns 0 on success, or -1 if the operation is not supported
+         */
+        SDL_GL_BindTexture: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                },
+                {
+                    "type": "float*",
+                    "name": "texw"
+                },
+                {
+                    "type": "float*",
+                    "name": "texh"
+                }
+            ]
+        },
+        /**
+         *  Unbind a texture from the current OpenGL/ES/ES2 context.
+         *
+         *  @param texture  The SDL texture to unbind
+         *
+         *  @returns 0 on success, or -1 if the operation is not supported
+         */
+        SDL_GL_UnbindTexture: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Texture*",
+                    "name": "texture"
+                }
+            ]
+        },
+        /**
+         *  Get the CAMetalLayer associated with the given Metal renderer
+         *
+         *  @param renderer The renderer to query
+         *
+         *  @returns CAMetalLayer* on success, or NULL if the renderer isn't a Metal renderer
+         *
+         *  @see SDL_RenderGetMetalCommandEncoder()
+         */
+        SDL_RenderGetMetalLayer: {
+            "output": "void*",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                }
+            ]
+        },
+        /**
+         *  Get the Metal command encoder for the current frame
+         *
+         *  @param renderer The renderer to query
+         *
+         *  @returns id<MTLRenderCommandEncoder> on success, or NULL if the renderer isn't a Metal renderer
+         *
+         *  @see SDL_RenderGetMetalLayer()
+         */
+        SDL_RenderGetMetalCommandEncoder: {
+            "output": "void*",
+            "params": [
+                {
+                    "type": "SDL_Renderer*",
+                    "name": "renderer"
+                }
+            ]
+        },
     } as const,
     values: {
         /**< fullscreen window */
@@ -1896,5 +3812,14 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
         SDL_WINDOW_VULKAN: 0x10000000,
         SDL_INIT_VIDEO: 0x00000020,
         SDL_WINDOWPOS_UNDEFINED: 0x1FFF0000,
+
+        /**< The renderer is a software fallback */
+        SDL_RENDERER_SOFTWARE: 0x00000001,
+        /**< The renderer uses hardware  acceleration */
+        SDL_RENDERER_ACCELERATED: 0x00000002,
+        /**< Present is synchronized with the refresh rate */
+        SDL_RENDERER_PRESENTVSYNC: 0x00000004,
+        /**< The renderer supports */
+        SDL_RENDERER_TARGETTEXTURE: 0x00000008
     } as const
 });
