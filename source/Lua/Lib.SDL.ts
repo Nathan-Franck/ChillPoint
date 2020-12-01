@@ -3769,6 +3769,974 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
                 }
             ]
         },
+        /**
+         * Get the path where the application resides.
+         *
+         * Get the "base path". This is the directory where the application was run
+         *  from, which is probably the installation directory, and may or may not
+         *  be the process's current working directory.
+         *
+         * This returns an absolute path in UTF-8 encoding, and is guaranteed to
+         *  end with a path separator ('\\' on Windows, '/' most other places).
+         *
+         * The pointer returned by this function is owned by you. Please call
+         *  SDL_free() on the pointer when you are done with it, or it will be a
+         *  memory leak. This is not necessarily a fast call, though, so you should
+         *  call this once near startup and save the string if you need it.
+         *
+         * Some platforms can't determine the application's path, and on other
+         *  platforms, this might be meaningless. In such cases, this function will
+         *  return NULL.
+         *
+         *  @returns String of base dir in UTF-8 encoding, or NULL on error.
+         *
+         * @see SDL_GetPrefPath
+         */
+        SDL_GetBasePath: {
+            "output": "char*",
+            "params": []
+        },
+        /**
+         * Get the user-and-app-specific path where files can be written.
+         *
+         * Get the "pref dir". This is meant to be where users can write personal
+         *  files (preferences and save games, etc) that are specific to your
+         *  application. This directory is unique per user, per application.
+         *
+         * This function will decide the appropriate location in the native filesystem,
+         *  create the directory if necessary, and return a string of the absolute
+         *  path to the directory in UTF-8 encoding.
+         *
+         * On Windows, the string might look like:
+         *  "C:\\Users\\bob\\AppData\\Roaming\\My Company\\My Program Name\\"
+         *
+         * On Linux, the string might look like:
+         *  "/home/bob/.local/share/My Program Name/"
+         *
+         * On Mac OS X, the string might look like:
+         *  "/Users/bob/Library/Application Support/My Program Name/"
+         *
+         * (etc.)
+         *
+         * You specify the name of your organization (if it's not a real organization,
+         *  your name or an Internet domain you own might do) and the name of your
+         *  application. These should be untranslated proper names.
+         *
+         * Both the org and app strings may become part of a directory name, so
+         *  please follow these rules:
+         *
+         *    - Try to use the same org string (including case-sensitivity) for
+         *      all your applications that use this function.
+         *    - Always use a unique app string for each one, and make sure it never
+         *      changes for an app once you've decided on it.
+         *    - Unicode characters are legal, as long as it's UTF-8 encoded, but...
+         *    - ...only use letters, numbers, and spaces. Avoid punctuation like
+         *      "Game Name 2: Bad Guy's Revenge!" ... "Game Name 2" is sufficient.
+         *
+         * This returns an absolute path in UTF-8 encoding, and is guaranteed to
+         *  end with a path separator ('\\' on Windows, '/' most other places).
+         *
+         * The pointer returned by this function is owned by you. Please call
+         *  SDL_free() on the pointer when you are done with it, or it will be a
+         *  memory leak. This is not necessarily a fast call, though, so you should
+         *  call this once near startup and save the string if you need it.
+         *
+         * You should assume the path returned by this function is the only safe
+         *  place to write files (and that SDL_GetBasePath(), while it might be
+         *  writable, or even the parent of the returned path, aren't where you
+         *  should be writing things).
+         *
+         * Some platforms can't determine the pref path, and on other
+         *  platforms, this might be meaningless. In such cases, this function will
+         *  return NULL.
+         *
+         *   @param org The name of your organization.
+         *   @param app The name of your application.
+         *  @returns UTF-8 string of user dir in platform-dependent notation. NULL
+         *          if there's a problem (creating directory failed, etc).
+         *
+         * @see SDL_GetBasePath
+         */
+        SDL_GetPrefPath: {
+            "output": "char*",
+            "params": [
+                {
+                    "type": "char*",
+                    "name": "org"
+                },
+                {
+                    "type": "char*",
+                    "name": "app"
+                }
+            ]
+        },
+        /**
+         *  Allocate and free an RGB surface.
+         *
+         *  If the depth is 4 or 8 bits, an empty palette is allocated for the surface.
+         *  If the depth is greater than 8 bits, the pixel format is set using the
+         *  flags '[RGB]mask'.
+         *
+         *  If the function runs out of memory, it will return NULL.
+         *
+         *  @param flags The \c flags are obsolete and should be set to 0.
+         *  @param width The width in pixels of the surface to create.
+         *  @param height The height in pixels of the surface to create.
+         *  @param depth The depth in bits of the surface to create.
+         *  @param Rmask The red mask of the surface to create.
+         *  @param Gmask The green mask of the surface to create.
+         *  @param Bmask The blue mask of the surface to create.
+         *  @param Amask The alpha mask of the surface to create.
+         */
+        SDL_CreateRGBSurface: {
+            "output": "SDL_Surface*",
+            "params": [
+                {
+                    "type": "Uint32",
+                    "name": "flags"
+                },
+                {
+                    "type": "int",
+                    "name": "width"
+                },
+                {
+                    "type": "int",
+                    "name": "height"
+                },
+                {
+                    "type": "int",
+                    "name": "depth"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "Rmask"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "Gmask"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "Bmask"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "Amask"
+                }
+            ]
+        },
+        /* !!! FIXME for 2.1: why does this ask for depth? Format provides that. */
+        SDL_CreateRGBSurfaceWithFormat: {
+            "output": "SDL_Surface*",
+            "params": [
+                {
+                    "type": "Uint32",
+                    "name": "flags"
+                },
+                {
+                    "type": "int",
+                    "name": "width"
+                },
+                {
+                    "type": "int",
+                    "name": "height"
+                },
+                {
+                    "type": "int",
+                    "name": "depth"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "format"
+                }
+            ]
+        },
+        SDL_CreateRGBSurfaceFrom: {
+            "output": "SDL_Surface*",
+            "params": [
+                {
+                    "type": "void*",
+                    "name": "pixels"
+                },
+                {
+                    "type": "int",
+                    "name": "width"
+                },
+                {
+                    "type": "int",
+                    "name": "height"
+                },
+                {
+                    "type": "int",
+                    "name": "depth"
+                },
+                {
+                    "type": "int",
+                    "name": "pitch"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "Rmask"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "Gmask"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "Bmask"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "Amask"
+                }
+            ]
+        },
+        SDL_CreateRGBSurfaceWithFormatFrom: {
+            "output": "SDL_Surface*",
+            "params": [
+                {
+                    "type": "void*",
+                    "name": "pixels"
+                },
+                {
+                    "type": "int",
+                    "name": "width"
+                },
+                {
+                    "type": "int",
+                    "name": "height"
+                },
+                {
+                    "type": "int",
+                    "name": "depth"
+                },
+                {
+                    "type": "int",
+                    "name": "pitch"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "format"
+                }
+            ]
+        },
+        SDL_FreeSurface: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                }
+            ]
+        },
+        /**
+         *  Set the palette used by a surface.
+         *
+         *  @returns 0, or -1 if the surface format doesn't use a palette.
+         *
+         *  @remarks A single palette can be shared with many surfaces.
+         */
+        SDL_SetSurfacePalette: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "SDL_Palette*",
+                    "name": "palette"
+                }
+            ]
+        },
+        /**
+         *  Sets up a surface for directly accessing the pixels.
+         *
+         *  Between calls to SDL_LockSurface() / SDL_UnlockSurface(), you can write
+         *  to and read from \c surface->pixels, using the pixel format stored in
+         *  \c surface->format.  Once you are done accessing the surface, you should
+         *  use SDL_UnlockSurface() to release it.
+         *
+         *  Not all surfaces require locking.  If SDL_MUSTLOCK(surface) evaluates
+         *  to 0, then you can read and write to the surface at any time, and the
+         *  pixel format of the surface will not change.
+         *
+         *  No operating system or library calls should be made between lock/unlock
+         *  pairs, as critical system locks may be held during this time.
+         *
+         *  SDL_LockSurface() returns 0, or -1 if the surface couldn't be locked.
+         *
+         *  @see SDL_UnlockSurface()
+         */
+        SDL_LockSurface: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                }
+            ]
+        },
+        /** @see SDL_LockSurface() */
+        SDL_UnlockSurface: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                }
+            ]
+        },
+        /**
+         *  Load a surface from a seekable SDL data stream (memory or file).
+         *
+         *  If \c freesrc is non-zero, the stream will be closed after being read.
+         *
+         *  The new surface should be freed with SDL_FreeSurface().
+         *
+         *  @returns the new surface, or NULL if there was an error.
+         */
+        SDL_LoadBMP_RW: {
+            "output": "SDL_Surface*",
+            "params": [
+                {
+                    "type": "SDL_RWops*",
+                    "name": "src"
+                },
+                {
+                    "type": "int",
+                    "name": "freesrc"
+                }
+            ]
+        },
+        /**
+         *  Save a surface to a seekable SDL data stream (memory or file).
+         *
+         *  Surfaces with a 24-bit, 32-bit and paletted 8-bit format get saved in the
+         *  BMP directly. Other RGB formats with 8-bit or higher get converted to a
+         *  24-bit surface or, if they have an alpha mask or a colorkey, to a 32-bit
+         *  surface before they are saved. YUV and paletted 1-bit and 4-bit formats are
+         *  not supported.
+         *
+         *  If \c freedst is non-zero, the stream will be closed after being written.
+         *
+         *  @returns 0 if successful or -1 if there was an error.
+         */
+        SDL_SaveBMP_RW: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "SDL_RWops*",
+                    "name": "dst"
+                },
+                {
+                    "type": "int",
+                    "name": "freedst"
+                }
+            ]
+        },
+        /**
+         *  Sets the RLE acceleration hint for a surface.
+         *
+         *  @returns 0 on success, or -1 if the surface is not valid
+         *
+         *  @remarks If RLE is enabled, colorkey and alpha blending blits are much faster,
+         *        but the surface must be locked before directly accessing the pixels.
+         */
+        SDL_SetSurfaceRLE: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "int",
+                    "name": "flag"
+                }
+            ]
+        },
+        /**
+         *  Sets the color key (transparent pixel) in a blittable surface.
+         *
+         *  @param surface The surface to update
+         *  @param flag Non-zero to enable colorkey and 0 to disable colorkey
+         *  @param key The transparent pixel in the native surface format
+         *
+         *  @returns 0 on success, or -1 if the surface is not valid
+         *
+         *  You can pass SDL_RLEACCEL to enable RLE accelerated blits.
+         */
+        SDL_SetColorKey: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "int",
+                    "name": "flag"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "key"
+                }
+            ]
+        },
+        /**
+         *  Returns whether the surface has a color key
+         *
+         *  @returns SDL_TRUE if the surface has a color key, or SDL_FALSE if the surface is NULL or has no color key
+         */
+        SDL_HasColorKey: {
+            "output": "SDL_bool",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                }
+            ]
+        },
+        /**
+         *  Gets the color key (transparent pixel) in a blittable surface.
+         *
+         *  @param surface The surface to update
+         *  @param key A pointer filled in with the transparent pixel in the native
+         *             surface format
+         *
+         *  @returns 0 on success, or -1 if the surface is not valid or colorkey is not
+         *          enabled.
+         */
+        SDL_GetColorKey: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "Uint32*",
+                    "name": "key"
+                }
+            ]
+        },
+        /**
+         *  Set an additional color value used in blit operations.
+         *
+         *  @param surface The surface to update.
+         *  @param r The red color value multiplied into blit operations.
+         *  @param g The green color value multiplied into blit operations.
+         *  @param b The blue color value multiplied into blit operations.
+         *
+         *  @returns 0 on success, or -1 if the surface is not valid.
+         *
+         *  @see SDL_GetSurfaceColorMod()
+         */
+        SDL_SetSurfaceColorMod: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "Uint8",
+                    "name": "r"
+                },
+                {
+                    "type": "Uint8",
+                    "name": "g"
+                },
+                {
+                    "type": "Uint8",
+                    "name": "b"
+                }
+            ]
+        },
+        /**
+         *  Get the additional color value used in blit operations.
+         *
+         *  @param surface The surface to query.
+         *  @param r A pointer filled in with the current red color value.
+         *  @param g A pointer filled in with the current green color value.
+         *  @param b A pointer filled in with the current blue color value.
+         *
+         *  @returns 0 on success, or -1 if the surface is not valid.
+         *
+         *  @see SDL_SetSurfaceColorMod()
+         */
+        SDL_GetSurfaceColorMod: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "r"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "g"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "b"
+                }
+            ]
+        },
+        /**
+         *  Set an additional alpha value used in blit operations.
+         *
+         *  @param surface The surface to update.
+         *  @param alpha The alpha value multiplied into blit operations.
+         *
+         *  @returns 0 on success, or -1 if the surface is not valid.
+         *
+         *  @see SDL_GetSurfaceAlphaMod()
+         */
+        SDL_SetSurfaceAlphaMod: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "Uint8",
+                    "name": "alpha"
+                }
+            ]
+        },
+        /**
+         *  Get the additional alpha value used in blit operations.
+         *
+         *  @param surface The surface to query.
+         *  @param alpha A pointer filled in with the current alpha value.
+         *
+         *  @returns 0 on success, or -1 if the surface is not valid.
+         *
+         *  @see SDL_SetSurfaceAlphaMod()
+         */
+        SDL_GetSurfaceAlphaMod: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "alpha"
+                }
+            ]
+        },
+        /**
+         *  Set the blend mode used for blit operations.
+         *
+         *  @param surface The surface to update.
+         *  @param blendMode ::SDL_BlendMode to use for blit blending.
+         *
+         *  @returns 0 on success, or -1 if the parameters are not valid.
+         *
+         *  @see SDL_GetSurfaceBlendMode()
+         */
+        SDL_SetSurfaceBlendMode: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "SDL_BlendMode",
+                    "name": "blendMode"
+                }
+            ]
+        },
+        /**
+         *  Get the blend mode used for blit operations.
+         *
+         *  @param surface   The surface to query.
+         *  @param blendMode A pointer filled in with the current blend mode.
+         *
+         *  @returns 0 on success, or -1 if the surface is not valid.
+         *
+         *  @see SDL_SetSurfaceBlendMode()
+         */
+        SDL_GetSurfaceBlendMode: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "SDL_BlendMode*",
+                    "name": "blendMode"
+                }
+            ]
+        },
+        /**
+         *  Sets the clipping rectangle for the destination surface in a blit.
+         *
+         *  If the clip rectangle is NULL, clipping will be disabled.
+         *
+         *  If the clip rectangle doesn't intersect the surface, the function will
+         *  return SDL_FALSE and blits will be completely clipped.  Otherwise the
+         *  function returns SDL_TRUE and blits to the surface will be clipped to
+         *  the intersection of the surface area and the clipping rectangle.
+         *
+         *  Note that blits are automatically clipped to the edges of the source
+         *  and destination surfaces.
+         */
+        SDL_SetClipRect: {
+            "output": "SDL_bool",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                }
+            ]
+        },
+        /**
+         *  Gets the clipping rectangle for the destination surface in a blit.
+         *
+         *  \c rect must be a pointer to a valid rectangle which will be filled
+         *  with the correct values.
+         */
+        SDL_GetClipRect: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                }
+            ]
+        },
+        /*
+         * Creates a new surface identical to the existing surface
+         */
+        SDL_DuplicateSurface: {
+            "output": "SDL_Surface*",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                }
+            ]
+        },
+        /**
+         *  Creates a new surface of the specified format, and then copies and maps
+         *  the given surface to it so the blit of the converted surface will be as
+         *  fast as possible.  If this function fails, it returns NULL.
+         *
+         *  The \c flags parameter is passed to SDL_CreateRGBSurface() and has those
+         *  semantics.  You can also pass ::SDL_RLEACCEL in the flags parameter and
+         *  SDL will try to RLE accelerate colorkey and alpha blits in the resulting
+         *  surface.
+         */
+        SDL_ConvertSurface: {
+            "output": "SDL_Surface*",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "src"
+                },
+                {
+                    "type": "SDL_PixelFormat*",
+                    "name": "fmt"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "flags"
+                }
+            ]
+        },
+        SDL_ConvertSurfaceFormat: {
+            "output": "SDL_Surface*",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "src"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "pixel_format"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "flags"
+                }
+            ]
+        },
+        /**
+         * Copy a block of pixels of one format to another format
+         *
+         *  @returns 0 on success, or -1 if there was an error
+         */
+        SDL_ConvertPixels: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "int",
+                    "name": "width"
+                },
+                {
+                    "type": "int",
+                    "name": "height"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "src_format"
+                },
+                {
+                    "type": "void*",
+                    "name": "src"
+                },
+                {
+                    "type": "int",
+                    "name": "src_pitch"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "dst_format"
+                },
+                {
+                    "type": "void*",
+                    "name": "dst"
+                },
+                {
+                    "type": "int",
+                    "name": "dst_pitch"
+                }
+            ]
+        },
+        /**
+         *  Performs a fast fill of the given rectangle with \c color.
+         *
+         *  If \c rect is NULL, the whole surface will be filled with \c color.
+         *
+         *  The color should be a pixel of the format used by the surface, and
+         *  can be generated by the SDL_MapRGB() function.
+         *
+         *  @returns 0 on success, or -1 on error.
+         */
+        SDL_FillRect: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "dst"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rect"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "color"
+                }
+            ]
+        },
+        SDL_FillRects: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "dst"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "rects"
+                },
+                {
+                    "type": "int",
+                    "name": "count"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "color"
+                }
+            ]
+        },
+        /**
+         *  This is the public blit function, SDL_BlitSurface(), and it performs
+         *  rectangle validation and clipping before passing it to SDL_LowerBlit()
+         */
+        SDL_UpperBlit: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "src"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "srcrect"
+                },
+                {
+                    "type": "SDL_Surface*",
+                    "name": "dst"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "dstrect"
+                }
+            ]
+        },
+        /**
+         *  This is a semi-private blit function and it performs low-level surface
+         *  blitting only.
+         */
+        SDL_LowerBlit: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "src"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "srcrect"
+                },
+                {
+                    "type": "SDL_Surface*",
+                    "name": "dst"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "dstrect"
+                }
+            ]
+        },
+        /**
+         *  Perform a fast, low quality, stretch blit between two surfaces of the
+         *         same pixel format.
+         *
+         *  @remarks This function uses a static buffer, and is not thread-safe.
+         */
+        SDL_SoftStretch: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "src"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "srcrect"
+                },
+                {
+                    "type": "SDL_Surface*",
+                    "name": "dst"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "dstrect"
+                }
+            ]
+        },
+        /**
+         *  This is the public scaled blit function, SDL_BlitScaled(), and it performs
+         *  rectangle validation and clipping before passing it to SDL_LowerBlitScaled()
+         */
+        SDL_UpperBlitScaled: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "src"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "srcrect"
+                },
+                {
+                    "type": "SDL_Surface*",
+                    "name": "dst"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "dstrect"
+                }
+            ]
+        },
+        /**
+         *  This is a semi-private blit function and it performs low-level surface
+         *  scaled blitting only.
+         */
+        SDL_LowerBlitScaled: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "src"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "srcrect"
+                },
+                {
+                    "type": "SDL_Surface*",
+                    "name": "dst"
+                },
+                {
+                    "type": "SDL_Rect*",
+                    "name": "dstrect"
+                }
+            ]
+        },
+        /**
+         *  Set the YUV conversion mode
+         */
+        SDL_SetYUVConversionMode: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_YUV_CONVERSION_MODE",
+                    "name": "mode"
+                }
+            ]
+        },
+        /**
+         *  Get the YUV conversion mode
+         */
+        SDL_GetYUVConversionMode: {
+            "output": "SDL_YUV_CONVERSION_MODE",
+            "params": []
+        },
+        /**
+         *  Get the YUV conversion mode, returning the correct mode for the resolution when the current conversion mode is SDL_YUV_CONVERSION_AUTOMATIC
+         */
+        SDL_GetYUVConversionModeForResolution: {
+            "output": "SDL_YUV_CONVERSION_MODE",
+            "params": [
+                {
+                    "type": "int",
+                    "name": "width"
+                },
+                {
+                    "type": "int",
+                    "name": "height"
+                }
+            ]
+        }
     } as const,
     values: {
         /**< fullscreen window */
