@@ -45,6 +45,21 @@ const new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface);
 // sdl_img.SDL_FreeSurface(loaded_surface);
 print(loaded_surface);
 
+type SoA<T> = {
+    [key in keyof T]: T[key][]
+};
+
+type AoS<T> = T[];
+
+
+type Thing ={
+    a: string,
+    b: number,
+}
+
+type SoA_Thing = SoA<Thing>;
+type AoS_Thing = AoS<Thing>;
+
 
 ForeignFunction.ffi.cdef(`
     typedef struct SDL_Rect
@@ -54,17 +69,34 @@ ForeignFunction.ffi.cdef(`
     } SDL_Rect;
 `);
 
-const rect = ForeignFunction.ffi.new("SDL_Rect", [16, 16, 32, 32]);
+const items = [];
+for (let i = 0; i < 1000; i ++) {
+    
+    const rotation = 0 * 3.14 / 360 + i;
+    const distance = 50 + Math.cos(i) * 100;
+    items.push({ x: 240 + Math.cos(rotation) * distance, y: 240 + Math.sin(rotation) * distance });
+}
 
 //While application is running
+let frames = 0;
+let time = os.clock();
 while(true)
 {
     //Clear screen
     sdl.SDL_RenderClear( renderer );
 
     //Render texture to screen
-    sdl.SDL_RenderCopy( renderer, new_texture, null, rect );
+    for (let i = 0; i < items.length; i ++) {
+        const item = items[i];
+        const rect = ForeignFunction.ffi.new("SDL_Rect", [item.x, item.y, 32, 32]);
+        sdl.SDL_RenderCopy( renderer, new_texture, null, rect );
+    }
 
     //Update screen
     sdl.SDL_RenderPresent( renderer );
+
+    frames ++;
+    if (frames % 100 == 0) {
+        print(frames / (os.clock() - time));
+    }
 }
