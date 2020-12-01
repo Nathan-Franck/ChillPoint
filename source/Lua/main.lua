@@ -3837,11 +3837,42 @@ local loaded_surface = sdl_img.IMG_Load(path)
 local new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface)
 print(loaded_surface)
 ForeignFunction.ffi.cdef("\n    typedef struct SDL_Rect\n    {\n        int x, y;\n        int w, h;\n    } SDL_Rect;\n")
-local rect = ForeignFunction.ffi.new("SDL_Rect", {16, 16, 32, 32})
+local items = {}
+do
+    local i = 0
+    while i < 1000 do
+        local rotation = ((0 * 3.14) / 360) + i
+        local distance = 50 + (math.cos(i) * 100)
+        __TS__ArrayPush(
+            items,
+            {
+                x = 240 + (math.cos(rotation) * distance),
+                y = 240 + (math.sin(rotation) * distance)
+            }
+        )
+        i = i + 1
+    end
+end
+local frames = 0
+local time = os.clock()
 while true do
     sdl.SDL_RenderClear(renderer)
-    sdl.SDL_RenderCopy(renderer, new_texture, nil, rect)
+    do
+        local i = 0
+        while i < #items do
+            local item = items[i + 1]
+            local rect = ForeignFunction.ffi.new("SDL_Rect", {item.x, item.y, 32, 32})
+            sdl.SDL_RenderCopy(renderer, new_texture, nil, rect)
+            i = i + 1
+        end
+    end
     sdl.SDL_RenderPresent(renderer)
+    frames = frames + 1
+    if (frames % 100) == 0 then
+        print(
+            frames / (os.clock() - time)
+        )
+    end
 end
 return ____exports
 end,

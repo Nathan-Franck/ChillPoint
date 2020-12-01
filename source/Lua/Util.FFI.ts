@@ -132,7 +132,7 @@ export namespace ForeignFunction {
         cdef: (this: void, header: string) => void,
         load: <T>(this: void, file: string) => T,
         string: (this: void, string: any) => string,
-        new: (this: void, type: string, args: any),
+        new: (this: void, type: string, args: any) => any,
     };
 
     export function load_library<H extends HeaderFile, C>(args: {
