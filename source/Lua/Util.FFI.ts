@@ -17,6 +17,7 @@ export namespace ForeignFunction {
 
         // 🚧 Temp SDL specific 🚧
         "SDL_bool": boolean,
+        "Uint8": number,
         "Uint32": number,
         "Uint64": number,
         "SDL_DisplayOrientation": number,
@@ -34,6 +35,7 @@ export namespace ForeignFunction {
 
         // 🚧 Temp SDL specific 🚧
         "SDL_TimerCallback": "void*",
+        "SDL_YUV_CONVERSION_MODE": "void*",
         "SDL_bool": "bool",
         "SDL_TimerID": "int",
         "SDL_DisplayOrientation": "int",
@@ -46,7 +48,7 @@ export namespace ForeignFunction {
         "SDL_RendererFlip": "int",
         "SDL_ScaleMode": "int",
         "SDL_BlendMode": "int",
-    };
+    } as const;
 
     type External<T extends string> = {
         [key in T]: void;
@@ -126,9 +128,11 @@ export namespace ForeignFunction {
             }), {} as UsefulInterface<H>);
     }
 
-    const ffi = require("ffi") as {
+    export const ffi = require("ffi") as {
         cdef: (this: void, header: string) => void,
         load: <T>(this: void, file: string) => T,
+        string: (this: void, string: any) => string,
+        new: (this: void, type: string, args: any),
     };
 
     export function load_library<H extends HeaderFile, C>(args: {

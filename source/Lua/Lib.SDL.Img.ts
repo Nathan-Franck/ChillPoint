@@ -1,7 +1,12 @@
 import { ForeignFunction } from "./Util.FFI";
 
 export const { types: sdl_img, values: SDL_IMG }= ForeignFunction.load_library({
-    values: {},
+    values: {
+        IMG_INIT_JPG: 0x00000001,
+        IMG_INIT_PNG: 0x00000002,
+        IMG_INIT_TIF: 0x00000004,
+        IMG_INIT_WEBP: 0x00000008
+    } as const,
     file_name: "SDL2_image",
     header: {
         /* This function gets the version of the dynamically linked SDL_image library.
