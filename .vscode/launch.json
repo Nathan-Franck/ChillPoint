@@ -10,16 +10,6 @@
             }
         },
         {
-            "type": "lua-local",
-            "request": "launch",
-            "name": "Debug and Run",
-            "program": {
-                "lua": "lua_jit/luajit",
-                "file": "source/main.lua"
-            },
-            "preLaunchTask": "${defaultBuildTask}"
-        },
-        {
             "name": "Launch Chrome",
             "request": "launch",
             "type": "pwa-chrome",
