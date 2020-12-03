@@ -48,6 +48,10 @@ export namespace ForeignFunction {
         "SDL_RendererFlip": "int",
         "SDL_ScaleMode": "int",
         "SDL_BlendMode": "int",
+        "SDL_EventFilter": "void*",
+        "SDL_eventaction": "void*",
+        "SDL_SystemCursor": "void*",
+
     } as const;
 
     type External<T extends string> = {
@@ -132,7 +136,8 @@ export namespace ForeignFunction {
         cdef: (this: void, header: string) => void,
         load: <T>(this: void, file: string) => T,
         string: (this: void, string: any) => string,
-        new: (this: void, type: string, args: any) => any,
+        new: (this: void, type: string, args?: any) => any,
+        typeof: (this: void, type: string) => (this: void, ...args: any) => any,
     };
 
     export function load_library<H extends HeaderFile, C>(args: {

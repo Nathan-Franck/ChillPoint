@@ -4736,7 +4736,674 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
                     "name": "height"
                 }
             ]
-        }
+        },
+        /**
+         *  Pumps the event loop, gathering events from the input devices.
+         *
+         *  This function updates the event queue and internal input device state.
+         *
+         *  This should only be run in the thread that sets the video mode.
+         */
+        SDL_PumpEvents: {
+            "output": "void",
+            "params": []
+        },
+        /**
+         *  Checks the event queue for messages and optionally returns them.
+         *
+         *  If \c action is ::SDL_ADDEVENT, up to \c numevents events will be added to
+         *  the back of the event queue.
+         *
+         *  If \c action is ::SDL_PEEKEVENT, up to \c numevents events at the front
+         *  of the event queue, within the specified minimum and maximum type,
+         *  will be returned and will not be removed from the queue.
+         *
+         *  If \c action is ::SDL_GETEVENT, up to \c numevents events at the front
+         *  of the event queue, within the specified minimum and maximum type,
+         *  will be returned and will be removed from the queue.
+         *
+         *  @returns The number of events actually stored, or -1 if there was an error.
+         *
+         *  This function is thread-safe.
+         */
+        SDL_PeepEvents: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Event*",
+                    "name": "events"
+                },
+                {
+                    "type": "int",
+                    "name": "numevents"
+                },
+                {
+                    "type": "SDL_eventaction",
+                    "name": "action"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "minType"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "maxType"
+                }
+            ]
+        },
+        /**
+         *  Checks to see if certain event types are in the event queue.
+         */
+        SDL_HasEvent: {
+            "output": "SDL_bool",
+            "params": [
+                {
+                    "type": "Uint32",
+                    "name": "type"
+                }
+            ]
+        },
+        SDL_HasEvents: {
+            "output": "SDL_bool",
+            "params": [
+                {
+                    "type": "Uint32",
+                    "name": "minType"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "maxType"
+                }
+            ]
+        },
+        /**
+         *  This function clears events from the event queue
+         *  This function only affects currently queued events. If you want to make
+         *  sure that all pending OS events are flushed, you can call SDL_PumpEvents()
+         *  on the main thread immediately before the flush call.
+         */
+        SDL_FlushEvent: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "Uint32",
+                    "name": "type"
+                }
+            ]
+        },
+        SDL_FlushEvents: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "Uint32",
+                    "name": "minType"
+                },
+                {
+                    "type": "Uint32",
+                    "name": "maxType"
+                }
+            ]
+        },
+        /**
+         *  Polls for currently pending events.
+         *
+         *  @returns 1 if there are any pending events, or 0 if there are none available.
+         *
+         *  @param event If not NULL, the next event is removed from the queue and
+         *               stored in that area.
+         */
+        SDL_PollEvent: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Event*",
+                    "name": "event"
+                }
+            ]
+        },
+        /**
+         *  Waits indefinitely for the next available event.
+         *
+         *  @returns 1, or 0 if there was an error while waiting for events.
+         *
+         *  @param event If not NULL, the next event is removed from the queue and
+         *               stored in that area.
+         */
+        SDL_WaitEvent: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Event*",
+                    "name": "event"
+                }
+            ]
+        },
+        /**
+         *  Waits until the specified timeout (in milliseconds) for the next
+         *         available event.
+         *
+         *  @returns 1, or 0 if there was an error while waiting for events.
+         *
+         *  @param event If not NULL, the next event is removed from the queue and
+         *               stored in that area.
+         *  @param timeout The timeout (in milliseconds) to wait for next event.
+         */
+        SDL_WaitEventTimeout: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Event*",
+                    "name": "event"
+                },
+                {
+                    "type": "int",
+                    "name": "timeout"
+                }
+            ]
+        },
+        /**
+         *  Add an event to the event queue.
+         *
+         *  @returns 1 on success, 0 if the event was filtered, or -1 if the event queue
+         *          was full or there was some other error.
+         */
+        SDL_PushEvent: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_Event*",
+                    "name": "event"
+                }
+            ]
+        },
+        /**
+         *  Sets up a filter to process all events before they change internal state and
+         *  are posted to the internal event queue.
+         *
+         *  The filter is prototyped as:
+         *  \code
+         *      int SDL_EventFilter(void *userdata, SDL_Event * event);
+         *  \endcode
+         *
+         *  If the filter returns 1, then the event will be added to the internal queue.
+         *  If it returns 0, then the event will be dropped from the queue, but the
+         *  internal state will still be updated.  This allows selective filtering of
+         *  dynamically arriving events.
+         *
+         *  \warning  Be very careful of what you do in the event filter function, as
+         *            it may run in a different thread!
+         *
+         *  There is one caveat when dealing with the ::SDL_QuitEvent event type.  The
+         *  event filter is only called when the window manager desires to close the
+         *  application window.  If the event filter returns 1, then the window will
+         *  be closed, otherwise the window will remain open if possible.
+         *
+         *  If the quit event is generated by an interrupt signal, it will bypass the
+         *  internal queue and be delivered to the application at the next event poll.
+         */
+        SDL_SetEventFilter: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_EventFilter",
+                    "name": "filter"
+                },
+                {
+                    "type": "void*",
+                    "name": "userdata"
+                }
+            ]
+        },
+        /**
+         *  Return the current event filter - can be used to "chain" filters.
+         *  If there is no event filter set, this function returns SDL_FALSE.
+         */
+        SDL_GetEventFilter: {
+            "output": "SDL_bool",
+            "params": [
+                {
+                    "type": "SDL_EventFilter*",
+                    "name": "filter"
+                },
+                {
+                    "type": "void**",
+                    "name": "userdata"
+                }
+            ]
+        },
+        /**
+         *  Add a function which is called when an event is added to the queue.
+         */
+        SDL_AddEventWatch: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_EventFilter",
+                    "name": "filter"
+                },
+                {
+                    "type": "void*",
+                    "name": "userdata"
+                }
+            ]
+        },
+        /**
+         *  Remove an event watch function added with SDL_AddEventWatch()
+         */
+        SDL_DelEventWatch: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_EventFilter",
+                    "name": "filter"
+                },
+                {
+                    "type": "void*",
+                    "name": "userdata"
+                }
+            ]
+        },
+        /**
+         *  Run the filter function on the current event queue, removing any
+         *  events for which the filter returns 0.
+         */
+        SDL_FilterEvents: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_EventFilter",
+                    "name": "filter"
+                },
+                {
+                    "type": "void*",
+                    "name": "userdata"
+                }
+            ]
+        },
+        /**
+         *  This function allows you to set the state of processing certain events.
+         *   - If \c state is set to ::SDL_IGNORE, that event will be automatically
+         *     dropped from the event queue and will not be filtered.
+         *   - If \c state is set to ::SDL_ENABLE, that event will be processed
+         *     normally.
+         *   - If \c state is set to ::SDL_QUERY, SDL_EventState() will return the
+         *     current processing state of the specified event.
+         */
+        SDL_EventState: {
+            "output": "Uint8",
+            "params": [
+                {
+                    "type": "Uint32",
+                    "name": "type"
+                },
+                {
+                    "type": "int",
+                    "name": "state"
+                }
+            ]
+        },
+        /**
+         *  This function allocates a set of user-defined events, and returns
+         *  the beginning event number for that set of events.
+         *
+         *  If there aren't enough user-defined events left, this function
+         *  returns (Uint32)-1
+         */
+        SDL_RegisterEvents: {
+            "output": "Uint32",
+            "params": [
+                {
+                    "type": "int",
+                    "name": "numevents"
+                }
+            ]
+        },
+        /**
+ *  Get the window which currently has mouse focus.
+ */
+        SDL_GetMouseFocus: {
+            "output": "SDL_Window*",
+            "params": []
+        },
+        /**
+         *  Retrieve the current state of the mouse.
+         *
+         *  The current button state is returned as a button bitmask, which can
+         *  be tested using the SDL_BUTTON(X) macros, and x and y are set to the
+         *  mouse cursor position relative to the focus window for the currently
+         *  selected mouse.  You can pass NULL for either x or y.
+         */
+        SDL_GetMouseState: {
+            "output": "Uint32",
+            "params": [
+                {
+                    "type": "int*",
+                    "name": "x"
+                },
+                {
+                    "type": "int*",
+                    "name": "y"
+                }
+            ]
+        },
+        /**
+         *  Get the current state of the mouse, in relation to the desktop
+         *
+         *  This works just like SDL_GetMouseState(), but the coordinates will be
+         *  reported relative to the top-left of the desktop. This can be useful if
+         *  you need to track the mouse outside of a specific window and
+         *  SDL_CaptureMouse() doesn't fit your needs. For example, it could be
+         *  useful if you need to track the mouse while dragging a window, where
+         *  coordinates relative to a window might not be in sync at all times.
+         *
+         *  @remarks SDL_GetMouseState() returns the mouse position as SDL understands
+         *        it from the last pump of the event queue. This function, however,
+         *        queries the OS for the current mouse position, and as such, might
+         *        be a slightly less efficient function. Unless you know what you're
+         *        doing and have a good reason to use this function, you probably want
+         *        SDL_GetMouseState() instead.
+         *
+         *  @param x Returns the current X coord, relative to the desktop. Can be NULL.
+         *  @param y Returns the current Y coord, relative to the desktop. Can be NULL.
+         *  @returns The current button state as a bitmask, which can be tested using the SDL_BUTTON(X) macros.
+         *
+         *  @see SDL_GetMouseState
+         */
+        SDL_GetGlobalMouseState: {
+            "output": "Uint32",
+            "params": [
+                {
+                    "type": "int*",
+                    "name": "x"
+                },
+                {
+                    "type": "int*",
+                    "name": "y"
+                }
+            ]
+        },
+        /**
+         *  Retrieve the relative state of the mouse.
+         *
+         *  The current button state is returned as a button bitmask, which can
+         *  be tested using the SDL_BUTTON(X) macros, and x and y are set to the
+         *  mouse deltas since the last call to SDL_GetRelativeMouseState().
+         */
+        SDL_GetRelativeMouseState: {
+            "output": "Uint32",
+            "params": [
+                {
+                    "type": "int*",
+                    "name": "x"
+                },
+                {
+                    "type": "int*",
+                    "name": "y"
+                }
+            ]
+        },
+        /**
+         *  Moves the mouse to the given position within the window.
+         *
+         *  @param window The window to move the mouse into, or NULL for the current mouse focus
+         *  @param x The x coordinate within the window
+         *  @param y The y coordinate within the window
+         *
+         *  @remarks This function generates a mouse motion event
+         */
+        SDL_WarpMouseInWindow: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Window*",
+                    "name": "window"
+                },
+                {
+                    "type": "int",
+                    "name": "x"
+                },
+                {
+                    "type": "int",
+                    "name": "y"
+                }
+            ]
+        },
+        /**
+         *  Moves the mouse to the given position in global screen space.
+         *
+         *  @param x The x coordinate
+         *  @param y The y coordinate
+         *  @returns 0 on success, -1 on error (usually: unsupported by a platform).
+         *
+         *  @remarks This function generates a mouse motion event
+         */
+        SDL_WarpMouseGlobal: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "int",
+                    "name": "x"
+                },
+                {
+                    "type": "int",
+                    "name": "y"
+                }
+            ]
+        },
+        /**
+         *  Set relative mouse mode.
+         *
+         *  @param enabled Whether or not to enable relative mode
+         *
+         *  @returns 0 on success, or -1 if relative mode is not supported.
+         *
+         *  While the mouse is in relative mode, the cursor is hidden, and the
+         *  driver will try to report continuous motion in the current window.
+         *  Only relative motion events will be delivered, the mouse position
+         *  will not change.
+         *
+         *  @remarks This function will flush any pending mouse motion.
+         *
+         *  @see SDL_GetRelativeMouseMode()
+         */
+        SDL_SetRelativeMouseMode: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_bool",
+                    "name": "enabled"
+                }
+            ]
+        },
+        /**
+         *  Capture the mouse, to track input outside an SDL window.
+         *
+         *  @param enabled Whether or not to enable capturing
+         *
+         *  Capturing enables your app to obtain mouse events globally, instead of
+         *  just within your window. Not all video targets support this function.
+         *  When capturing is enabled, the current window will get all mouse events,
+         *  but unlike relative mode, no change is made to the cursor and it is
+         *  not restrained to your window.
+         *
+         *  This function may also deny mouse input to other windows--both those in
+         *  your application and others on the system--so you should use this
+         *  function sparingly, and in small bursts. For example, you might want to
+         *  track the mouse while the user is dragging something, until the user
+         *  releases a mouse button. It is not recommended that you capture the mouse
+         *  for long periods of time, such as the entire time your app is running.
+         *
+         *  While captured, mouse events still report coordinates relative to the
+         *  current (foreground) window, but those coordinates may be outside the
+         *  bounds of the window (including negative values). Capturing is only
+         *  allowed for the foreground window. If the window loses focus while
+         *  capturing, the capture will be disabled automatically.
+         *
+         *  While capturing is enabled, the current window will have the
+         *  SDL_WINDOW_MOUSE_CAPTURE flag set.
+         *
+         *  @returns 0 on success, or -1 if not supported.
+         */
+        SDL_CaptureMouse: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "SDL_bool",
+                    "name": "enabled"
+                }
+            ]
+        },
+        /**
+         *  Query whether relative mouse mode is enabled.
+         *
+         *  @see SDL_SetRelativeMouseMode()
+         */
+        SDL_GetRelativeMouseMode: {
+            "output": "SDL_bool",
+            "params": []
+        },
+        /**
+         *  Create a cursor, using the specified bitmap data and
+         *         mask (in MSB format).
+         *
+         *  The cursor width must be a multiple of 8 bits.
+         *
+         *  The cursor is created in black and white according to the following:
+         *  <table>
+         *  <tr><td> data </td><td> mask </td><td> resulting pixel on screen </td></tr>
+         *  <tr><td>  0   </td><td>  1   </td><td> White </td></tr>
+         *  <tr><td>  1   </td><td>  1   </td><td> Black </td></tr>
+         *  <tr><td>  0   </td><td>  0   </td><td> Transparent </td></tr>
+         *  <tr><td>  1   </td><td>  0   </td><td> Inverted color if possible, black
+         *                                         if not. </td></tr>
+         *  </table>
+         *
+         *  @see SDL_FreeCursor()
+         */
+        SDL_CreateCursor: {
+            "output": "SDL_Cursor*",
+            "params": [
+                {
+                    "type": "Uint8*",
+                    "name": "data"
+                },
+                {
+                    "type": "Uint8*",
+                    "name": "mask"
+                },
+                {
+                    "type": "int",
+                    "name": "w"
+                },
+                {
+                    "type": "int",
+                    "name": "h"
+                },
+                {
+                    "type": "int",
+                    "name": "hot_x"
+                },
+                {
+                    "type": "int",
+                    "name": "hot_y"
+                }
+            ]
+        },
+        /**
+         *  Create a color cursor.
+         *
+         *  @see SDL_FreeCursor()
+         */
+        SDL_CreateColorCursor: {
+            "output": "SDL_Cursor*",
+            "params": [
+                {
+                    "type": "SDL_Surface*",
+                    "name": "surface"
+                },
+                {
+                    "type": "int",
+                    "name": "hot_x"
+                },
+                {
+                    "type": "int",
+                    "name": "hot_y"
+                }
+            ]
+        },
+        /**
+         *  Create a system cursor.
+         *
+         *  @see SDL_FreeCursor()
+         */
+        SDL_CreateSystemCursor: {
+            "output": "SDL_Cursor*",
+            "params": [
+                {
+                    "type": "SDL_SystemCursor",
+                    "name": "id"
+                }
+            ]
+        },
+        /**
+         *  Set the active cursor.
+         */
+        SDL_SetCursor: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Cursor*",
+                    "name": "cursor"
+                }
+            ]
+        },
+        /**
+         *  Return the active cursor.
+         */
+        SDL_GetCursor: {
+            "output": "SDL_Cursor*",
+            "params": []
+        },
+        /**
+         *  Return the default cursor.
+         */
+        SDL_GetDefaultCursor: {
+            "output": "SDL_Cursor*",
+            "params": []
+        },
+        /**
+         *  Frees a cursor created with SDL_CreateCursor() or similar functions.
+         *
+         *  @see SDL_CreateCursor()
+         *  @see SDL_CreateColorCursor()
+         *  @see SDL_CreateSystemCursor()
+         */
+        SDL_FreeCursor: {
+            "output": "void",
+            "params": [
+                {
+                    "type": "SDL_Cursor*",
+                    "name": "cursor"
+                }
+            ]
+        },
+        /**
+         *  Toggle whether or not the cursor is shown.
+         *
+         *  @param toggle 1 to show the cursor, 0 to hide it, -1 to query the current
+         *                state.
+         *
+         *  @returns 1 if the cursor is shown, or 0 if the cursor is hidden.
+         */
+        SDL_ShowCursor: {
+            "output": "int",
+            "params": [
+                {
+                    "type": "int",
+                    "name": "toggle"
+                }
+            ]
+        },
     } as const,
     values: {
         /**< fullscreen window */
@@ -4788,6 +5455,23 @@ export const { types: sdl, values: SDL } = ForeignFunction.load_library({
         /**< Present is synchronized with the refresh rate */
         SDL_RENDERER_PRESENTVSYNC: 0x00000004,
         /**< The renderer supports */
-        SDL_RENDERER_TARGETTEXTURE: 0x00000008
+        SDL_RENDERER_TARGETTEXTURE: 0x00000008,
+
+        /**< Key pressed */
+        SDL_KEYDOWN: 0x300,
+        /**< Key released */
+        SDL_KEYUP: 0x301,
+        /**< Keyboard text editing (composition) */
+        SDL_TEXTEDITING: 0x302,
+        /**< Keyboard text input */
+        SDL_TEXTINPUT: 0x303,
+        /**< Mouse moved */
+        SDL_MOUSEMOTION: 0x400,
+        /**< Mouse button pressed */
+        SDL_MOUSEBUTTONDOWN: 0x401,
+        /**< Mouse button released */
+        SDL_MOUSEBUTTONUP: 0x402,
+        /**< Mouse wheel motion */
+        SDL_MOUSEWHEEL: 0x403,
     } as const
 });

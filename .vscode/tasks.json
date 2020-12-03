@@ -12,7 +12,7 @@
 			}
 		},
 		{
-			"label": "🕶 Watch --Lua",
+			"label": "🕶 Watch -- Lua",
 			"type": "shell",
 			"group": "build",
 			"problemMatcher": [],

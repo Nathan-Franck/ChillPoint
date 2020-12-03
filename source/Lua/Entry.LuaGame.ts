@@ -21,16 +21,14 @@ export const ffi = require("ffi") as {
     string: (string: any) => string,
 };
 
-const screen_width = 640;
-const screen_height = 480;
 sdl.SDL_Init(SDL.SDL_INIT_VIDEO);
 const window = sdl.SDL_CreateWindow(
     "SDL Tutorial",
     SDL.SDL_WINDOWPOS_UNDEFINED,
     SDL.SDL_WINDOWPOS_UNDEFINED,
-    screen_width,
-    screen_height,
-    SDL.SDL_WINDOW_SHOWN,
+    800,
+    600,
+    SDL.SDL_WINDOW_FULLSCREEN,
 );
 const renderer = sdl.SDL_CreateRenderer(window, -1, SDL.SDL_RENDERER_ACCELERATED);
 sdl.SDL_SetRenderDrawColor(renderer, 0xFF, 0, 0xFF, 0xFF);
@@ -52,7 +50,7 @@ type SoA<T> = {
 type AoS<T> = T[];
 
 
-type Thing ={
+type Thing = {
     a: string,
     b: number,
 }
@@ -67,36 +65,168 @@ ForeignFunction.ffi.cdef(`
         int x, y;
         int w, h;
     } SDL_Rect;
-`);
 
-const items = [];
-for (let i = 0; i < 1000; i ++) {
-    
-    const rotation = 0 * 3.14 / 360 + i;
-    const distance = 50 + Math.cos(i) * 100;
-    items.push({ x: 240 + Math.cos(rotation) * distance, y: 240 + Math.sin(rotation) * distance });
-}
+    typedef struct SDL_Keysym
+    {
+        int scancode;      /**< SDL physical key code - see ::SDL_Scancode for details */
+        int sym;            /**< SDL virtual key code - see ::SDL_Keycode for details */
+        int mod;                 /**< current key modifiers */
+        int unused;
+    } SDL_Keysym;
+
+    typedef struct{
+        int scancode;
+        int sym;
+        int mod;
+        int unicode;
+    } SDL_keysym;
+
+    typedef struct{
+        int type;
+        int state;
+        SDL_keysym keysym;
+    } SDL_KeyboardEvent;
+
+    /**
+     *  \brief Mouse motion event structure (event.motion.*)
+     */
+    typedef struct SDL_MouseMotionEvent
+    {
+        int type;        /**< ::SDL_MOUSEMOTION */
+        int timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
+        int windowID;    /**< The window with mouse focus, if any */
+        int which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
+        int state;       /**< The current button state */
+        int x;           /**< X coordinate, relative to window */
+        int y;           /**< Y coordinate, relative to window */
+        int xrel;        /**< The relative motion in the X direction */
+        int yrel;        /**< The relative motion in the Y direction */
+    } SDL_MouseMotionEvent;
+
+    /**
+     *  \brief Mouse button event structure (event.button.*)
+     */
+    typedef struct SDL_MouseButtonEvent
+    {
+        int type;        /**< ::SDL_MOUSEBUTTONDOWN or ::SDL_MOUSEBUTTONUP */
+        int timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
+        int windowID;    /**< The window with mouse focus, if any */
+        int which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
+        int button;       /**< The mouse button index */
+        int state;        /**< ::SDL_PRESSED or ::SDL_RELEASED */
+        int clicks;       /**< 1 for single-click, 2 for double-click, etc. */
+        int padding1;
+        int x;           /**< X coordinate, relative to window */
+        int y;           /**< Y coordinate, relative to window */
+    } SDL_MouseButtonEvent;
+
+    typedef union SDL_Event
+    {
+        int type;                    /**< Event type, shared with all events */
+        // SDL_CommonEvent common;         /**< Common event data */
+        // SDL_DisplayEvent display;       /**< Display event data */
+        // SDL_WindowEvent window;         /**< Window event data */
+        SDL_KeyboardEvent key;          /**< Keyboard event data */
+        // SDL_TextEditingEvent edit;      /**< Text editing event data */
+        // SDL_TextInputEvent text;        /**< Text input event data */
+        SDL_MouseMotionEvent motion;    /**< Mouse motion event data */
+        SDL_MouseButtonEvent button;    /**< Mouse button event data */
+        // SDL_MouseWheelEvent wheel;      /**< Mouse wheel event data */
+        // SDL_JoyAxisEvent jaxis;         /**< Joystick axis event data */
+        // SDL_JoyBallEvent jball;         /**< Joystick ball event data */
+        // SDL_JoyHatEvent jhat;           /**< Joystick hat event data */
+        // SDL_JoyButtonEvent jbutton;     /**< Joystick button event data */
+        // SDL_JoyDeviceEvent jdevice;     /**< Joystick device change event data */
+        // SDL_ControllerAxisEvent caxis;      /**< Game Controller axis event data */
+        // SDL_ControllerButtonEvent cbutton;  /**< Game Controller button event data */
+        // SDL_ControllerDeviceEvent cdevice;  /**< Game Controller device event data */
+        // SDL_AudioDeviceEvent adevice;   /**< Audio device event data */
+        // SDL_SensorEvent sensor;         /**< Sensor event data */
+        // SDL_QuitEvent quit;             /**< Quit request event data */
+        // SDL_UserEvent user;             /**< Custom event data */
+        // SDL_SysWMEvent syswm;           /**< System dependent window event data */
+        // SDL_TouchFingerEvent tfinger;   /**< Touch finger event data */
+        // SDL_MultiGestureEvent mgesture; /**< Gesture event data */
+        // SDL_DollarGestureEvent dgesture; /**< Gesture event data */
+        // SDL_DropEvent drop;             /**< Drag and drop event data */
+
+        /* This is necessary for ABI compatibility between Visual C++ and GCC
+        Visual C++ will respect the push pack pragma and use 52 bytes for
+        this structure, and GCC will use the alignment of the largest datatype
+        within the union, which is 8 bytes.
+
+        So... we'll add padding to force the size to be 56 bytes for both.
+        */
+        int padding[56];
+    } SDL_Event;
+`);
 
 //While application is running
 let frames = 0;
 let time = os.clock();
-while(true)
-{
-    //Clear screen
-    sdl.SDL_RenderClear( renderer );
+const vecs = [];
 
-    //Render texture to screen
-    for (let i = 0; i < items.length; i ++) {
-        const item = items[i];
-        const rect = ForeignFunction.ffi.new("SDL_Rect", [item.x, item.y, 32, 32]);
-        sdl.SDL_RenderCopy( renderer, new_texture, null, rect );
+function map<T, U>(arr: T[], callback: (arg: T) => U): U[] {
+    const result = [];
+    for (let i = 0; i < arr.length; i++) {
+        result[i] = callback(arr[i]);
+    }
+    return result;
+}
+
+function draw_item(item: { x: number, y: number }) {
+    const { x, y } = item;
+    const rect = ForeignFunction.ffi.new("SDL_Rect", [x, y, 32, 32]);
+    sdl.SDL_RenderCopy(renderer, new_texture, null, rect);
+}
+
+const count = 5000;
+for (let i = 0; i < count; i++) {
+    const rotation = frames * 3.14 / 360 + i;
+    const distance = 50 + Math.cos(i) * 100;
+    vecs[i] = { x: Math.cos(rotation) * distance, y: Math.sin(rotation) * distance };
+    vecs[i] = { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 };
+}
+const event = ForeignFunction.ffi.new("SDL_Event");
+const intPtr = ForeignFunction.ffi.typeof("int[1]");
+let mouse_position = { x: 0, y: 0 };
+while (true) {
+
+    while (sdl.SDL_PollEvent(event) > 0) {
+        switch (event.type) {
+            case SDL.SDL_KEYDOWN:
+                print("Key press detected");
+                break;
+
+            case SDL.SDL_KEYUP:
+                print("Key release detected");
+                break;
+            case SDL.SDL_MOUSEMOTION:
+                const mouse_x = intPtr();
+                const mouse_y = intPtr();
+                sdl.SDL_GetMouseState(mouse_x, mouse_y);
+                mouse_position = { x: mouse_x[0], y: mouse_y[0] };
+                break;
+            default:
+                break;
+        }
     }
 
-    //Update screen
-    sdl.SDL_RenderPresent( renderer );
+    //Clear screen
+    sdl.SDL_RenderClear(renderer);
 
-    frames ++;
-    if (frames % 100 == 0) {
-        print(frames / (os.clock() - time));
+    //Render texture to screen
+
+    for (let i = 0; i < count; i++) {
+        draw_item(vecs[i]);
+    }
+    draw_item(mouse_position);
+
+    //Update screen
+    sdl.SDL_RenderPresent(renderer);
+
+    frames++;
+    if (frames % 500 == 0) {
+        print((os.clock() - time) / frames * 1000);
     }
 }
