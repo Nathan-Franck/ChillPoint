@@ -3830,7 +3830,11 @@ print("Hey! HO!")
 ____exports.ffi = require("ffi")
 sdl.SDL_Init(SDL.SDL_INIT_VIDEO)
 local window = sdl.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL.SDL_WINDOW_FULLSCREEN)
-local renderer = sdl.SDL_CreateRenderer(window, -1, SDL.SDL_RENDERER_ACCELERATED)
+local renderer = sdl.SDL_CreateRenderer(
+    window,
+    -1,
+    bit.bor(SDL.SDL_RENDERER_ACCELERATED, SDL.SDL_RENDERER_PRESENTVSYNC)
+)
 sdl.SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255)
 sdl_img.IMG_Init(SDL_IMG.IMG_INIT_PNG)
 local screen_surface = sdl.SDL_GetWindowSurface(window)
@@ -3863,7 +3867,7 @@ local function draw_item(item)
     local rect = ForeignFunction.ffi.new("SDL_Rect", {x, y, 32, 32})
     sdl.SDL_RenderCopy(renderer, new_texture, nil, rect)
 end
-local count = 5000
+local count = 0
 do
     local i = 0
     while i < count do
@@ -3884,41 +3888,6 @@ local event = ForeignFunction.ffi.new("SDL_Event")
 local intPtr = ForeignFunction.ffi.typeof("int[1]")
 local mouse_position = {x = 0, y = 0}
 while true do
-    while sdl.SDL_PollEvent(event) > 0 do
-        local ____switch9 = event.type
-        local mouse_x, mouse_y
-        if ____switch9 == SDL.SDL_KEYDOWN then
-            goto ____switch9_case_0
-        elseif ____switch9 == SDL.SDL_KEYUP then
-            goto ____switch9_case_1
-        elseif ____switch9 == SDL.SDL_MOUSEMOTION then
-            goto ____switch9_case_2
-        end
-        goto ____switch9_case_default
-        ::____switch9_case_0::
-        do
-            print("Key press detected")
-            goto ____switch9_end
-        end
-        ::____switch9_case_1::
-        do
-            print("Key release detected")
-            goto ____switch9_end
-        end
-        ::____switch9_case_2::
-        do
-            mouse_x = intPtr()
-            mouse_y = intPtr()
-            sdl.SDL_GetMouseState(mouse_x, mouse_y)
-            mouse_position = {x = mouse_x[0], y = mouse_y[0]}
-            goto ____switch9_end
-        end
-        ::____switch9_case_default::
-        do
-            goto ____switch9_end
-        end
-        ::____switch9_end::
-    end
     sdl.SDL_RenderClear(renderer)
     do
         local i = 0
@@ -3926,6 +3895,41 @@ while true do
             draw_item(vecs[i + 1])
             i = i + 1
         end
+    end
+    while sdl.SDL_PollEvent(event) > 0 do
+        local ____switch10 = event.type
+        local mouse_x, mouse_y
+        if ____switch10 == SDL.SDL_KEYDOWN then
+            goto ____switch10_case_0
+        elseif ____switch10 == SDL.SDL_KEYUP then
+            goto ____switch10_case_1
+        elseif ____switch10 == SDL.SDL_MOUSEMOTION then
+            goto ____switch10_case_2
+        end
+        goto ____switch10_case_default
+        ::____switch10_case_0::
+        do
+            print("Key press detected")
+            goto ____switch10_end
+        end
+        ::____switch10_case_1::
+        do
+            print("Key release detected")
+            goto ____switch10_end
+        end
+        ::____switch10_case_2::
+        do
+            mouse_x = intPtr()
+            mouse_y = intPtr()
+            sdl.SDL_GetMouseState(mouse_x, mouse_y)
+            mouse_position = {x = mouse_x[0], y = mouse_y[0]}
+            goto ____switch10_end
+        end
+        ::____switch10_case_default::
+        do
+            goto ____switch10_end
+        end
+        ::____switch10_end::
     end
     draw_item(mouse_position)
     sdl.SDL_RenderPresent(renderer)
