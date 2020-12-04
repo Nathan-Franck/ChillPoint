@@ -1,26 +1,19 @@
 import { sdl, SDL } from "./Lib.SDL";
 import { SDL_IMG, sdl_img } from "./Lib.SDL.Img";
 import { ForeignFunction } from "./Util.FFI";
-
 import { SmoothCurve } from "./Util.SmoothCurve";
 import { Vec2 } from "./Util.VecMath";
-
 const curve: SmoothCurve = { x_range: [0.0, 1.0], y_values: [0.0, 1.0, 0.0] };
-
 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(val => {
     print(val / 10, SmoothCurve.sample(curve, val / 10));
 });
-
 const new_vec = Vec2.add([1, 2], [3, 4]);
-
 print("Hey! HO!");
-
 export const ffi = require("ffi") as {
     cdef: (this: void, header: string) => void,
     load: <T>(this: void, file: string) => T,
     string: (string: any) => string,
 };
-
 sdl.SDL_Init(SDL.SDL_INIT_VIDEO);
 const window = sdl.SDL_CreateWindow(
     "SDL Tutorial",
@@ -30,35 +23,24 @@ const window = sdl.SDL_CreateWindow(
     600,
     SDL.SDL_WINDOW_FULLSCREEN,
 );
-const renderer = sdl.SDL_CreateRenderer(window, -1, SDL.SDL_RENDERER_ACCELERATED);
+const renderer = sdl.SDL_CreateRenderer(window, -1, SDL.SDL_RENDERER_ACCELERATED | SDL.SDL_RENDERER_PRESENTVSYNC);
 sdl.SDL_SetRenderDrawColor(renderer, 0xFF, 0, 0xFF, 0xFF);
-
 sdl_img.IMG_Init(SDL_IMG.IMG_INIT_PNG);
 const screen_surface = sdl.SDL_GetWindowSurface(window);
-
 const path = ForeignFunction.ffi.string(sdl.SDL_GetBasePath()) + "ball.bmp";
 const loaded_surface = sdl_img.IMG_Load(path);
-//const converted_surface = sdl.SDL_ConvertSurface( loaded_surface, (screen_surface as any).format, 0 );
 const new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface);
-// sdl_img.SDL_FreeSurface(loaded_surface);
 print(loaded_surface);
-
 type SoA<T> = {
     [key in keyof T]: T[key][]
 };
-
 type AoS<T> = T[];
-
-
 type Thing = {
     a: string,
     b: number,
-}
-
+};
 type SoA_Thing = SoA<Thing>;
 type AoS_Thing = AoS<Thing>;
-
-
 ForeignFunction.ffi.cdef(`
     typedef struct SDL_Rect
     {
@@ -160,12 +142,9 @@ ForeignFunction.ffi.cdef(`
         int padding[56];
     } SDL_Event;
 `);
-
-//While application is running
 let frames = 0;
 let time = os.clock();
 const vecs = [];
-
 function map<T, U>(arr: T[], callback: (arg: T) => U): U[] {
     const result = [];
     for (let i = 0; i < arr.length; i++) {
@@ -173,60 +152,35 @@ function map<T, U>(arr: T[], callback: (arg: T) => U): U[] {
     }
     return result;
 }
-
 function draw_item(item: { x: number, y: number }) {
     const { x, y } = item;
     const rect = ForeignFunction.ffi.new("SDL_Rect", [x, y, 32, 32]);
     sdl.SDL_RenderCopy(renderer, new_texture, null, rect);
 }
-
-const count = 5000;
-for (let i = 0; i < count; i++) {
-    const rotation = frames * 3.14 / 360 + i;
-    const distance = 50 + Math.cos(i) * 100;
+const count = 0; for (let i = 0; i < count; i++) {
+    const rotation = frames * 3.14 / 360 + i; const distance = 50 + Math.cos(i) * 100;
     vecs[i] = { x: Math.cos(rotation) * distance, y: Math.sin(rotation) * distance };
     vecs[i] = { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 };
 }
-const event = ForeignFunction.ffi.new("SDL_Event");
-const intPtr = ForeignFunction.ffi.typeof("int[1]");
+const event = ForeignFunction.ffi.new("SDL_Event"); const intPtr = ForeignFunction.ffi.typeof("int[1]");
 let mouse_position = { x: 0, y: 0 };
 while (true) {
-
     while (sdl.SDL_PollEvent(event) > 0) {
         switch (event.type) {
             case SDL.SDL_KEYDOWN:
-                print("Key press detected");
-                break;
-
+                print("Key press detected"); break;
             case SDL.SDL_KEYUP:
-                print("Key release detected");
-                break;
+                print("Key release detected"); break;
             case SDL.SDL_MOUSEMOTION:
-                const mouse_x = intPtr();
-                const mouse_y = intPtr();
-                sdl.SDL_GetMouseState(mouse_x, mouse_y);
-                mouse_position = { x: mouse_x[0], y: mouse_y[0] };
+                const mouse_x = intPtr(); const mouse_y = intPtr();
+                sdl.SDL_GetMouseState(mouse_x, mouse_y); mouse_position = { x: mouse_x[0], y: mouse_y[0] };
                 break;
-            default:
-                break;
+            default: break;
         }
     }
-
-    //Clear screen
     sdl.SDL_RenderClear(renderer);
-
-    //Render texture to screen
-
-    for (let i = 0; i < count; i++) {
-        draw_item(vecs[i]);
-    }
+    for (let i = 0; i < count; i++) { draw_item(vecs[i]); }
     draw_item(mouse_position);
-
-    //Update screen
-    sdl.SDL_RenderPresent(renderer);
-
-    frames++;
-    if (frames % 500 == 0) {
-        print((os.clock() - time) / frames * 1000);
-    }
-}
+     sdl.SDL_RenderPresent(renderer);
+    frames++; if (frames % 500 == 0) { print((os.clock() - time) / frames * 1000); }
+} 
