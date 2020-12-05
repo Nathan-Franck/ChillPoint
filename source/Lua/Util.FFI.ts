@@ -21,7 +21,7 @@ export namespace FFI {
         name: string,
     };
 
-    type BaseTypeLookup = {
+    export type BaseTypeLookup = {
         "void": void,
         "int": number,
         "uint": number,
