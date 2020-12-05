@@ -1,7 +1,7 @@
-import { renderer, window } from "./Game.Init";
+import { renderer } from "./Game.Init";
 import { sdl, SDL } from "./Lib.SDL";
-import { SDL_IMG, sdl_img } from "./Lib.SDL.Img";
-import { External, ffi } from "./Util.FFI";
+import { sdl_img } from "./Lib.SDL.Img";
+import { External, ffi, ForeignFunction } from "./Util.FFI";
 import { Scripting } from "./Util.Scripting";
 
 function load_texture(path: string) {
@@ -54,6 +54,11 @@ const sheets = {
         dimensions: [5, 5]
     }],
 } as const;
+
+export function new_external_array<T extends keyof ForeignFunction.BaseTypeLookup>(from: `${T}[${number}]`) {
+    return ffi.new(from) as External<`${T}*`> & { [key: number]: ForeignFunction.BaseTypeLookup[T] };
+}
+
 const sprites = Scripting.get_keys(sheets).
     reduce((sprites, key) => {
         return {
@@ -84,7 +89,7 @@ function draw_item(item: { x: number, y: number }) {
 const count = 0; for (let i = 0; i < count; i++) {
     vecs[i] = { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 };
 }
-const event = ffi.new("SDL_Event"); const intPtr = ffi.typeof("int[1]");
+const event = ffi.new("SDL_Event");
 let mouse_position = { x: 0, y: 0 };
 while (true) {
     while (sdl.SDL_PollEvent(event) > 0) {
@@ -94,8 +99,10 @@ while (true) {
             case SDL.SDL_KEYUP:
                 print("Key release detected"); break;
             case SDL.SDL_MOUSEMOTION:
-                const mouse_x = intPtr(); const mouse_y = intPtr();
-                sdl.SDL_GetMouseState(mouse_x, mouse_y); mouse_position = { x: mouse_x[0], y: mouse_y[0] };
+                const mouse_x = new_external_array("int[1]");
+                const mouse_y = new_external_array("int[1]");
+                sdl.SDL_GetMouseState(mouse_x, mouse_y);
+                mouse_position = { x: mouse_x[0], y: mouse_y[0] };
                 break;
             default: break;
         }

@@ -2049,6 +2049,9 @@ local function map(arr, callback)
     return result
 end
 local sheets = {snowball = {{start = {0, 0}, dimensions = {16, 16}}}, seagull = {{start = {0, 0}, dimensions = {24, 24}}, {start = {24, 0}, dimensions = {24, 24}}, {start = {48, 0}, dimensions = {24, 24}}, {start = {72, 0}, dimensions = {24, 24}}}, feather = {{start = {0, 0}, dimensions = {4, 8}}, {start = {8, 0}, dimensions = {4, 8}}, {start = {16, 0}, dimensions = {4, 8}}}, snow_particle = {{start = {0, 0}, dimensions = {5, 5}}}}
+function ____exports.new_external_array(from)
+    return ffi.new(from)
+end
 local sprites = __TS__ArrayReduce(
     Scripting.get_keys(sheets),
     function(____, sprites, key)
@@ -2109,43 +2112,42 @@ do
     end
 end
 local event = ffi.new("SDL_Event")
-local intPtr = ffi.typeof("int[1]")
 local mouse_position = {x = 0, y = 0}
 while true do
     while sdl.SDL_PollEvent(event) > 0 do
-        local ____switch10 = event.type
+        local ____switch11 = event.type
         local mouse_x, mouse_y
-        if ____switch10 == SDL.SDL_KEYDOWN then
-            goto ____switch10_case_0
-        elseif ____switch10 == SDL.SDL_KEYUP then
-            goto ____switch10_case_1
-        elseif ____switch10 == SDL.SDL_MOUSEMOTION then
-            goto ____switch10_case_2
+        if ____switch11 == SDL.SDL_KEYDOWN then
+            goto ____switch11_case_0
+        elseif ____switch11 == SDL.SDL_KEYUP then
+            goto ____switch11_case_1
+        elseif ____switch11 == SDL.SDL_MOUSEMOTION then
+            goto ____switch11_case_2
         end
-        goto ____switch10_case_default
-        ::____switch10_case_0::
+        goto ____switch11_case_default
+        ::____switch11_case_0::
         do
             print("Key press detected")
-            goto ____switch10_end
+            goto ____switch11_end
         end
-        ::____switch10_case_1::
+        ::____switch11_case_1::
         do
             print("Key release detected")
-            goto ____switch10_end
+            goto ____switch11_end
         end
-        ::____switch10_case_2::
+        ::____switch11_case_2::
         do
-            mouse_x = intPtr()
-            mouse_y = intPtr()
+            mouse_x = ____exports.new_external_array("int[1]")
+            mouse_y = ____exports.new_external_array("int[1]")
             sdl.SDL_GetMouseState(mouse_x, mouse_y)
             mouse_position = {x = mouse_x[0], y = mouse_y[0]}
-            goto ____switch10_end
+            goto ____switch11_end
         end
-        ::____switch10_case_default::
+        ::____switch11_case_default::
         do
-            goto ____switch10_end
+            goto ____switch11_end
         end
-        ::____switch10_end::
+        ::____switch11_end::
     end
     sdl.SDL_RenderClear(renderer)
     do
