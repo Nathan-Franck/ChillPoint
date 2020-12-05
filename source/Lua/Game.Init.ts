@@ -1,7 +1,7 @@
 import { SDL, sdl } from "./Lib.SDL";
-import { ForeignFunction } from "./Util.FFI";
+import { ffi } from "./Util.FFI";
 
-ForeignFunction.ffi.cdef(`
+ffi.cdef(`
     typedef struct SDL_Rect
     {
         int x, y;

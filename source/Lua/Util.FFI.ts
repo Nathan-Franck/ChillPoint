@@ -1,3 +1,16 @@
+
+export const ffi = require("ffi") as {
+    cdef: (this: void, header: string) => void,
+    load: <T>(this: void, file: string) => T,
+    string: (this: void, string: any) => string,
+    new: (this: void, type: string, args?: any) => any,
+    typeof: (this: void, type: string) => (this: void, ...args: any) => any,
+};
+
+export type External<T extends string> = {
+    [key in T]: void;
+} | null;
+
 export namespace ForeignFunction {
 
     type NamedParameter = {
@@ -54,9 +67,7 @@ export namespace ForeignFunction {
 
     } as const;
 
-    type External<T extends string> = {
-        [key in T]: void;
-    } | null;
+
 
     type FuncParam<T extends NamedParameter> = T["type"] extends keyof BaseTypeLookup ? BaseTypeLookup[T["type"]] : External<T["type"]>;
 
@@ -93,7 +104,7 @@ export namespace ForeignFunction {
         if (lookup_result != null) {
             return lookup_result;
         }
-        return type.endsWith("*") ? "void*" : type;   
+        return type.endsWith("*") ? "void*" : type;
     }
 
     function generate_cdef_header(header: HeaderFile) {
@@ -131,14 +142,6 @@ export namespace ForeignFunction {
                 [function_name]: new_func,
             }), {} as UsefulInterface<H>);
     }
-
-    export const ffi = require("ffi") as {
-        cdef: (this: void, header: string) => void,
-        load: <T>(this: void, file: string) => T,
-        string: (this: void, string: any) => string,
-        new: (this: void, type: string, args?: any) => any,
-        typeof: (this: void, type: string) => (this: void, ...args: any) => any,
-    };
 
     export function load_library<H extends HeaderFile, C>(args: {
         file_name: string,
