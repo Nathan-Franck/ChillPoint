@@ -1,4 +1,3 @@
-
 export const ffi = require("ffi") as {
     cdef: (this: void, header: string) => void,
     load: <T>(this: void, file: string) => T,
@@ -22,7 +21,7 @@ export namespace FFI {
         name: string,
     };
 
-    export type BaseTypeLookup = {
+    type BaseTypeLookup = {
         "void": void,
         "int": number,
         "uint": number,
@@ -70,8 +69,6 @@ export namespace FFI {
         "SDL_SystemCursor": "void*",
 
     } as const;
-
-
 
     type FuncParam<T extends NamedParameter> = T["type"] extends keyof BaseTypeLookup ? BaseTypeLookup[T["type"]] : External<T["type"]>;
 
