@@ -2040,19 +2040,8 @@ local function load_texture(path)
 end
 local frames = 0
 local time = os.clock()
-local vecs = {}
-local function map(arr, callback)
-    local result = {}
-    do
-        local i = 0
-        while i < #arr do
-            result[i + 1] = callback(arr[i + 1])
-            i = i + 1
-        end
-    end
-    return result
-end
-local sheets = {snowball = {{start = {0, 0}, dimensions = {16, 16}}}, seagull = {{start = {0, 0}, dimensions = {24, 24}}, {start = {24, 0}, dimensions = {24, 24}}, {start = {48, 0}, dimensions = {24, 24}}, {start = {72, 0}, dimensions = {24, 24}}}, feather = {{start = {0, 0}, dimensions = {4, 8}}, {start = {8, 0}, dimensions = {4, 8}}, {start = {16, 0}, dimensions = {4, 8}}}, snow_particle = {{start = {0, 0}, dimensions = {5, 5}}}}
+local positions = {}
+local sheets = {seagull = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, feather = {{x = 0, y = 0, w = 4, h = 8}, {x = 8, y = 0, w = 4, h = 8}, {x = 16, y = 0, w = 4, h = 8}}, snowball = {{x = 0, y = 0, w = 16, h = 16}}, snow_particle = {{x = 0, y = 0, w = 5, h = 5}}}
 local sprites = __TS__ArrayReduce(
     Scripting.get_keys(sheets),
     function(____, sprites, key)
@@ -2078,34 +2067,16 @@ local function draw_item(item)
     local sprite = sheet.sprites[4]
     local screen_rect = ffi.new(
         "SDL_Rect",
-        {
-            x,
-            y,
-            unpack(sprite.dimensions)
-        }
+        __TS__ObjectAssign({}, sprite, {x = x, y = y})
     )
-    local sprite_rect = ffi.new(
-        "SDL_Rect",
-        {
-            unpack(
-                __TS__ArrayConcat(
-                    {
-                        unpack(sprite.start)
-                    },
-                    {
-                        unpack(sprite.dimensions)
-                    }
-                )
-            )
-        }
-    )
+    local sprite_rect = ffi.new("SDL_Rect", sprite)
     sdl.SDL_RenderCopy(renderer, sheet.texture, sprite_rect, screen_rect)
 end
 local count = 0
 do
     local i = 0
     while i < count do
-        vecs[i + 1] = {
+        positions[i + 1] = {
             x = (math.random() * 400) + 100,
             y = (math.random() * 400) + 100
         }
@@ -2116,45 +2087,45 @@ local event = ffi.new("SDL_Event")
 local mouse_position = {x = 0, y = 0}
 while true do
     while sdl.SDL_PollEvent(event) > 0 do
-        local ____switch10 = event.type
+        local ____switch8 = event.type
         local mouse_x, mouse_y
-        if ____switch10 == SDL.SDL_KEYDOWN then
-            goto ____switch10_case_0
-        elseif ____switch10 == SDL.SDL_KEYUP then
-            goto ____switch10_case_1
-        elseif ____switch10 == SDL.SDL_MOUSEMOTION then
-            goto ____switch10_case_2
+        if ____switch8 == SDL.SDL_KEYDOWN then
+            goto ____switch8_case_0
+        elseif ____switch8 == SDL.SDL_KEYUP then
+            goto ____switch8_case_1
+        elseif ____switch8 == SDL.SDL_MOUSEMOTION then
+            goto ____switch8_case_2
         end
-        goto ____switch10_case_default
-        ::____switch10_case_0::
+        goto ____switch8_case_default
+        ::____switch8_case_0::
         do
             print("Key press detected")
-            goto ____switch10_end
+            goto ____switch8_end
         end
-        ::____switch10_case_1::
+        ::____switch8_case_1::
         do
             print("Key release detected")
-            goto ____switch10_end
+            goto ____switch8_end
         end
-        ::____switch10_case_2::
+        ::____switch8_case_2::
         do
             mouse_x = FFI.new_array("int[1]")
             mouse_y = FFI.new_array("int[1]")
             sdl.SDL_GetMouseState(mouse_x, mouse_y)
             mouse_position = {x = mouse_x[0], y = mouse_y[0]}
-            goto ____switch10_end
+            goto ____switch8_end
         end
-        ::____switch10_case_default::
+        ::____switch8_case_default::
         do
-            goto ____switch10_end
+            goto ____switch8_end
         end
-        ::____switch10_end::
+        ::____switch8_end::
     end
     sdl.SDL_RenderClear(renderer)
     do
         local i = 0
         while i < count do
-            draw_item(vecs[i + 1])
+            draw_item(positions[i + 1])
             i = i + 1
         end
     end
