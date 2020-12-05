@@ -1,6 +1,6 @@
-import { ForeignFunction } from "./Util.FFI";
+import { FFI } from "./Util.FFI";
 
-export const { types: sdl, values: SDL } = ForeignFunction.load_library({
+export const { types: sdl, values: SDL } = FFI.load_library({
     file_name: "SDL2",
     header: {
         /**
