@@ -2013,6 +2013,11 @@ do
 end
 return ____exports
 end,
+["Util.Tuple"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+local ____exports = {}
+local Exclude = {}
+return ____exports
+end,
 ["Entry.LuaGame"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 require("lualib_bundle");
 local ____exports = {}
@@ -2088,7 +2093,7 @@ local mouse_position = {x = 0, y = 0}
 while true do
     while sdl.SDL_PollEvent(event) > 0 do
         local ____switch8 = event.type
-        local mouse_x, mouse_y
+        local Esgetit, whats_this, cool, waaaa, hey, mouse_x, mouse_y
         if ____switch8 == SDL.SDL_KEYDOWN then
             goto ____switch8_case_0
         elseif ____switch8 == SDL.SDL_KEYUP then
@@ -2109,6 +2114,14 @@ while true do
         end
         ::____switch8_case_2::
         do
+            function Esgetit(func, args)
+            end
+            whats_this = Esgetit(sdl.SDL_GetMouseState, {"*", "*"})
+            cool = {}
+            waaaa = unpack(
+                cool(0)
+            )
+            hey = waaaa + 1
             mouse_x = FFI.new_array("int[1]")
             mouse_y = FFI.new_array("int[1]")
             sdl.SDL_GetMouseState(mouse_x, mouse_y)
