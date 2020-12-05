@@ -1,10 +1,9 @@
+import { renderer, window } from "./Game.Init";
 import { sdl, SDL } from "./Lib.SDL";
 import { SDL_IMG, sdl_img } from "./Lib.SDL.Img";
 import { ForeignFunction } from "./Util.FFI";
 
-sdl_img.IMG_Init(SDL_IMG.IMG_INIT_PNG);
-const screen_surface = sdl.SDL_GetWindowSurface(window);
-const path = ForeignFunction.ffi.string(sdl.SDL_GetBasePath()) + "ball.bmp";
+const path = ForeignFunction.ffi.string(sdl.SDL_GetBasePath()) + "Ball.bmp";
 const loaded_surface = sdl_img.IMG_Load(path);
 const new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface);
 let frames = 0;
