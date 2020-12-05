@@ -1,7 +1,7 @@
 import { renderer } from "./Game.Init";
 import { sdl, SDL } from "./Lib.SDL";
 import { sdl_img } from "./Lib.SDL.Img";
-import { External, ffi, ForeignFunction } from "./Util.FFI";
+import { External, ffi, FFI } from "./Util.FFI";
 import { Scripting } from "./Util.Scripting";
 
 function load_texture(path: string) {
@@ -55,10 +55,6 @@ const sheets = {
     }],
 } as const;
 
-export function new_external_array<T extends keyof ForeignFunction.BaseTypeLookup>(from: `${T}[${number}]`) {
-    return ffi.new(from) as External<`${T}*`> & { [key: number]: ForeignFunction.BaseTypeLookup[T] };
-}
-
 const sprites = Scripting.get_keys(sheets).
     reduce((sprites, key) => {
         return {
@@ -99,8 +95,8 @@ while (true) {
             case SDL.SDL_KEYUP:
                 print("Key release detected"); break;
             case SDL.SDL_MOUSEMOTION:
-                const mouse_x = new_external_array("int[1]");
-                const mouse_y = new_external_array("int[1]");
+                const mouse_x = FFI.new_array("int[1]");
+                const mouse_y = FFI.new_array("int[1]");
                 sdl.SDL_GetMouseState(mouse_x, mouse_y);
                 mouse_position = { x: mouse_x[0], y: mouse_y[0] };
                 break;

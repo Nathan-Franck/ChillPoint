@@ -1,6 +1,6 @@
-import { ForeignFunction } from "./Util.FFI";
+import { FFI } from "./Util.FFI";
 
-export const { types: sdl_img, values: SDL_IMG }= ForeignFunction.load_library({
+export const { types: sdl_img, values: SDL_IMG }= FFI.load_library({
     values: {
         IMG_INIT_JPG: 0x00000001,
         IMG_INIT_PNG: 0x00000002,

@@ -11,7 +11,11 @@ export type External<T extends string> = {
     [key in T]: void;
 } | null;
 
-export namespace ForeignFunction {
+export namespace FFI {
+    
+    export function new_array<T extends keyof BaseTypeLookup>(from: `${T}[${number}]`) {
+        return ffi.new(from) as External<`${T}*`> & { [key: number]: BaseTypeLookup[T] };
+    }
 
     type NamedParameter = {
         type: keyof BaseTypeLookup | string,
