@@ -2023,6 +2023,7 @@ require("lualib_bundle");
 local ____exports = {}
 local ____Game_2EInit = require("Game.Init")
 local renderer = ____Game_2EInit.renderer
+local window = ____Game_2EInit.window
 local ____Lib_2ESDL = require("Lib.SDL")
 local sdl = ____Lib_2ESDL.sdl
 local SDL = ____Lib_2ESDL.SDL
@@ -2093,7 +2094,7 @@ local mouse_position = {x = 0, y = 0}
 while true do
     while sdl.SDL_PollEvent(event) > 0 do
         local ____switch8 = event.type
-        local Esgetit, whats_this, cool, waaaa, hey, mouse_x, mouse_y
+        local Esgetit, whats_this, whats_that, cool, waaaa, waaaa2, waaaa3, hey, mouse_x, mouse_y
         if ____switch8 == SDL.SDL_KEYDOWN then
             goto ____switch8_case_0
         elseif ____switch8 == SDL.SDL_KEYUP then
@@ -2114,11 +2115,17 @@ while true do
         end
         ::____switch8_case_2::
         do
-            function Esgetit(func, args)
+            function Esgetit(func, return_key, args)
+                return {}
             end
-            whats_this = Esgetit(sdl.SDL_GetMouseState, {"*", "*"})
+            whats_this = Esgetit(sdl.SDL_GetMouseState, "int", {"*", "*"})
+            __TS__ArrayMap(
+                whats_this,
+                function(____, huh) return huh end
+            )
+            whats_that = Esgetit(sdl.SDL_GetWindowMinimumSize, "int", {window, "*", "*"})
             cool = {}
-            waaaa = unpack(
+            waaaa, waaaa2, waaaa3 = unpack(
                 cool(0)
             )
             hey = waaaa + 1

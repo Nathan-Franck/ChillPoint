@@ -1,4 +1,4 @@
-import { renderer } from "./Game.Init";
+import { renderer, window } from "./Game.Init";
 import { sdl, SDL } from "./Lib.SDL";
 import { sdl_img } from "./Lib.SDL.Img";
 import { External, ffi, FFI } from "./Util.FFI";
@@ -63,29 +63,47 @@ while (true) {
             case SDL.SDL_KEYUP:
                 print("Key release detected"); break;
             case SDL.SDL_MOUSEMOTION:
-                type Cool<T extends (...args: any[]) => any, U extends keyof FFI.BaseTypeLookup> = ExcludeFromTuple<Parameters<T>, External<`${U}*`>>;
-                type PostCool<T extends (...args: any[]) => any, U extends keyof FFI.BaseTypeLookup> = Cool<T, U> extends any[] ? (...args: Cool<T, U>) => [] & { [key in keyof ExtractFromTuple<Parameters<T>, External<`${U}*`>> as key extends number ? key : never]: FFI.BaseTypeLookup[U] } : never;
+                type Cool<T extends (...args: any[]) => any, U extends keyof FFI.BaseTypeLookup> =
+                    ExcludeFromTuple<Parameters<T>, External<`${U}*`>>;
+                type PostCool<T extends (...args: any[]) => any, U extends keyof FFI.BaseTypeLookup, V = ExtractFromTuple<Parameters<T>, External<`${U}*`>>> =
+                    Cool<T, U> extends any[] ?
+                    (...args: Cool<T, U>) => {
+                        [key in keyof V]:
+                        key extends `${number}` ? FFI.BaseTypeLookup[U] : V[key]
+                    } : never;
 
-                type Neato<T extends any[]> = T extends [] ? [] :
+                type RetrieverBlueprint<T extends any[], K extends keyof FFI.BaseTypeLookup> = T extends [] ? [] :
                     T extends [infer H, ...infer R] ?
-                    H extends External<`${keyof FFI.BaseTypeLookup}*}`> ? ["*", ...Neato<R>] : [H, ...Neato<R>] : T
+                    H extends External<`${K}*`> ? ["*", ...RetrieverBlueprint<R, K>] : [H, ...RetrieverBlueprint<R, K>] : T
 
-                type Outputoo<T extends Neato<any[]>, U extends any[]> = T extends [] ? [] :
+                type RetrieverReturns<T extends any[], K extends keyof FFI.BaseTypeLookup> = T extends [] ? [] :
                     T extends [infer H, ...infer R] ?
-                    H extends "*" ? [U[, ...Outputoo<R, U>] : Outputoo<R, U> : T
+                    H extends "*" ? [FFI.BaseTypeLookup[K], ...RetrieverReturns<R, K>] : [...RetrieverReturns<R, K>] : T
 
                 function Esgetit<
-                    V extends Neato<Parameters<T>>,
+                    V extends RetrieverBlueprint<Parameters<T>, K>,
+                    K extends keyof FFI.BaseTypeLookup,
                     T extends (...args: any[]) => any
-                >(func: T, args: V): Outputoo<V>  {
-
+                >(func: T, return_key: K, args: V): RetrieverReturns<V, K>  {
+                    return {} as RetrieverReturns<V, K>
                 }
 
-                const whats_this = Esgetit(sdl.SDL_GetMouseState, ["*", "*"]);
+                const whats_this = Esgetit(sdl.SDL_GetMouseState, "int", ["*", "*"]);
+                whats_this.map(huh => huh);
 
-                const cool = {} as PostCool<typeof sdl.SDL_GL_GetAttribute, "int">;
+                const whats_that = Esgetit(sdl.SDL_GetWindowMinimumSize, "int", [window, "*", "*"]);
+
+                // const cool = {} as PostCool<typeof sdl.SDL_GL_GetAttribute, "int">;
+                type Temp = typeof sdl.SDL_GetWindowMinimumSize;
+                type WhatYouIs = ExtractFromTuple<Parameters<typeof sdl.SDL_GetWindowMinimumSize>, External<`${"int"}*`>>
+                type ExcludeThisWhat = Exclude<Parameters<Temp>[number], External<"int*">>;
+                type ButThisWorksHuh = External<"SDL_Window*">;
+                type AndThis = ExcludeFromTuple<Parameters<Temp>, External<"SDL_Window*">>;
+                const cool = {} as PostCool<Temp, "int">;
                 const [
                     waaaa,
+                    waaaa2,
+                    waaaa3,
                 ] = cool(0);
                 const hey = waaaa + 1;
 

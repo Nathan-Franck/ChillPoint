@@ -8,7 +8,7 @@ export const ffi = require("ffi") as {
 
 export type External<T extends string> = {
     [key in T]: void;
-} | null;
+};
 
 export namespace FFI {
     
@@ -42,6 +42,7 @@ export namespace FFI {
         "SDL_RendererFlip": number,
         "SDL_ScaleMode": number,
         "SDL_BlendMode": number,
+        "SDL_Renderer": void,
     };
 
     const FFIHeaderLookup = {
@@ -91,7 +92,7 @@ export namespace FFI {
         [key in keyof H]: (
             /*@ts-ignore*/
             ...args: FuncParams<H[key]["params"]>
-        ) => FuncParam<{ name: "output", type: H[key]["output"] }>
+        ) => FuncParam<{ name: "output", type: H[key]["output"] }> | null
     }
 
     type UsefulInterface<H extends HeaderFile> = {
