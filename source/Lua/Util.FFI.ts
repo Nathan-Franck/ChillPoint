@@ -1,3 +1,6 @@
+import { Scripting } from "./Util.Scripting";
+import { ExcludeFromTuple, ExtractFromTuple } from "./Util.Tuple";
+
 export const ffi = require("ffi") as {
     cdef: (this: void, header: string) => void,
     load: <T>(this: void, file: string) => T,
@@ -11,7 +14,7 @@ export type External<T extends string> = {
 };
 
 export namespace FFI {
-    
+
     export function new_array<T extends keyof BaseTypeLookup>(from: `${T}[${number}]`) {
         return ffi.new(from) as External<`${T}*`> & { [key: number]: BaseTypeLookup[T] };
     }
@@ -71,14 +74,15 @@ export namespace FFI {
 
     } as const;
 
-    type FuncParam<T extends NamedParameter> = T["type"] extends keyof BaseTypeLookup ? BaseTypeLookup[T["type"]] : External<T["type"]>;
+    type FuncParam<T extends NamedParameter> = T["type"] extends keyof BaseTypeLookup ? BaseTypeLookup[T["type"]] : External<T["type"]> | null;
 
-    export type FuncParams<T extends readonly NamedParameter[]> = {
-        [key in keyof T]: T[key] extends NamedParameter ? FuncParam<T[key]> : never;
-    };
+    // export type FuncParams<T extends readonly NamedParameter[]> = {
+    //     [key in keyof T]: T[key] extends NamedParameter ? FuncParam<T[key]> : never;
+    // };
 
-    type NamedFuncParams<T extends readonly NamedParameter[]> = {
-        [key in keyof T as T[key] extends NamedParameter ? T[key]["name"] : never]: T[key] extends NamedParameter ? FuncParam<T[key]> : never;
+    type FuncParams<T extends readonly any[]> = {
+        /*@ts-ignore*/
+        [key in keyof T]: key extends `${number}` ? FuncParam<T[key]> : T[key];
     };
 
     export type HeaderFile = {
@@ -92,14 +96,25 @@ export namespace FFI {
         [key in keyof H]: (
             /*@ts-ignore*/
             ...args: FuncParams<H[key]["params"]>
-        ) => FuncParam<{ name: "output", type: H[key]["output"] }> | null
+        ) => FuncParam<{ name: "output", type: H[key]["output"] }>
     }
 
     type UsefulInterface<H extends HeaderFile> = {
         [key in keyof H]: (
-            args: NamedFuncParams<H[key]["params"]>
+            args: FuncParams<H[key]["params"]>
         ) => FuncParam<{ name: "output", type: H[key]["output"] }>
     }
+
+    type RemainingArgs<
+        T extends (...args: any[]) => any,
+        U extends keyof FFI.BaseTypeLookup,
+        V = ExcludeFromTuple<Parameters<T>, External<`${U}*`> | null>> = V extends Array<any> ? V : never;
+
+    type OutToMultiReturn<
+        T extends (...args: any[]) => any
+        > = <U extends keyof FFI.BaseTypeLookup, V = ExtractFromTuple<Parameters<T>, External<`${U}*`> | null>>(
+            base_type: U, ...args: RemainingArgs<T, U>
+        ) => { [key in keyof V]: key extends `${number}` ? FFI.BaseTypeLookup[U] : V[key] };
 
     function void_star_fallback(type: string) {
         const lookup_result: string | undefined = FFIHeaderLookup[type as keyof typeof FFIHeaderLookup]
@@ -107,6 +122,33 @@ export namespace FFI {
             return lookup_result;
         }
         return type.endsWith("*") ? "void*" : type;
+    }
+
+    function generate_multiple_return_suite<H extends HeaderFile>(header: H, functions: ExternInterface<H>) {
+        return Scripting.get_keys(header).
+            reduce((funcs, key) => {
+                type Func = OutToMultiReturn<typeof functions[typeof key]>;
+                const new_func = (...params: Parameters<Func>) => {
+                    const [out_type, ...args] = params;
+                    const new_pointers = header[key].params.
+                        filter(param => param.type == `${out_type}*`).
+                        map(() => new_array(`${out_type}[1]` as const));
+                    let pointer_index = 0;
+                    let args_index = 0;
+                    const full_args = header[key].params.
+                        map(param => param.type == `${out_type}*` ? new_pointers[pointer_index++] : args[args_index++]);
+                    type This = FuncParams<H[keyof H]["params"]>;
+                    //@ts-ignore
+                    functions[key](...full_args)
+                    return new_pointers.map(pointer => pointer[0]);
+                };
+                return {
+                    ...funcs,
+                    [key]: new_func as unknown as Func,
+                }
+            }, {} as {
+                [key in keyof H]: OutToMultiReturn<FFI.ExternInterface<H>[key]>
+            });
     }
 
     function generate_cdef_header(header: HeaderFile) {
@@ -154,10 +196,13 @@ export namespace FFI {
         ffi.cdef(cdef_header);
         const extern_interface = ffi.load<ExternInterface<H>>(args.file_name);
         const wrapped_interface = wrap_interface(args.header, extern_interface);
+        const return_suite = generate_multiple_return_suite(args.header, extern_interface);
         return {
             types: extern_interface,
-            values: args.values,
-            header: args.header,
+            values: {
+                ...return_suite,
+                ...args.values,
+            }
         };
     }
 }

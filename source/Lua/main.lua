@@ -1816,9 +1816,41 @@ function __TS__TypeOf(value)
 end
 
 end,
+["Util.Scripting"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+require("lualib_bundle");
+local ____exports = {}
+____exports.Scripting = {}
+local Scripting = ____exports.Scripting
+do
+    function Scripting.get_keys(obj)
+        return __TS__ObjectKeys(obj)
+    end
+    function Scripting.key_value_to_object(keys, key_to_value)
+        return __TS__ArrayReduce(
+            __TS__ArrayMap(
+                keys,
+                function(____, key) return {
+                    key,
+                    key_to_value(key)
+                } end
+            ),
+            function(____, result, key_value) return __TS__ObjectAssign({}, result, {[key_value[1]] = key_value[2]}) end,
+            {}
+        )
+    end
+end
+return ____exports
+end,
+["Util.Tuple"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+local ____exports = {}
+local Exclude = {}
+return ____exports
+end,
 ["Util.FFI"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 require("lualib_bundle");
 local ____exports = {}
+local ____Util_2EScripting = require("Util.Scripting")
+local Scripting = ____Util_2EScripting.Scripting
 ____exports.ffi = require("ffi")
 ____exports.FFI = {}
 local FFI = ____exports.FFI
@@ -1833,6 +1865,50 @@ do
             return lookup_result
         end
         return (__TS__StringEndsWith(____type, "*") and "void*") or ____type
+    end
+    local function generate_multiple_return_suite(header, functions)
+        return __TS__ArrayReduce(
+            Scripting.get_keys(header),
+            function(____, funcs, key)
+                local function new_func(...)
+                    local params = {...}
+                    local out_type = params[1]
+                    local args = __TS__ArraySlice(params, 1)
+                    local new_pointers = __TS__ArrayMap(
+                        __TS__ArrayFilter(
+                            header[key].params,
+                            function(____, param) return param.type == (tostring(out_type) .. "*") end
+                        ),
+                        function() return FFI.new_array(
+                            tostring(out_type) .. "[1]"
+                        ) end
+                    )
+                    local pointer_index = 0
+                    local args_index = 0
+                    local full_args = __TS__ArrayMap(
+                        header[key].params,
+                        function(____, param) return ((param.type == (tostring(out_type) .. "*")) and new_pointers[(function()
+                            local ____tmp = pointer_index
+                            pointer_index = ____tmp + 1
+                            return ____tmp
+                        end)() + 1]) or args[(function()
+                            local ____tmp = args_index
+                            args_index = ____tmp + 1
+                            return ____tmp
+                        end)() + 1] end
+                    )
+                    functions[key](
+                        unpack(full_args)
+                    )
+                    return __TS__ArrayMap(
+                        new_pointers,
+                        function(____, pointer) return pointer[0] end
+                    )
+                end
+                return __TS__ObjectAssign({}, funcs, {[key] = new_func})
+            end,
+            {}
+        )
     end
     local function generate_cdef_header(header)
         return table.concat(
@@ -1906,7 +1982,11 @@ do
         ____exports.ffi.cdef(cdef_header)
         local extern_interface = ____exports.ffi.load(args.file_name)
         local wrapped_interface = wrap_interface(args.header, extern_interface)
-        return {types = extern_interface, values = args.values, header = args.header}
+        local return_suite = generate_multiple_return_suite(args.header, extern_interface)
+        return {
+            types = extern_interface,
+            values = __TS__ObjectAssign({}, return_suite, args.values)
+        }
     end
 end
 return ____exports
@@ -1959,7 +2039,6 @@ local ____ = FFI.load_library(
 )
 ____exports.sdl = ____.types
 ____exports.SDL = ____.values
-____exports.SDL_header = ____.header
 return ____exports
 end,
 ["Game.Init"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
@@ -1989,36 +2068,6 @@ ____exports.sdl_img = ____.types
 ____exports.SDL_IMG = ____.values
 return ____exports
 end,
-["Util.Scripting"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
-require("lualib_bundle");
-local ____exports = {}
-____exports.Scripting = {}
-local Scripting = ____exports.Scripting
-do
-    function Scripting.get_keys(obj)
-        return __TS__ObjectKeys(obj)
-    end
-    function Scripting.key_value_to_object(keys, key_to_value)
-        return __TS__ArrayReduce(
-            __TS__ArrayMap(
-                keys,
-                function(____, key) return {
-                    key,
-                    key_to_value(key)
-                } end
-            ),
-            function(____, result, key_value) return __TS__ObjectAssign({}, result, {[key_value[1]] = key_value[2]}) end,
-            {}
-        )
-    end
-end
-return ____exports
-end,
-["Util.Tuple"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
-local ____exports = {}
-local Exclude = {}
-return ____exports
-end,
 ["Entry.LuaGame"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 require("lualib_bundle");
 local ____exports = {}
@@ -2032,7 +2081,6 @@ local ____Lib_2ESDL_2EImg = require("Lib.SDL.Img")
 local sdl_img = ____Lib_2ESDL_2EImg.sdl_img
 local ____Util_2EFFI = require("Util.FFI")
 local ffi = ____Util_2EFFI.ffi
-local FFI = ____Util_2EFFI.FFI
 local ____Util_2EScripting = require("Util.Scripting")
 local Scripting = ____Util_2EScripting.Scripting
 local function load_texture(path)
@@ -2095,7 +2143,7 @@ local mouse_position = {x = 0, y = 0}
 while true do
     while sdl.SDL_PollEvent(event) > 0 do
         local ____switch8 = event.type
-        local SDL_GetWindowMinimumSize, process_fun, a, b, hey, mouse_x, mouse_y
+        local a, b, x, y
         if ____switch8 == SDL.SDL_KEYDOWN then
             goto ____switch8_case_0
         elseif ____switch8 == SDL.SDL_KEYUP then
@@ -2116,56 +2164,15 @@ while true do
         end
         ::____switch8_case_2::
         do
-            SDL_GetWindowMinimumSize = {}
-            function process_fun(header, functions)
-                __TS__ArrayReduce(
-                    Scripting.get_keys(header),
-                    function(____, funcs, key)
-                        local function new_func(____bindingPattern0)
-                            local out_type
-                            out_type = ____bindingPattern0[1]
-                            local args
-                            args = __TS__ArraySlice(____bindingPattern0, 1)
-                            local new_pointers = __TS__ArrayMap(
-                                __TS__ArrayFilter(
-                                    header[key].params,
-                                    function(____, param) return param.type == (tostring(out_type) .. "*") end
-                                ),
-                                function() return FFI.new_array(
-                                    tostring(out_type) .. "[1]"
-                                ) end
-                            )
-                            local pointer_index = 0
-                            local args_index = 0
-                            local full_args = __TS__ArrayMap(
-                                header[key].params,
-                                function(____, param) return ((param.type == (tostring(out_type) .. "*")) and new_pointers[(function()
-                                    local ____tmp = pointer_index
-                                    pointer_index = ____tmp + 1
-                                    return ____tmp
-                                end)() + 1]) or args[(function()
-                                    local ____tmp = args_index
-                                    args_index = ____tmp + 1
-                                    return ____tmp
-                                end)() + 1] end
-                            )
-                            functions[key](
-                                __TS__Spread(full_args)
-                            )
-                        end
-                        return __TS__ObjectAssign({}, funcs, {[key] = ____})
-                    end,
-                    {}
-                )
-            end
             a, b = unpack(
-                SDL_GetWindowMinimumSize("int", window)
+                SDL.SDL_GetWindowMinimumSize("int", window)
             )
-            hey = a + 1
-            mouse_x = FFI.new_array("int[1]")
-            mouse_y = FFI.new_array("int[1]")
-            sdl.SDL_GetMouseState(mouse_x, mouse_y)
-            mouse_position = {x = mouse_x[0], y = mouse_y[0]}
+            print(a)
+            print(b)
+            x, y = unpack(
+                SDL.SDL_GetMouseState("int")
+            )
+            mouse_position = {x = x, y = y}
             goto ____switch8_end
         end
         ::____switch8_case_default::
