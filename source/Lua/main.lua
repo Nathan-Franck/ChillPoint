@@ -1906,7 +1906,7 @@ do
         ____exports.ffi.cdef(cdef_header)
         local extern_interface = ____exports.ffi.load(args.file_name)
         local wrapped_interface = wrap_interface(args.header, extern_interface)
-        return {types = extern_interface, values = args.values}
+        return {types = extern_interface, values = args.values, header = args.header}
     end
 end
 return ____exports
@@ -1959,6 +1959,7 @@ local ____ = FFI.load_library(
 )
 ____exports.sdl = ____.types
 ____exports.SDL = ____.values
+____exports.SDL_header = ____.header
 return ____exports
 end,
 ["Game.Init"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
@@ -2094,7 +2095,7 @@ local mouse_position = {x = 0, y = 0}
 while true do
     while sdl.SDL_PollEvent(event) > 0 do
         local ____switch8 = event.type
-        local Esgetit, whats_this, whats_that, cool, waaaa, waaaa2, waaaa3, hey, mouse_x, mouse_y
+        local SDL_GetWindowMinimumSize, process_fun, a, b, hey, mouse_x, mouse_y
         if ____switch8 == SDL.SDL_KEYDOWN then
             goto ____switch8_case_0
         elseif ____switch8 == SDL.SDL_KEYUP then
@@ -2115,20 +2116,52 @@ while true do
         end
         ::____switch8_case_2::
         do
-            function Esgetit(func, return_key, args)
-                return {}
+            SDL_GetWindowMinimumSize = {}
+            function process_fun(header, functions)
+                __TS__ArrayReduce(
+                    Scripting.get_keys(header),
+                    function(____, funcs, key)
+                        local function new_func(____bindingPattern0)
+                            local out_type
+                            out_type = ____bindingPattern0[1]
+                            local args
+                            args = __TS__ArraySlice(____bindingPattern0, 1)
+                            local new_pointers = __TS__ArrayMap(
+                                __TS__ArrayFilter(
+                                    header[key].params,
+                                    function(____, param) return param.type == (tostring(out_type) .. "*") end
+                                ),
+                                function() return FFI.new_array(
+                                    tostring(out_type) .. "[1]"
+                                ) end
+                            )
+                            local pointer_index = 0
+                            local args_index = 0
+                            local full_args = __TS__ArrayMap(
+                                header[key].params,
+                                function(____, param) return ((param.type == (tostring(out_type) .. "*")) and new_pointers[(function()
+                                    local ____tmp = pointer_index
+                                    pointer_index = ____tmp + 1
+                                    return ____tmp
+                                end)() + 1]) or args[(function()
+                                    local ____tmp = args_index
+                                    args_index = ____tmp + 1
+                                    return ____tmp
+                                end)() + 1] end
+                            )
+                            functions[key](
+                                __TS__Spread(full_args)
+                            )
+                        end
+                        return __TS__ObjectAssign({}, funcs, {[key] = ____})
+                    end,
+                    {}
+                )
             end
-            whats_this = Esgetit(sdl.SDL_GetMouseState, "int", {"*", "*"})
-            __TS__ArrayMap(
-                whats_this,
-                function(____, huh) return huh end
+            a, b = unpack(
+                SDL_GetWindowMinimumSize("int", window)
             )
-            whats_that = Esgetit(sdl.SDL_GetWindowMinimumSize, "int", {window, "*", "*"})
-            cool = {}
-            waaaa, waaaa2, waaaa3 = unpack(
-                cool(0)
-            )
-            hey = waaaa + 1
+            hey = a + 1
             mouse_x = FFI.new_array("int[1]")
             mouse_y = FFI.new_array("int[1]")
             sdl.SDL_GetMouseState(mouse_x, mouse_y)

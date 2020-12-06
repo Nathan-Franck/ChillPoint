@@ -63,49 +63,42 @@ while (true) {
             case SDL.SDL_KEYUP:
                 print("Key release detected"); break;
             case SDL.SDL_MOUSEMOTION:
-                type Cool<T extends (...args: any[]) => any, U extends keyof FFI.BaseTypeLookup> =
-                    ExcludeFromTuple<Parameters<T>, External<`${U}*`>>;
-                type PostCool<T extends (...args: any[]) => any, U extends keyof FFI.BaseTypeLookup, V = ExtractFromTuple<Parameters<T>, External<`${U}*`>>> =
-                    Cool<T, U> extends any[] ?
-                    (...args: Cool<T, U>) => {
-                        [key in keyof V]:
-                        key extends `${number}` ? FFI.BaseTypeLookup[U] : V[key]
-                    } : never;
-
-                type RetrieverBlueprint<T extends any[], K extends keyof FFI.BaseTypeLookup> = T extends [] ? [] :
-                    T extends [infer H, ...infer R] ?
-                    H extends External<`${K}*`> ? ["*", ...RetrieverBlueprint<R, K>] : [H, ...RetrieverBlueprint<R, K>] : T
-
-                type RetrieverReturns<T extends any[], K extends keyof FFI.BaseTypeLookup> = T extends [] ? [] :
-                    T extends [infer H, ...infer R] ?
-                    H extends "*" ? [FFI.BaseTypeLookup[K], ...RetrieverReturns<R, K>] : [...RetrieverReturns<R, K>] : T
-
-                function Esgetit<
-                    V extends RetrieverBlueprint<Parameters<T>, K>,
-                    K extends keyof FFI.BaseTypeLookup,
+                type RemainingArgs<
+                T extends (...args: any[]) => any,
+                U extends keyof FFI.BaseTypeLookup,
+                V = ExcludeFromTuple<Parameters<T>, External<`${U}*`>>> = V extends Array<any> ? V : never;
+                type OutToMultiReturn<
                     T extends (...args: any[]) => any
-                >(func: T, return_key: K, args: V): RetrieverReturns<V, K>  {
-                    return {} as RetrieverReturns<V, K>
+                    > = <U extends keyof FFI.BaseTypeLookup, V = ExtractFromTuple<Parameters<T>, External<`${U}*`>>>(
+                        base_type: U, ...args: RemainingArgs<T, U>
+                    ) => {
+                            [key in keyof V]:
+                                key extends `${number}` ? FFI.BaseTypeLookup[U] : V[key]
+                        };
+                const SDL_GetWindowMinimumSize = {} as OutToMultiReturn<typeof sdl.SDL_GetWindowMinimumSize>;
+                function process_fun<H extends FFI.HeaderFile>(header: H, functions: FFI.ExternInterface<H>) {
+                    Scripting.get_keys(header).
+                        reduce((funcs, key) => {
+                            type Func = OutToMultiReturn<typeof functions[typeof key]>;
+                            const new_func = ([out_type, ...args]: Parameters<Func>) => {
+                                const new_pointers = header[key].params.
+                                    filter(param => param.type == `${out_type}*`).
+                                    map(() => FFI.new_array(`${out_type}[1]` as const));
+                                let pointer_index = 0;
+                                let args_index = 0;
+                                const full_args = header[key].params.
+                                    map(param => param.type == `${out_type}*` ? new_pointers[pointer_index++] : args[args_index++]);
+                                functions[key](...(full_args as unknown as FFI.FuncParams<H[keyof H]["params"]>))
+                            };
+                            return {
+                                ...funcs,
+                                [key]: 
+                            }
+                        }, {});
                 }
 
-                const whats_this = Esgetit(sdl.SDL_GetMouseState, "int", ["*", "*"]);
-                whats_this.map(huh => huh);
-
-                const whats_that = Esgetit(sdl.SDL_GetWindowMinimumSize, "int", [window, "*", "*"]);
-
-                // const cool = {} as PostCool<typeof sdl.SDL_GL_GetAttribute, "int">;
-                type Temp = typeof sdl.SDL_GetWindowMinimumSize;
-                type WhatYouIs = ExtractFromTuple<Parameters<typeof sdl.SDL_GetWindowMinimumSize>, External<`${"int"}*`>>
-                type ExcludeThisWhat = Exclude<Parameters<Temp>[number], External<"int*">>;
-                type ButThisWorksHuh = External<"SDL_Window*">;
-                type AndThis = ExcludeFromTuple<Parameters<Temp>, External<"SDL_Window*">>;
-                const cool = {} as PostCool<Temp, "int">;
-                const [
-                    waaaa,
-                    waaaa2,
-                    waaaa3,
-                ] = cool(0);
-                const hey = waaaa + 1;
+                const [ a, b ] = SDL_GetWindowMinimumSize("int", window);
+                const hey = a + 1;
 
 
                 const mouse_x = FFI.new_array("int[1]");

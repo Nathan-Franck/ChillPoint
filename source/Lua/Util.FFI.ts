@@ -73,7 +73,7 @@ export namespace FFI {
 
     type FuncParam<T extends NamedParameter> = T["type"] extends keyof BaseTypeLookup ? BaseTypeLookup[T["type"]] : External<T["type"]>;
 
-    type FuncParams<T extends readonly NamedParameter[]> = {
+    export type FuncParams<T extends readonly NamedParameter[]> = {
         [key in keyof T]: T[key] extends NamedParameter ? FuncParam<T[key]> : never;
     };
 
@@ -81,14 +81,14 @@ export namespace FFI {
         [key in keyof T as T[key] extends NamedParameter ? T[key]["name"] : never]: T[key] extends NamedParameter ? FuncParam<T[key]> : never;
     };
 
-    type HeaderFile = {
+    export type HeaderFile = {
         readonly [function_name: string]: {
             readonly output: keyof BaseTypeLookup | string,
             readonly params: readonly NamedParameter[]
         }
     }
 
-    type ExternInterface<H extends HeaderFile> = {
+    export type ExternInterface<H extends HeaderFile> = {
         [key in keyof H]: (
             /*@ts-ignore*/
             ...args: FuncParams<H[key]["params"]>
@@ -157,6 +157,7 @@ export namespace FFI {
         return {
             types: extern_interface,
             values: args.values,
+            header: args.header,
         };
     }
 }

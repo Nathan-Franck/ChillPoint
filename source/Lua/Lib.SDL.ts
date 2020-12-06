@@ -1,6 +1,6 @@
 import { FFI } from "./Util.FFI";
 
-export const { types: sdl, values: SDL } = FFI.load_library({
+export const { types: sdl, values: SDL, header: SDL_header } = FFI.load_library({
     file_name: "SDL2",
     header: {
         /**
