@@ -112,5 +112,5 @@ export const window = sdl.SDL_CreateWindow(
     600,
     0, //SDL.SDL_WINDOW_FULLSCREEN
 )!;
-export const renderer = sdl.SDL_CreateRenderer(window, -1, SDL.SDL_RENDERER_ACCELERATED | SDL.SDL_RENDERER_PRESENTVSYNC)!;
+export const renderer = sdl.SDL_CreateRenderer(window, -1, SDL.SDL_RENDERER_ACCELERATED )!;
 sdl.SDL_SetRenderDrawColor(renderer, 0xFF, 0, 0xFF, 0xFF);

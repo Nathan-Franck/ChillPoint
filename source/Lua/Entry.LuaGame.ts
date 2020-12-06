@@ -1,9 +1,8 @@
 import { renderer, window } from "./Game.Init";
 import { sdl, SDL } from "./Lib.SDL";
 import { sdl_img } from "./Lib.SDL.Img";
-import { External, ffi, FFI } from "./Util.FFI";
+import { External, ffi } from "./Util.FFI";
 import { Scripting } from "./Util.Scripting";
-import { ExcludeFromTuple, ExtractFromTuple } from "./Util.Tuple";
 
 function load_texture(path: string) {
     const full_path = ffi.string(sdl.SDL_GetBasePath()) + path;
@@ -15,42 +14,34 @@ function load_texture(path: string) {
 let frames = 0;
 let time = os.clock();
 const positions = [];
-const sheets = <const>{
-    "seagull": [
+const sheet_inputs = {
+    "seagull.bmp": [
         { x: 0, y: 0, w: 24, h: 24 },
         { x: 24, y: 0, w: 24, h: 24 },
         { x: 48, y: 0, w: 24, h: 24 },
         { x: 72, y: 0, w: 24, h: 24 }],
-    "feather": [
+    "feather.bmp": [
         { x: 0, y: 0, w: 4, h: 8 },
         { x: 8, y: 0, w: 4, h: 8 },
         { x: 16, y: 0, w: 4, h: 8 }],
-    "snowball": [{ x: 0, y: 0, w: 16, h: 16 }],
-    "snow_particle": [{ x: 0, y: 0, w: 5, h: 5 }],
+    "snowball.bmp": [{ x: 0, y: 0, w: 16, h: 16 }],
+    "snow_particle.bmp": [{ x: 0, y: 0, w: 5, h: 5 }],
 };
 
-const sprites = Scripting.get_keys(sheets).
-    reduce((sprites, key) => {
-        return {
-            ...sprites,
-            [key]: {
-                texture: load_texture(`${key}.bmp`),
-                sprites: sheets[key],
-            }
-        };
-    }, {} as { [key in keyof typeof sheets]: {
-        texture: External<"SDL_Texture*">,
-        sprites: typeof sheets[key],
-    } });
+const sheets = Scripting.transform_object(sheet_inputs, (sprites, image_path: `${string}.bmp`) => ({
+    texture: load_texture(image_path),
+    sprites
+}));
 function draw_item(item: { x: number, y: number }) {
     const { x, y } = item;
-    const sheet = sprites.seagull;
+    const sheet = sheets["seagull.bmp"];
     const sprite = sheet.sprites[3];
     const screen_rect = ffi.new("SDL_Rect", { ...sprite, x, y });
     const sprite_rect = ffi.new("SDL_Rect", sprite);
     sdl.SDL_RenderCopy(renderer, sheet.texture, sprite_rect, screen_rect);
 }
-const count = 0; for (let i = 0; i < count; i++) {
+const count = 0;
+for (let i = 0; i < count; i++) {
     positions[i] = { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 };
 }
 const event = ffi.new("SDL_Event");
@@ -63,9 +54,6 @@ while (true) {
             case SDL.SDL_KEYUP:
                 print("Key release detected"); break;
             case SDL.SDL_MOUSEMOTION:
-                const [ a, b ] = SDL.SDL_GetWindowMinimumSize("int", window);
-                print(a);
-                print(b);
                 const [x, y] = SDL.SDL_GetMouseState("int");
                 mouse_position = { x, y };
                 break;

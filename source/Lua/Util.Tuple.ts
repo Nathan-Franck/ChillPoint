@@ -2,7 +2,7 @@ type Cons<H, T> = T extends readonly any[] ? ((h: H, ...t: T) => void) extends (
 type Tail<T extends readonly any[]> = ((...t: T) => void) extends ((h: any, ...r: infer R) => void) ? R : never;
 type Head<T extends readonly any[]> = T[0];
 
-export type ExcludeFromTuple<T extends readonly any[], E> = T["length"] extends 0 ? [] : Exclude.X0<Tail<T>, E> extends infer X ? Head<T> extends E ? X : Cons<Head<T>, X> : never;
+export type ExcludeFromTuple<T extends readonly any[], E> = T["length"] extends 0 ? [] : Exclude.X0<Tail<T>, E> extends infer X ? Head<T> extends E ? [] & X : Cons<Head<T>, X> : never;
 namespace Exclude {
   export type X0<T extends readonly any[], E> = T["length"] extends 0 ? [] : X1<Tail<T>, E> extends infer X ? Head<T> extends E ? X : Cons<Head<T>, X> : never;
   export type X1<T extends readonly any[], E> = T["length"] extends 0 ? [] : X2<Tail<T>, E> extends infer X ? Head<T> extends E ? X : Cons<Head<T>, X> : never;

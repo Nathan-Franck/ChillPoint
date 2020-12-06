@@ -1838,6 +1838,19 @@ do
             {}
         )
     end
+    function Scripting.transform_object(obj, transform)
+        return __TS__ArrayReduce(
+            Scripting.get_keys(obj),
+            function(____, new_obj, key) return __TS__ObjectAssign(
+                {},
+                new_obj,
+                {
+                    [key] = transform(obj[key], key)
+                }
+            ) end,
+            {}
+        )
+    end
 end
 return ____exports
 end,
@@ -1859,6 +1872,16 @@ do
         return ____exports.ffi.new(from)
     end
     local FFIHeaderLookup = {uint = "int", ["char*"] = "const char*", ["const char*"] = "const char*", SDL_TimerCallback = "void*", SDL_YUV_CONVERSION_MODE = "void*", SDL_bool = "bool", SDL_TimerID = "int", SDL_DisplayOrientation = "int", SDL_GLContext = "void*", SDL_GLattr = "int", Uint8 = "int", Uint32 = "int", Uint64 = "uint64_t", SDL_HitTest = "int", SDL_RendererFlip = "int", SDL_ScaleMode = "int", SDL_BlendMode = "int", SDL_EventFilter = "void*", SDL_eventaction = "void*", SDL_SystemCursor = "void*"}
+    local thinger = {{name = "hey", type = 1}, {name = "ho", type = 2}}
+    local function foo(return_type, ...)
+        local args = {...}
+        local ____ = return_type
+        args:filter(
+            function(____, arg) return true end
+        )
+        local hi = args[0]
+        return {}
+    end
     local function void_star_fallback(____type)
         local lookup_result = FFIHeaderLookup[____type]
         if lookup_result ~= nil then
@@ -1985,7 +2008,8 @@ do
         local return_suite = generate_multiple_return_suite(args.header, extern_interface)
         return {
             types = extern_interface,
-            values = __TS__ObjectAssign({}, return_suite, args.values)
+            values = __TS__ObjectAssign({}, return_suite, args.values),
+            header = args.header
         }
     end
 end
@@ -2039,6 +2063,7 @@ local ____ = FFI.load_library(
 )
 ____exports.sdl = ____.types
 ____exports.SDL = ____.values
+____exports.sdl_header = ____.header
 return ____exports
 end,
 ["Game.Init"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
@@ -2051,11 +2076,7 @@ local ffi = ____Util_2EFFI.ffi
 ffi.cdef("\n    typedef struct SDL_Rect\n    {\n        int x, y;\n        int w, h;\n    } SDL_Rect;\n\n    typedef struct SDL_Keysym\n    {\n        int scancode;      /**< SDL physical key code - see ::SDL_Scancode for details */\n        int sym;            /**< SDL virtual key code - see ::SDL_Keycode for details */\n        int mod;                 /**< current key modifiers */\n        int unused;\n    } SDL_Keysym;\n\n    typedef struct{\n        int scancode;\n        int sym;\n        int mod;\n        int unicode;\n    } SDL_keysym;\n\n    typedef struct{\n        int type;\n        int state;\n        SDL_keysym keysym;\n    } SDL_KeyboardEvent;\n\n    /**\n     *  \brief Mouse motion event structure (event.motion.*)\n     */\n    typedef struct SDL_MouseMotionEvent\n    {\n        int type;        /**< ::SDL_MOUSEMOTION */\n        int timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */\n        int windowID;    /**< The window with mouse focus, if any */\n        int which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */\n        int state;       /**< The current button state */\n        int x;           /**< X coordinate, relative to window */\n        int y;           /**< Y coordinate, relative to window */\n        int xrel;        /**< The relative motion in the X direction */\n        int yrel;        /**< The relative motion in the Y direction */\n    } SDL_MouseMotionEvent;\n\n    /**\n     *  \brief Mouse button event structure (event.button.*)\n     */\n    typedef struct SDL_MouseButtonEvent\n    {\n        int type;        /**< ::SDL_MOUSEBUTTONDOWN or ::SDL_MOUSEBUTTONUP */\n        int timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */\n        int windowID;    /**< The window with mouse focus, if any */\n        int which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */\n        int button;       /**< The mouse button index */\n        int state;        /**< ::SDL_PRESSED or ::SDL_RELEASED */\n        int clicks;       /**< 1 for single-click, 2 for double-click, etc. */\n        int padding1;\n        int x;           /**< X coordinate, relative to window */\n        int y;           /**< Y coordinate, relative to window */\n    } SDL_MouseButtonEvent;\n\n    typedef union SDL_Event\n    {\n        int type;                    /**< Event type, shared with all events */\n        // SDL_CommonEvent common;         /**< Common event data */\n        // SDL_DisplayEvent display;       /**< Display event data */\n        // SDL_WindowEvent window;         /**< Window event data */\n        SDL_KeyboardEvent key;          /**< Keyboard event data */\n        // SDL_TextEditingEvent edit;      /**< Text editing event data */\n        // SDL_TextInputEvent text;        /**< Text input event data */\n        SDL_MouseMotionEvent motion;    /**< Mouse motion event data */\n        SDL_MouseButtonEvent button;    /**< Mouse button event data */\n        // SDL_MouseWheelEvent wheel;      /**< Mouse wheel event data */\n        // SDL_JoyAxisEvent jaxis;         /**< Joystick axis event data */\n        // SDL_JoyBallEvent jball;         /**< Joystick ball event data */\n        // SDL_JoyHatEvent jhat;           /**< Joystick hat event data */\n        // SDL_JoyButtonEvent jbutton;     /**< Joystick button event data */\n        // SDL_JoyDeviceEvent jdevice;     /**< Joystick device change event data */\n        // SDL_ControllerAxisEvent caxis;      /**< Game Controller axis event data */\n        // SDL_ControllerButtonEvent cbutton;  /**< Game Controller button event data */\n        // SDL_ControllerDeviceEvent cdevice;  /**< Game Controller device event data */\n        // SDL_AudioDeviceEvent adevice;   /**< Audio device event data */\n        // SDL_SensorEvent sensor;         /**< Sensor event data */\n        // SDL_QuitEvent quit;             /**< Quit request event data */\n        // SDL_UserEvent user;             /**< Custom event data */\n        // SDL_SysWMEvent syswm;           /**< System dependent window event data */\n        // SDL_TouchFingerEvent tfinger;   /**< Touch finger event data */\n        // SDL_MultiGestureEvent mgesture; /**< Gesture event data */\n        // SDL_DollarGestureEvent dgesture; /**< Gesture event data */\n        // SDL_DropEvent drop;             /**< Drag and drop event data */\n\n        /* This is necessary for ABI compatibility between Visual C++ and GCC\n        Visual C++ will respect the push pack pragma and use 52 bytes for\n        this structure, and GCC will use the alignment of the largest datatype\n        within the union, which is 8 bytes.\n\n        So... we'll add padding to force the size to be 56 bytes for both.\n        */\n        int padding[56];\n    } SDL_Event;\n")
 sdl.SDL_Init(SDL.SDL_INIT_VIDEO)
 ____exports.window = sdl.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, 800, 600, 0)
-____exports.renderer = sdl.SDL_CreateRenderer(
-    ____exports.window,
-    -1,
-    bit.bor(SDL.SDL_RENDERER_ACCELERATED, SDL.SDL_RENDERER_PRESENTVSYNC)
-)
+____exports.renderer = sdl.SDL_CreateRenderer(____exports.window, -1, SDL.SDL_RENDERER_ACCELERATED)
 sdl.SDL_SetRenderDrawColor(____exports.renderer, 255, 0, 255, 255)
 return ____exports
 end,
@@ -2073,7 +2094,6 @@ require("lualib_bundle");
 local ____exports = {}
 local ____Game_2EInit = require("Game.Init")
 local renderer = ____Game_2EInit.renderer
-local window = ____Game_2EInit.window
 local ____Lib_2ESDL = require("Lib.SDL")
 local sdl = ____Lib_2ESDL.sdl
 local SDL = ____Lib_2ESDL.SDL
@@ -2096,30 +2116,19 @@ end
 local frames = 0
 local time = os.clock()
 local positions = {}
-local sheets = {seagull = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, feather = {{x = 0, y = 0, w = 4, h = 8}, {x = 8, y = 0, w = 4, h = 8}, {x = 16, y = 0, w = 4, h = 8}}, snowball = {{x = 0, y = 0, w = 16, h = 16}}, snow_particle = {{x = 0, y = 0, w = 5, h = 5}}}
-local sprites = __TS__ArrayReduce(
-    Scripting.get_keys(sheets),
-    function(____, sprites, key)
-        return __TS__ObjectAssign(
-            {},
-            sprites,
-            {
-                [key] = {
-                    texture = load_texture(
-                        tostring(key) .. ".bmp"
-                    ),
-                    sprites = sheets[key]
-                }
-            }
-        )
-    end,
-    {}
+local sheet_inputs = {["seagull.bmp"] = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, ["feather.bmp"] = {{x = 0, y = 0, w = 4, h = 8}, {x = 8, y = 0, w = 4, h = 8}, {x = 16, y = 0, w = 4, h = 8}}, ["snowball.bmp"] = {{x = 0, y = 0, w = 16, h = 16}}, ["snow_particle.bmp"] = {{x = 0, y = 0, w = 5, h = 5}}}
+local sheets = Scripting.transform_object(
+    sheet_inputs,
+    function(sprites, image_path) return {
+        texture = load_texture(image_path),
+        sprites = sprites
+    } end
 )
 local function draw_item(item)
     local x = item.x
     local y = item.y
-    local sheet = sprites.seagull
-    local sprite = sheet.sprites[4]
+    local sheet = sheets["seagull.bmp"]
+    local sprite = sheet.sprites[3]
     local screen_rect = ffi.new(
         "SDL_Rect",
         __TS__ObjectAssign({}, sprite, {x = x, y = y})
@@ -2143,7 +2152,7 @@ local mouse_position = {x = 0, y = 0}
 while true do
     while sdl.SDL_PollEvent(event) > 0 do
         local ____switch8 = event.type
-        local a, b, x, y
+        local x, y
         if ____switch8 == SDL.SDL_KEYDOWN then
             goto ____switch8_case_0
         elseif ____switch8 == SDL.SDL_KEYUP then
@@ -2164,11 +2173,6 @@ while true do
         end
         ::____switch8_case_2::
         do
-            a, b = unpack(
-                SDL.SDL_GetWindowMinimumSize("int", window)
-            )
-            print(a)
-            print(b)
             x, y = unpack(
                 SDL.SDL_GetMouseState("int")
             )

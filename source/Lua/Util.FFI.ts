@@ -1,4 +1,5 @@
-import { Scripting } from "./Util.Scripting";
+import { sdl, sdl_header } from "./Lib.SDL";
+import { FilterTypes, Scripting, TupleToObject } from "./Util.Scripting";
 import { ExcludeFromTuple, ExtractFromTuple } from "./Util.Tuple";
 
 export const ffi = require("ffi") as {
@@ -110,11 +111,33 @@ export namespace FFI {
         U extends keyof FFI.BaseTypeLookup,
         V = ExcludeFromTuple<Parameters<T>, External<`${U}*`> | null>> = V extends Array<any> ? V : never;
 
-    type OutToMultiReturn<
+    type OutToMultiReturn_Old<
         T extends (...args: any[]) => any
-        > = <U extends keyof FFI.BaseTypeLookup, V = ExtractFromTuple<Parameters<T>, External<`${U}*`> | null>>(
+        > = <U extends keyof FFI.BaseTypeLookup, V = [ReturnType<T>, ...ExtractFromTuple<Parameters<T>, External<`${U}*`> | null>]>(
             base_type: U, ...args: RemainingArgs<T, U>
-        ) => { [key in keyof V]: key extends `${number}` ? FFI.BaseTypeLookup[U] : V[key] };
+        ) => { [key in keyof V]: key extends '0' ? V[key] : key extends `${number}` ? FFI.BaseTypeLookup[U] : V[key] };
+
+    type OutToMultiReturn<T extends HeaderFile[string]> = <
+        U extends `${keyof BaseTypeLookup}*`,
+        //@ts-ignore
+        >(return_type: U, ...args: ({ [key in keyof T["params"]]: key extends `${number}` ? "hi" : T["params"][key] })) => {
+
+        }
+
+    const thinger = [{ name: "hey", type: 1 }, { name: "ho", type: 2 }] as const;
+    type TupleTest = typeof thinger;
+    type NumbersOfTuple = Extract<keyof TupleTest, `${number}`>;
+    type T2O_Usage = TupleToObject<TupleTest, "name", "type">;
+    type FilteredObject = Pick<T2O_Usage, "hey">;
+    type ObjectKeyValueCheck = T2O_Usage[keyof T2O_Usage];
+    type FilterTypes_Test = FilterTypes<T2O_Usage, 2>
+
+    const foo: OutToMultiReturn<typeof sdl_header["SDL_GetMouseState"]> = (return_type, ...args) => {
+        return_type
+        args.filter(arg => true);
+        const hi = args[0];
+        return {};
+    }
 
     function void_star_fallback(type: string) {
         const lookup_result: string | undefined = FFIHeaderLookup[type as keyof typeof FFIHeaderLookup]
@@ -127,7 +150,7 @@ export namespace FFI {
     function generate_multiple_return_suite<H extends HeaderFile>(header: H, functions: ExternInterface<H>) {
         return Scripting.get_keys(header).
             reduce((funcs, key) => {
-                type Func = OutToMultiReturn<typeof functions[typeof key]>;
+                type Func = OutToMultiReturn_Old<typeof functions[typeof key]>;
                 const new_func = (...params: Parameters<Func>) => {
                     const [out_type, ...args] = params;
                     const new_pointers = header[key].params.
@@ -137,7 +160,6 @@ export namespace FFI {
                     let args_index = 0;
                     const full_args = header[key].params.
                         map(param => param.type == `${out_type}*` ? new_pointers[pointer_index++] : args[args_index++]);
-                    type This = FuncParams<H[keyof H]["params"]>;
                     //@ts-ignore
                     functions[key](...full_args)
                     return new_pointers.map(pointer => pointer[0]);
@@ -147,7 +169,7 @@ export namespace FFI {
                     [key]: new_func as unknown as Func,
                 }
             }, {} as {
-                [key in keyof H]: OutToMultiReturn<FFI.ExternInterface<H>[key]>
+                [key in keyof H]: OutToMultiReturn_Old<FFI.ExternInterface<H>[key]>
             });
     }
 
@@ -202,7 +224,8 @@ export namespace FFI {
             values: {
                 ...return_suite,
                 ...args.values,
-            }
+            },
+            header: args.header,
         };
     }
 }
