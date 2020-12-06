@@ -37,7 +37,7 @@ async function display_parser() {
         }
     });
 
-    const file = await fetch("SDL_video.h");
+    const file = await fetch("SDL_image.h");
     const text = await file.text();
     const style: Style = {
         backgroundColor: "black",
@@ -94,7 +94,16 @@ async function display_parser() {
 
                     const params = inner.split(",").
                         map(param => type_name(param)).
-                        filter(param => param != null);
+                        reduce((params, param, index) => {
+                            if (param == null) return params;
+                            return {
+                                ...params,
+                                [param.name]: {
+                                    type: param.type,
+                                    index,
+                                },
+                            }
+                        }, {} as { [key: string]: { type: string, index: number } });
 
                     const comments = previous?.match(/\/\*(\*(?!\/)|[^*])*\*\//g);
                     const comment = comments == null ? undefined : comments[comments.length - 1];
@@ -114,10 +123,12 @@ async function display_parser() {
                 comment: string | undefined;
                 guts: {
                     output: string;
-                    params: ({
-                        type: string;
-                        name: string;
-                    } | undefined)[];
+                    params: {
+                        [key: string]: {
+                            type: string;
+                            index: number;
+                        };
+                    };
                 };
             } => statement != null);
         return `{\n${statements.map(statement =>

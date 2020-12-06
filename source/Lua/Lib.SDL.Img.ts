@@ -1,6 +1,6 @@
 import { FFI } from "./Util.FFI";
 
-export const { types: sdl_img, values: SDL_IMG }= FFI.load_library({
+export const { types: sdl_img, values: SDL_IMG } = FFI.load_library({
     values: {
         IMG_INIT_JPG: 0x00000001,
         IMG_INIT_PNG: 0x00000002,
@@ -15,7 +15,7 @@ export const { types: sdl_img, values: SDL_IMG }= FFI.load_library({
          */
         IMG_Linked_Version: {
             "output": "SDL_version*",
-            "params": []
+            "params": {}
         },
         /* Loads dynamic libraries and prepares them for use.  Flags should be
            one or more flags from IMG_InitFlags OR'd together.
@@ -23,17 +23,17 @@ export const { types: sdl_img, values: SDL_IMG }= FFI.load_library({
          */
         IMG_Init: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "flags": {
                     "type": "int",
-                    "name": "flags"
+                    "index": 0
                 }
-            ]
+            }
         },
         /* Unloads libraries loaded with IMG_Init */
         IMG_Quit: {
             "output": "void",
-            "params": []
+            "params": {}
         },
         /* Load an image from an SDL data source.
            The 'type' may be one of: "BMP", "GIF", "PNG", etc.
@@ -45,455 +45,455 @@ export const { types: sdl_img, values: SDL_IMG }= FFI.load_library({
          */
         IMG_LoadTyped_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 },
-                {
+                "freesrc": {
                     "type": "int",
-                    "name": "freesrc"
+                    "index": 1
                 },
-                {
+                "type": {
                     "type": "char*",
-                    "name": "type"
+                    "index": 2
                 }
-            ]
+            }
         },
         /* Convenience functions */
         IMG_Load: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "file": {
                     "type": "char*",
-                    "name": "file"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_Load_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 },
-                {
+                "freesrc": {
                     "type": "int",
-                    "name": "freesrc"
+                    "index": 1
                 }
-            ]
+            }
         },
         /* Load an image directly into a render texture.
          */
         IMG_LoadTexture: {
             "output": "SDL_Texture*",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "file": {
                     "type": "char*",
-                    "name": "file"
+                    "index": 1
                 }
-            ]
+            }
         },
         IMG_LoadTexture_RW: {
             "output": "SDL_Texture*",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 1
                 },
-                {
+                "freesrc": {
                     "type": "int",
-                    "name": "freesrc"
+                    "index": 2
                 }
-            ]
+            }
         },
         IMG_LoadTextureTyped_RW: {
             "output": "SDL_Texture*",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 1
                 },
-                {
+                "freesrc": {
                     "type": "int",
-                    "name": "freesrc"
+                    "index": 2
                 },
-                {
+                "type": {
                     "type": "char*",
-                    "name": "type"
+                    "index": 3
                 }
-            ]
+            }
         },
         /* Functions to detect a file type, given a seekable source */
         IMG_isICO: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isCUR: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isBMP: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isGIF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isJPG: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isLBM: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isPCX: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isPNG: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isPNM: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isSVG: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isTIF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isXCF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isXPM: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isXV: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_isWEBP: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         /* Individual loading functions */
         IMG_LoadICO_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadCUR_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadBMP_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadGIF_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadJPG_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadLBM_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadPCX_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadPNG_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadPNM_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadSVG_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadTGA_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadTIF_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadXCF_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadXPM_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadXV_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_LoadWEBP_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 }
-            ]
+            }
         },
         IMG_ReadXPMFromArray: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "xpm": {
                     "type": "char**",
-                    "name": "xpm"
+                    "index": 0
                 }
-            ]
+            }
         },
         /* Individual saving functions */
         IMG_SavePNG: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "file": {
                     "type": "char*",
-                    "name": "file"
+                    "index": 1
                 }
-            ]
+            }
         },
         IMG_SavePNG_RW: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "dst": {
                     "type": "SDL_RWops*",
-                    "name": "dst"
+                    "index": 1
                 },
-                {
+                "freedst": {
                     "type": "int",
-                    "name": "freedst"
+                    "index": 2
                 }
-            ]
+            }
         },
         IMG_SaveJPG: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "file": {
                     "type": "char*",
-                    "name": "file"
+                    "index": 1
                 },
-                {
+                "quality": {
                     "type": "int",
-                    "name": "quality"
+                    "index": 2
                 }
-            ]
+            }
         },
         IMG_SaveJPG_RW: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "dst": {
                     "type": "SDL_RWops*",
-                    "name": "dst"
+                    "index": 1
                 },
-                {
+                "freedst": {
                     "type": "int",
-                    "name": "freedst"
+                    "index": 2
                 },
-                {
+                "quality": {
                     "type": "int",
-                    "name": "quality"
+                    "index": 3
                 }
-            ]
+            }
         }
     } as const,
 });
