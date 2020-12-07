@@ -1819,6 +1819,20 @@ end,
 ["Util.Scripting"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 require("lualib_bundle");
 local ____exports = {}
+function ____exports.tuple_to_object(tuple, key, value)
+    return __TS__ArrayReduce(
+        tuple,
+        function(____, obj, elem) return __TS__ObjectAssign({}, obj, {[elem[key]] = elem[value]}) end,
+        {}
+    )
+end
+local o2t_start = {length = 2, this = {order = 0, message = "hey!"}, that = {order = 1, message = "ho!"}}
+local function o2t_target(a, b)
+end
+local t2 = {}
+o2t_target(
+    unpack(t2)
+)
 ____exports.Scripting = {}
 local Scripting = ____exports.Scripting
 do
@@ -1862,8 +1876,6 @@ end,
 ["Util.FFI"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 require("lualib_bundle");
 local ____exports = {}
-local ____Util_2EScripting = require("Util.Scripting")
-local Scripting = ____Util_2EScripting.Scripting
 ____exports.ffi = require("ffi")
 ____exports.FFI = {}
 local FFI = ____exports.FFI
@@ -1872,66 +1884,12 @@ do
         return ____exports.ffi.new(from)
     end
     local FFIHeaderLookup = {uint = "int", ["char*"] = "const char*", ["const char*"] = "const char*", SDL_TimerCallback = "void*", SDL_YUV_CONVERSION_MODE = "void*", SDL_bool = "bool", SDL_TimerID = "int", SDL_DisplayOrientation = "int", SDL_GLContext = "void*", SDL_GLattr = "int", Uint8 = "int", Uint32 = "int", Uint64 = "uint64_t", SDL_HitTest = "int", SDL_RendererFlip = "int", SDL_ScaleMode = "int", SDL_BlendMode = "int", SDL_EventFilter = "void*", SDL_eventaction = "void*", SDL_SystemCursor = "void*"}
-    local thinger = {{name = "hey", type = 1}, {name = "ho", type = 2}}
-    local function foo(return_type, ...)
-        local args = {...}
-        local ____ = return_type
-        args:filter(
-            function(____, arg) return true end
-        )
-        local hi = args[0]
-        return {}
-    end
     local function void_star_fallback(____type)
         local lookup_result = FFIHeaderLookup[____type]
         if lookup_result ~= nil then
             return lookup_result
         end
         return (__TS__StringEndsWith(____type, "*") and "void*") or ____type
-    end
-    local function generate_multiple_return_suite(header, functions)
-        return __TS__ArrayReduce(
-            Scripting.get_keys(header),
-            function(____, funcs, key)
-                local function new_func(...)
-                    local params = {...}
-                    local out_type = params[1]
-                    local args = __TS__ArraySlice(params, 1)
-                    local new_pointers = __TS__ArrayMap(
-                        __TS__ArrayFilter(
-                            header[key].params,
-                            function(____, param) return param.type == (tostring(out_type) .. "*") end
-                        ),
-                        function() return FFI.new_array(
-                            tostring(out_type) .. "[1]"
-                        ) end
-                    )
-                    local pointer_index = 0
-                    local args_index = 0
-                    local full_args = __TS__ArrayMap(
-                        header[key].params,
-                        function(____, param) return ((param.type == (tostring(out_type) .. "*")) and new_pointers[(function()
-                            local ____tmp = pointer_index
-                            pointer_index = ____tmp + 1
-                            return ____tmp
-                        end)() + 1]) or args[(function()
-                            local ____tmp = args_index
-                            args_index = ____tmp + 1
-                            return ____tmp
-                        end)() + 1] end
-                    )
-                    functions[key](
-                        unpack(full_args)
-                    )
-                    return __TS__ArrayMap(
-                        new_pointers,
-                        function(____, pointer) return pointer[0] end
-                    )
-                end
-                return __TS__ObjectAssign({}, funcs, {[key] = new_func})
-            end,
-            {}
-        )
     end
     local function generate_cdef_header(header)
         return table.concat(
@@ -2004,13 +1962,7 @@ do
         local cdef_header = generate_cdef_header(args.header)
         ____exports.ffi.cdef(cdef_header)
         local extern_interface = ____exports.ffi.load(args.file_name)
-        local wrapped_interface = wrap_interface(args.header, extern_interface)
-        local return_suite = generate_multiple_return_suite(args.header, extern_interface)
-        return {
-            types = extern_interface,
-            values = __TS__ObjectAssign({}, return_suite, args.values),
-            header = args.header
-        }
+        return {types = extern_interface, values = args.values, header = args.header}
     end
 end
 return ____exports
@@ -2152,7 +2104,7 @@ local mouse_position = {x = 0, y = 0}
 while true do
     while sdl.SDL_PollEvent(event) > 0 do
         local ____switch8 = event.type
-        local x, y
+        local _, x, y
         if ____switch8 == SDL.SDL_KEYDOWN then
             goto ____switch8_case_0
         elseif ____switch8 == SDL.SDL_KEYUP then
@@ -2173,8 +2125,8 @@ while true do
         end
         ::____switch8_case_2::
         do
-            x, y = unpack(
-                SDL.SDL_GetMouseState("int")
+            _, x, y = unpack(
+                SDL:SDL_GetMouseState("int")
             )
             mouse_position = {x = x, y = y}
             goto ____switch8_end

@@ -1,5 +1,4 @@
-import { sdl, sdl_header } from "./Lib.SDL";
-import { FilterTypes, Scripting, TupleToObject } from "./Util.Scripting";
+import { Tuple } from "./Util.Scripting";
 import { ExcludeFromTuple, ExtractFromTuple } from "./Util.Tuple";
 
 export const ffi = require("ffi") as {
@@ -89,7 +88,7 @@ export namespace FFI {
     export type HeaderFile = {
         readonly [function_name: string]: {
             readonly output: keyof BaseTypeLookup | string,
-            readonly params: readonly NamedParameter[]
+            readonly params: Tuple<NamedParameter, number>,
         }
     }
 
@@ -111,33 +110,11 @@ export namespace FFI {
         U extends keyof FFI.BaseTypeLookup,
         V = ExcludeFromTuple<Parameters<T>, External<`${U}*`> | null>> = V extends Array<any> ? V : never;
 
-    type OutToMultiReturn_Old<
+    type OutToMultiReturn<
         T extends (...args: any[]) => any
         > = <U extends keyof FFI.BaseTypeLookup, V = [ReturnType<T>, ...ExtractFromTuple<Parameters<T>, External<`${U}*`> | null>]>(
             base_type: U, ...args: RemainingArgs<T, U>
         ) => { [key in keyof V]: key extends '0' ? V[key] : key extends `${number}` ? FFI.BaseTypeLookup[U] : V[key] };
-
-    type OutToMultiReturn<T extends HeaderFile[string]> = <
-        U extends `${keyof BaseTypeLookup}*`,
-        //@ts-ignore
-        >(return_type: U, ...args: ({ [key in keyof T["params"]]: key extends `${number}` ? "hi" : T["params"][key] })) => {
-
-        }
-
-    const thinger = [{ name: "hey", type: 1 }, { name: "ho", type: 2 }] as const;
-    type TupleTest = typeof thinger;
-    type NumbersOfTuple = Extract<keyof TupleTest, `${number}`>;
-    type T2O_Usage = TupleToObject<TupleTest, "name", "type">;
-    type FilteredObject = Pick<T2O_Usage, "hey">;
-    type ObjectKeyValueCheck = T2O_Usage[keyof T2O_Usage];
-    type FilterTypes_Test = FilterTypes<T2O_Usage, 2>
-
-    const foo: OutToMultiReturn<typeof sdl_header["SDL_GetMouseState"]> = (return_type, ...args) => {
-        return_type
-        args.filter(arg => true);
-        const hi = args[0];
-        return {};
-    }
 
     function void_star_fallback(type: string) {
         const lookup_result: string | undefined = FFIHeaderLookup[type as keyof typeof FFIHeaderLookup]
@@ -145,32 +122,6 @@ export namespace FFI {
             return lookup_result;
         }
         return type.endsWith("*") ? "void*" : type;
-    }
-
-    function generate_multiple_return_suite<H extends HeaderFile>(header: H, functions: ExternInterface<H>) {
-        return Scripting.get_keys(header).
-            reduce((funcs, key) => {
-                type Func = OutToMultiReturn_Old<typeof functions[typeof key]>;
-                const new_func = (...params: Parameters<Func>) => {
-                    const [out_type, ...args] = params;
-                    const new_pointers = header[key].params.
-                        filter(param => param.type == `${out_type}*`).
-                        map(() => new_array(`${out_type}[1]` as const));
-                    let pointer_index = 0;
-                    let args_index = 0;
-                    const full_args = header[key].params.
-                        map(param => param.type == `${out_type}*` ? new_pointers[pointer_index++] : args[args_index++]);
-                    //@ts-ignore
-                    functions[key](...full_args)
-                    return new_pointers.map(pointer => pointer[0]);
-                };
-                return {
-                    ...funcs,
-                    [key]: new_func as unknown as Func,
-                }
-            }, {} as {
-                [key in keyof H]: OutToMultiReturn_Old<FFI.ExternInterface<H>[key]>
-            });
     }
 
     function generate_cdef_header(header: HeaderFile) {
@@ -217,14 +168,9 @@ export namespace FFI {
         const cdef_header = generate_cdef_header(args.header);
         ffi.cdef(cdef_header);
         const extern_interface = ffi.load<ExternInterface<H>>(args.file_name);
-        const wrapped_interface = wrap_interface(args.header, extern_interface);
-        const return_suite = generate_multiple_return_suite(args.header, extern_interface);
         return {
             types: extern_interface,
-            values: {
-                ...return_suite,
-                ...args.values,
-            },
+            values: args.values,
             header: args.header,
         };
     }

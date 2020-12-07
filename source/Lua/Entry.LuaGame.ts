@@ -54,7 +54,7 @@ while (true) {
             case SDL.SDL_KEYUP:
                 print("Key release detected"); break;
             case SDL.SDL_MOUSEMOTION:
-                const [x, y] = SDL.SDL_GetMouseState("int");
+                const [_, x, y] = SDL.SDL_GetMouseState("int");
                 mouse_position = { x, y };
                 break;
             default: break;

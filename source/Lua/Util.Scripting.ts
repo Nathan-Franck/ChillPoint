@@ -1,17 +1,55 @@
+import { sdl_header } from "./Lib.SDL";
+
 export type FilterTypes<T extends { [key: string]: any }, U extends T[keyof T]> = {
     [key in keyof T as T[key] extends U ? key : never]: T[key];
 }
 
-export type TupleToObject<
-    Tuple extends {
-        [key in `${number}`]: { [key: string]: any };
-    },
-    Key extends keyof Tuple[Extract<keyof Tuple, `${number}`>],
-    Value extends keyof Tuple[Extract<keyof Tuple, `${number}`>],
-    > = {
+export type Tuple<T, Key extends number> = readonly T[] & { readonly [key in `${Key}`]: T }
+
+export function tuple_to_object<
+    T extends Tuple<Elems, number>,
+    Key extends keyof Elems,
+    Value extends keyof Elems,
+    Elems = { [key: string]: any },
+>(tuple: T, key: Key, value: Value) {
+    return tuple.reduce((obj, elem) => ({
+        ...obj,
         //@ts-ignore
-        [key in keyof Tuple as key extends `${number}` ? Tuple[key][Key] : never]: key extends `${number}` ? Tuple[key][Value] : never;
-    };
+        [elem[key]]: elem[value],
+    }), {} as {
+        //@ts-ignore
+        [key in keyof T as key extends `${number}` ? T[key][Key] : never]: key extends `${number}` ? T[key][Value] : never;
+    })
+}
+
+const o2t_start = { length: 2, this: { order: 0, message: "hey!" }, that: { order: 1, message: "ho!" } } as const;
+type O2TStart = typeof o2t_start;
+function o2t_target(a: "hey!", b: "ho!") {
+
+}
+
+type Ordered<T extends { order: number }> = { [key: string]: T } & { length: number };
+
+type KeyWithOrder<T extends Ordered<any>, Index extends number> = keyof {
+    [key in keyof T as T[key]["order"] extends Index ? key : never]: key
+}
+type TupleFromOrdered<
+    T extends Ordered<any>,
+    N = T['length']
+    > = N extends N ? number extends N ? T[] : N extends number ? _TupleOf<T, N, []> : never : never;
+type _TupleOf<
+    T extends Ordered<any>,
+    N extends T['length'],
+    R extends unknown[],
+    V = KeyWithOrder<T, R['length']>
+    > = R['length'] extends N ? R : _TupleOf<T, N, [...R, V]>;
+
+type kwo_test = KeyWithOrder<O2TStart, 1>;
+//@ts-ignore
+type O2TTransform = { length: O2TStart["length"] } & { [key in keyof O2TStart as key extends "length" ? never : O2TStart[key]["message"]]: { order: O2TStart[key]["order"] } };
+type Solution = TupleFromOrdered<O2TTransform>;
+const t2 = [] as any as Solution;
+o2t_target(...t2);
 
 export namespace Scripting {
     export function get_keys<T>(obj: T): (keyof T)[] {
