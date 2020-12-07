@@ -1826,7 +1826,7 @@ function ____exports.tuple_to_object(tuple, key, value)
         {}
     )
 end
-local o2t_start = {length = 2, this = {order = 0, message = "hey!"}, that = {order = 1, message = "ho!"}}
+local o2t_start = {this = {index = 0, message = "hey!"}, that = {index = 1, message = "ho!"}}
 local function o2t_target(a, b)
 end
 local t2 = {}

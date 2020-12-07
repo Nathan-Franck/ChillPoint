@@ -22,32 +22,38 @@ export function tuple_to_object<
     })
 }
 
-const o2t_start = { length: 2, this: { order: 0, message: "hey!" }, that: { order: 1, message: "ho!" } } as const;
+const o2t_start = { this: { index: 0, message: "hey!" }, that: { index: 1, message: "ho!" } } as const;
 type O2TStart = typeof o2t_start;
 function o2t_target(a: "hey!", b: "ho!") {
 
 }
 
-type Ordered<T extends { order: number }> = { [key: string]: T } & { length: number };
+type Ordered<T extends { index: number }> = { [key in string]: T };
+
+type TupleUnion<U extends symbol | string | number, R extends any[] = []> = {
+    [key in U]: Exclude<U, key> extends never ? [...R, key] : TupleUnion<Exclude<U, key>, [...R, key]>;
+}[U];
 
 type KeyWithOrder<T extends Ordered<any>, Index extends number> = keyof {
-    [key in keyof T as T[key]["order"] extends Index ? key : never]: key
+    [key in keyof T as T[key]["index"] extends Index ? key : never]: key
 }
 type TupleFromOrdered<
     T extends Ordered<any>,
-    N = T['length']
-    > = N extends N ? number extends N ? T[] : N extends number ? _TupleOf<T, N, []> : never : never;
+    > = _TupleOf<T, []>;
 type _TupleOf<
     T extends Ordered<any>,
-    N extends T['length'],
     R extends unknown[],
     V = KeyWithOrder<T, R['length']>
-    > = R['length'] extends N ? R : _TupleOf<T, N, [...R, V]>;
+    > = {} extends T ? R : _TupleOf<Pick<T, Exclude<keyof T, V>>, [...R, V]>;
+
+type TU_Test = TupleUnion<"hey" | "ho" | "hum">["length"];
+
 
 type kwo_test = KeyWithOrder<O2TStart, 1>;
-//@ts-ignore
-type O2TTransform = { length: O2TStart["length"] } & { [key in keyof O2TStart as key extends "length" ? never : O2TStart[key]["message"]]: { order: O2TStart[key]["order"] } };
-type Solution = TupleFromOrdered<O2TTransform>;
+type O2TTransformation = {
+    [key in keyof O2TStart as O2TStart[key]["message"]]: { index: O2TStart[key]["index"] };
+};
+type Solution = TupleFromOrdered<O2TTransformation>;
 const t2 = [] as any as Solution;
 o2t_target(...t2);
 
