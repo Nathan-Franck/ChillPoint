@@ -8,12 +8,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_Init: {
             "output": "int",
-            "params": [
-                {
-                    "type": "Uint32",
-                    "name": "flags"
+            "params": {
+                "flags": {
+                "type": "Uint32",
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  This function initializes specific SDL subsystems
@@ -26,24 +26,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_InitSubSystem: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "flags": {
                     "type": "Uint32",
-                    "name": "flags"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  This function cleans up specific SDL subsystems
          */
         SDL_QuitSubSystem: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "flags": {
                     "type": "Uint32",
-                    "name": "flags"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  This function returns a mask of the specified subsystems which have
@@ -53,12 +53,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_WasInit: {
             "output": "Uint32",
-            "params": [
-                {
+            "params": {
+                "flags": {
                     "type": "Uint32",
-                    "name": "flags"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  This function cleans up all initialized subsystems. You should
@@ -66,7 +66,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_Quit: {
             "output": "void",
-            "params": []
+            "params": {}
         },
         /**
          * Get the number of milliseconds since the SDL library initialization.
@@ -75,33 +75,33 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetTicks: {
             "output": "Uint32",
-            "params": []
+            "params": {}
         },
         /**
          * Get the current value of the high resolution counter
          */
         SDL_GetPerformanceCounter: {
             "output": "Uint64",
-            "params": []
+            "params": {}
         },
         /**
          * Get the count per second of the high resolution counter
          */
         SDL_GetPerformanceFrequency: {
             "output": "Uint64",
-            "params": []
+            "params": {}
         },
         /**
          * Wait a specified number of milliseconds before returning.
          */
         SDL_Delay: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "ms": {
                     "type": "Uint32",
-                    "name": "ms"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          * Add a new timer to the pool of timers already running.
@@ -110,20 +110,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_AddTimer: {
             "output": "SDL_TimerID",
-            "params": [
-                {
+            "params": {
+                "interval": {
                     "type": "Uint32",
-                    "name": "interval"
+                    "index": 0
                 },
-                {
+                "callback": {
                     "type": "SDL_TimerCallback",
-                    "name": "callback"
+                    "index": 1
                 },
-                {
+                "param": {
                     "type": "void*",
-                    "name": "param"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          * Remove a timer knowing its ID.
@@ -134,12 +134,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RemoveTimer: {
             "output": "SDL_bool",
-            "params": [
-                {
+            "params": {
+                "id": {
                     "type": "SDL_TimerID",
-                    "name": "id"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get the number of video drivers compiled into SDL
@@ -148,7 +148,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetNumVideoDrivers: {
             "output": "int",
-            "params": []
+            "params": {}
         },
         /**
          *  Get the name of a built in video driver.
@@ -160,12 +160,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetVideoDriver: {
             "output": "char*",
-            "params": [
-                {
+            "params": {
+                "index": {
                     "type": "int",
-                    "name": "index"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Initialize the video subsystem, optionally specifying a video driver.
@@ -183,12 +183,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_VideoInit: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "driver_name": {
                     "type": "char*",
-                    "name": "driver_name"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Shuts down the video subsystem.
@@ -199,7 +199,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_VideoQuit: {
             "output": "void",
-            "params": []
+            "params": {}
         },
         /**
          *  Returns the name of the currently initialized video driver.
@@ -212,7 +212,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetCurrentVideoDriver: {
             "output": "char*",
-            "params": []
+            "params": {}
         },
         /**
          *  Returns the number of available video displays.
@@ -221,7 +221,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetNumVideoDisplays: {
             "output": "int",
-            "params": []
+            "params": {}
         },
         /**
          *  Get the name of a display in UTF-8 encoding
@@ -232,12 +232,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetDisplayName: {
             "output": "char*",
-            "params": [
-                {
+            "params": {
+                "displayIndex": {
                     "type": "int",
-                    "name": "displayIndex"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get the desktop area represented by a display, with the primary
@@ -249,16 +249,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetDisplayBounds: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "displayIndex": {
                     "type": "int",
-                    "name": "displayIndex"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the usable desktop area represented by a display, with the
@@ -279,16 +279,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetDisplayUsableBounds: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "displayIndex": {
                     "type": "int",
-                    "name": "displayIndex"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the dots/pixels-per-inch for a display
@@ -302,24 +302,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetDisplayDPI: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "displayIndex": {
                     "type": "int",
-                    "name": "displayIndex"
+                    "index": 0
                 },
-                {
+                "ddpi": {
                     "type": "float*",
-                    "name": "ddpi"
+                    "index": 1
                 },
-                {
+                "hdpi": {
                     "type": "float*",
-                    "name": "hdpi"
+                    "index": 2
                 },
-                {
+                "vdpi": {
                     "type": "float*",
-                    "name": "vdpi"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Get the orientation of a display
@@ -330,12 +330,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetDisplayOrientation: {
             "output": "SDL_DisplayOrientation",
-            "params": [
-                {
+            "params": {
+                "displayIndex": {
                     "type": "int",
-                    "name": "displayIndex"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Returns the number of available display modes.
@@ -344,12 +344,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetNumDisplayModes: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "displayIndex": {
                     "type": "int",
-                    "name": "displayIndex"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Fill in information about a specific display mode.
@@ -364,52 +364,52 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetDisplayMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "displayIndex": {
                     "type": "int",
-                    "name": "displayIndex"
+                    "index": 0
                 },
-                {
+                "modeIndex": {
                     "type": "int",
-                    "name": "modeIndex"
+                    "index": 1
                 },
-                {
+                "mode": {
                     "type": "SDL_DisplayMode*",
-                    "name": "mode"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Fill in information about the desktop display mode.
          */
         SDL_GetDesktopDisplayMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "displayIndex": {
                     "type": "int",
-                    "name": "displayIndex"
+                    "index": 0
                 },
-                {
+                "mode": {
                     "type": "SDL_DisplayMode*",
-                    "name": "mode"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Fill in information about the current display mode.
          */
         SDL_GetCurrentDisplayMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "displayIndex": {
                     "type": "int",
-                    "name": "displayIndex"
+                    "index": 0
                 },
-                {
+                "mode": {
                     "type": "SDL_DisplayMode*",
-                    "name": "mode"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the closest match to the requested display mode.
@@ -434,20 +434,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetClosestDisplayMode: {
             "output": "SDL_DisplayMode*",
-            "params": [
-                {
+            "params": {
+                "displayIndex": {
                     "type": "int",
-                    "name": "displayIndex"
+                    "index": 0
                 },
-                {
+                "mode": {
                     "type": "SDL_DisplayMode*",
-                    "name": "mode"
+                    "index": 1
                 },
-                {
+                "closest": {
                     "type": "SDL_DisplayMode*",
-                    "name": "closest"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Get the display index associated with a window.
@@ -457,12 +457,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowDisplayIndex: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Set the display mode used when a fullscreen window is visible.
@@ -480,16 +480,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowDisplayMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "mode": {
                     "type": "SDL_DisplayMode*",
-                    "name": "mode"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Fill in information about the display mode used when a fullscreen
@@ -500,28 +500,28 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowDisplayMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "mode": {
                     "type": "SDL_DisplayMode*",
-                    "name": "mode"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the pixel format associated with the window.
          */
         SDL_GetWindowPixelFormat: {
             "output": "Uint32",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Create a window with the specified position, dimensions, and flags.
@@ -567,32 +567,32 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_CreateWindow: {
             "output": "SDL_Window*",
-            "params": [
-                {
+            "params": {
+                "title": {
                     "type": "char*",
-                    "name": "title"
+                    "index": 0
                 },
-                {
+                "x": {
                     "type": "int",
-                    "name": "x"
+                    "index": 1
                 },
-                {
+                "y": {
                     "type": "int",
-                    "name": "y"
+                    "index": 2
                 },
-                {
+                "w": {
                     "type": "int",
-                    "name": "w"
+                    "index": 3
                 },
-                {
+                "h": {
                     "type": "int",
-                    "name": "h"
+                    "index": 4
                 },
-                {
+                "flags": {
                     "type": "Uint32",
-                    "name": "flags"
+                    "index": 5
                 }
-            ]
+            }
         },
         /**
          *  Create an SDL window from an existing native window.
@@ -605,48 +605,48 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_CreateWindowFrom: {
             "output": "SDL_Window*",
-            "params": [
-                {
+            "params": {
+                "data": {
                     "type": "void*",
-                    "name": "data"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get the numeric ID of a window, for logging purposes.
          */
         SDL_GetWindowID: {
             "output": "Uint32",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get a window from a stored ID, or NULL if it doesn't exist.
          */
         SDL_GetWindowFromID: {
             "output": "SDL_Window*",
-            "params": [
-                {
+            "params": {
+                "id": {
                     "type": "Uint32",
-                    "name": "id"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get the window flags.
          */
         SDL_GetWindowFlags: {
             "output": "Uint32",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Set the title of a window, in UTF-8 format.
@@ -655,16 +655,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowTitle: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "title": {
                     "type": "char*",
-                    "name": "title"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the title of a window, in UTF-8 format.
@@ -673,12 +673,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowTitle: {
             "output": "char*",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Set the icon for a window.
@@ -688,16 +688,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowIcon: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "icon": {
                     "type": "SDL_Surface*",
-                    "name": "icon"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Associate an arbitrary named pointer with a window.
@@ -714,20 +714,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowData: {
             "output": "void*",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "name": {
                     "type": "char*",
-                    "name": "name"
+                    "index": 1
                 },
-                {
+                "userdata": {
                     "type": "void*",
-                    "name": "userdata"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Retrieve the data pointer associated with a window.
@@ -741,16 +741,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowData: {
             "output": "void*",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "name": {
                     "type": "char*",
-                    "name": "name"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Set the position of a window.
@@ -767,20 +767,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowPosition: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "x": {
                     "type": "int",
-                    "name": "x"
+                    "index": 1
                 },
-                {
+                "y": {
                     "type": "int",
-                    "name": "y"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Get the position of a window.
@@ -795,20 +795,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowPosition: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "x": {
                     "type": "int*",
-                    "name": "x"
+                    "index": 1
                 },
-                {
+                "y": {
                     "type": "int*",
-                    "name": "y"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Set the size of a window's client area.
@@ -830,20 +830,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowSize: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "w": {
                     "type": "int",
-                    "name": "w"
+                    "index": 1
                 },
-                {
+                "h": {
                     "type": "int",
-                    "name": "h"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Get the size of a window's client area.
@@ -863,20 +863,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowSize: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "w": {
                     "type": "int*",
-                    "name": "w"
+                    "index": 1
                 },
-                {
+                "h": {
                     "type": "int*",
-                    "name": "h"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Get the size of a window's borders (decorations) around the client area.
@@ -895,28 +895,28 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowBordersSize: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "top": {
                     "type": "int*",
-                    "name": "top"
+                    "index": 1
                 },
-                {
+                "left": {
                     "type": "int*",
-                    "name": "left"
+                    "index": 2
                 },
-                {
+                "bottom": {
                     "type": "int*",
-                    "name": "bottom"
+                    "index": 3
                 },
-                {
+                "right": {
                     "type": "int*",
-                    "name": "right"
+                    "index": 4
                 }
-            ]
+            }
         },
         /**
          *  Set the minimum size of a window's client area.
@@ -933,20 +933,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowMinimumSize: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "min_w": {
                     "type": "int",
-                    "name": "min_w"
+                    "index": 1
                 },
-                {
+                "min_h": {
                     "type": "int",
-                    "name": "min_h"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Get the minimum size of a window's client area.
@@ -960,20 +960,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowMinimumSize: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "w": {
                     "type": "int*",
-                    "name": "w"
+                    "index": 1
                 },
-                {
+                "h": {
                     "type": "int*",
-                    "name": "h"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Set the maximum size of a window's client area.
@@ -990,20 +990,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowMaximumSize: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "max_w": {
                     "type": "int",
-                    "name": "max_w"
+                    "index": 1
                 },
-                {
+                "max_h": {
                     "type": "int",
-                    "name": "max_h"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Get the maximum size of a window's client area.
@@ -1017,20 +1017,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowMaximumSize: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "w": {
                     "type": "int*",
-                    "name": "w"
+                    "index": 1
                 },
-                {
+                "h": {
                     "type": "int*",
-                    "name": "h"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Set the border state of a window.
@@ -1048,16 +1048,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowBordered: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "bordered": {
                     "type": "SDL_bool",
-                    "name": "bordered"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Set the user-resizable state of a window.
@@ -1075,16 +1075,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowResizable: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "resizable": {
                     "type": "SDL_bool",
-                    "name": "resizable"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Show a window.
@@ -1093,12 +1093,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_ShowWindow: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Hide a window.
@@ -1107,24 +1107,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_HideWindow: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Raise a window above other windows and set the input focus.
          */
         SDL_RaiseWindow: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Make a window as large as possible.
@@ -1133,12 +1133,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_MaximizeWindow: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Minimize a window to an iconic representation.
@@ -1147,12 +1147,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_MinimizeWindow: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Restore the size and position of a minimized or maximized window.
@@ -1162,12 +1162,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RestoreWindow: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Set a window's fullscreen state.
@@ -1179,16 +1179,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowFullscreen: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "flags": {
                     "type": "Uint32",
-                    "name": "flags"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the SDL surface associated with the window.
@@ -1205,12 +1205,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowSurface: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Copy the window surface to the screen.
@@ -1222,12 +1222,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_UpdateWindowSurface: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Copy a number of rectangles on the window surface to the screen.
@@ -1239,20 +1239,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_UpdateWindowSurfaceRects: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "rects": {
                     "type": "SDL_Rect*",
-                    "name": "rects"
+                    "index": 1
                 },
-                {
+                "numrects": {
                     "type": "int",
-                    "name": "numrects"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Set a window's input grab mode.
@@ -1267,16 +1267,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowGrab: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "grabbed": {
                     "type": "SDL_bool",
-                    "name": "grabbed"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get a window's input grab mode.
@@ -1287,12 +1287,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowGrab: {
             "output": "SDL_bool",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get the window that currently has an input grab enabled.
@@ -1303,7 +1303,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetGrabbedWindow: {
             "output": "SDL_Window*",
-            "params": []
+            "params": {}
         },
         /**
          *  Set the brightness (gamma correction) for a window.
@@ -1315,16 +1315,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowBrightness: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "brightness": {
                     "type": "float",
-                    "name": "brightness"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the brightness (gamma correction) for a window.
@@ -1335,12 +1335,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowBrightness: {
             "output": "float",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Set the opacity for a window
@@ -1355,16 +1355,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowOpacity: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "opacity": {
                     "type": "float",
-                    "name": "opacity"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the opacity of a window.
@@ -1381,16 +1381,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowOpacity: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "out_opacity": {
                     "type": "float*",
-                    "name": "out_opacity"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Sets the window as a modal for another window (TODO: reconsider this function and/or its name)
@@ -1402,16 +1402,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowModalFor: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "modal_window": {
                     "type": "SDL_Window*",
-                    "name": "modal_window"
+                    "index": 0
                 },
-                {
+                "parent_window": {
                     "type": "SDL_Window*",
-                    "name": "parent_window"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Explicitly sets input focus to the window.
@@ -1427,12 +1427,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowInputFocus: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Set the gamma ramp for a window.
@@ -1454,24 +1454,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowGammaRamp: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "red": {
                     "type": "Uint16*",
-                    "name": "red"
+                    "index": 1
                 },
-                {
+                "green": {
                     "type": "Uint16*",
-                    "name": "green"
+                    "index": 2
                 },
-                {
+                "blue": {
                     "type": "Uint16*",
-                    "name": "blue"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Get the gamma ramp for a window.
@@ -1490,24 +1490,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetWindowGammaRamp: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "red": {
                     "type": "Uint16*",
-                    "name": "red"
+                    "index": 1
                 },
-                {
+                "green": {
                     "type": "Uint16*",
-                    "name": "green"
+                    "index": 2
                 },
-                {
+                "blue": {
                     "type": "Uint16*",
-                    "name": "blue"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Provide a callback that decides if a window region has special properties.
@@ -1548,32 +1548,32 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetWindowHitTest: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "callback": {
                     "type": "SDL_HitTest",
-                    "name": "callback"
+                    "index": 1
                 },
-                {
+                "callback_data": {
                     "type": "void*",
-                    "name": "callback_data"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Destroy a window.
          */
         SDL_DestroyWindow: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Returns whether the screensaver is currently enabled (default off).
@@ -1583,7 +1583,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_IsScreenSaverEnabled: {
             "output": "SDL_bool",
-            "params": []
+            "params": {}
         },
         /**
          *  Allow the screen to be blanked by a screensaver
@@ -1593,7 +1593,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_EnableScreenSaver: {
             "output": "void",
-            "params": []
+            "params": {}
         },
         /**
          *  Prevent the screen from being blanked by a screensaver
@@ -1603,7 +1603,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_DisableScreenSaver: {
             "output": "void",
-            "params": []
+            "params": {}
         },
         /**
          *  Dynamically load an OpenGL library.
@@ -1625,24 +1625,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_LoadLibrary: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "path": {
                     "type": "char*",
-                    "name": "path"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get the address of an OpenGL function.
          */
         SDL_GL_GetProcAddress: {
             "output": "void*",
-            "params": [
-                {
+            "params": {
+                "proc": {
                     "type": "char*",
-                    "name": "proc"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Unload the OpenGL library previously loaded by SDL_GL_LoadLibrary().
@@ -1651,7 +1651,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_UnloadLibrary: {
             "output": "void",
-            "params": []
+            "params": {}
         },
         /**
          *  Return true if an OpenGL extension is supported for the current
@@ -1659,19 +1659,19 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_ExtensionSupported: {
             "output": "SDL_bool",
-            "params": [
-                {
+            "params": {
+                "extension": {
                     "type": "char*",
-                    "name": "extension"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Reset all previously set OpenGL context attributes to their default values
          */
         SDL_GL_ResetAttributes: {
             "output": "void",
-            "params": []
+            "params": {}
         },
         /**
          *  Set an OpenGL window attribute before window creation.
@@ -1680,16 +1680,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_SetAttribute: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "attr": {
                     "type": "SDL_GLattr",
-                    "name": "attr"
+                    "index": 0
                 },
-                {
+                "value": {
                     "type": "int",
-                    "name": "value"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the actual value for an attribute from the current context.
@@ -1699,16 +1699,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_GetAttribute: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "attr": {
                     "type": "SDL_GLattr",
-                    "name": "attr"
+                    "index": 0
                 },
-                {
+                "value": {
                     "type": "int*",
-                    "name": "value"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Create an OpenGL context for use with an OpenGL window, and make it
@@ -1718,12 +1718,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_CreateContext: {
             "output": "SDL_GLContext",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Set up an OpenGL context for rendering into an OpenGL window.
@@ -1732,30 +1732,30 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_MakeCurrent: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "context": {
                     "type": "SDL_GLContext",
-                    "name": "context"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the currently active OpenGL window.
          */
         SDL_GL_GetCurrentWindow: {
             "output": "SDL_Window*",
-            "params": []
+            "params": {}
         },
         /**
          *  Get the currently active OpenGL context.
          */
         SDL_GL_GetCurrentContext: {
             "output": "SDL_GLContext",
-            "params": []
+            "params": {}
         },
         /**
          *  Get the size of a window's underlying drawable in pixels (for use
@@ -1775,20 +1775,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_GetDrawableSize: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "w": {
                     "type": "int*",
-                    "name": "w"
+                    "index": 1
                 },
-                {
+                "h": {
                     "type": "int*",
-                    "name": "h"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Set the swap interval for the current OpenGL context.
@@ -1804,12 +1804,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_SetSwapInterval: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "interval": {
                     "type": "int",
-                    "name": "interval"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get the swap interval for the current OpenGL context.
@@ -1824,7 +1824,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_GetSwapInterval: {
             "output": "int",
-            "params": []
+            "params": {}
         },
         /**
          * Swap the OpenGL buffers for a window, if double-buffering is
@@ -1832,12 +1832,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_SwapWindow: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Delete an OpenGL context.
@@ -1846,12 +1846,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_DeleteContext: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "context": {
                     "type": "SDL_GLContext",
-                    "name": "context"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get the number of 2D rendering drivers available for the current
@@ -1866,7 +1866,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetNumRenderDrivers: {
             "output": "int",
-            "params": []
+            "params": {}
         },
         /**
          *  Get information about a specific 2D rendering driver for the current
@@ -1882,16 +1882,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetRenderDriverInfo: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "index": {
                     "type": "int",
-                    "name": "index"
+                    "index": 0
                 },
-                {
+                "info": {
                     "type": "SDL_RendererInfo*",
-                    "name": "info"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Create a window and default renderer
@@ -1906,28 +1906,28 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_CreateWindowAndRenderer: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "width": {
                     "type": "int",
-                    "name": "width"
+                    "index": 0
                 },
-                {
+                "height": {
                     "type": "int",
-                    "name": "height"
+                    "index": 1
                 },
-                {
+                "window_flags": {
                     "type": "Uint32",
-                    "name": "window_flags"
+                    "index": 2
                 },
-                {
+                "window": {
                     "type": "SDL_Window**",
-                    "name": "window"
+                    "index": 3
                 },
-                {
+                "renderer": {
                     "type": "SDL_Renderer**",
-                    "name": "renderer"
+                    "index": 4
                 }
-            ]
+            }
         },
         /**
          *  Create a 2D rendering context for a window.
@@ -1945,20 +1945,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_CreateRenderer: {
             "output": "SDL_Renderer*",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "index": {
                     "type": "int",
-                    "name": "index"
+                    "index": 1
                 },
-                {
+                "flags": {
                     "type": "Uint32",
-                    "name": "flags"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Create a 2D software rendering context for a surface.
@@ -1972,60 +1972,60 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_CreateSoftwareRenderer: {
             "output": "SDL_Renderer*",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get the renderer associated with a window.
          */
         SDL_GetRenderer: {
             "output": "SDL_Renderer*",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get information about a rendering context.
          */
         SDL_GetRendererInfo: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "info": {
                     "type": "SDL_RendererInfo*",
-                    "name": "info"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the output size in pixels of a rendering context.
          */
         SDL_GetRendererOutputSize: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "w": {
                     "type": "int*",
-                    "name": "w"
+                    "index": 1
                 },
-                {
+                "h": {
                     "type": "int*",
-                    "name": "h"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Create a texture for a rendering context.
@@ -2048,28 +2048,28 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_CreateTexture: {
             "output": "SDL_Texture*",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "format": {
                     "type": "Uint32",
-                    "name": "format"
+                    "index": 1
                 },
-                {
+                "access": {
                     "type": "int",
-                    "name": "access"
+                    "index": 2
                 },
-                {
+                "w": {
                     "type": "int",
-                    "name": "w"
+                    "index": 3
                 },
-                {
+                "h": {
                     "type": "int",
-                    "name": "h"
+                    "index": 4
                 }
-            ]
+            }
         },
         /**
          *  Create a texture from an existing surface.
@@ -2086,16 +2086,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_CreateTextureFromSurface: {
             "output": "SDL_Texture*",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Query the attributes of a texture
@@ -2112,28 +2112,28 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_QueryTexture: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "format": {
                     "type": "Uint32*",
-                    "name": "format"
+                    "index": 1
                 },
-                {
+                "access": {
                     "type": "int*",
-                    "name": "access"
+                    "index": 2
                 },
-                {
+                "w": {
                     "type": "int*",
-                    "name": "w"
+                    "index": 3
                 },
-                {
+                "h": {
                     "type": "int*",
-                    "name": "h"
+                    "index": 4
                 }
-            ]
+            }
         },
         /**
          *  Set an additional color value used in render copy operations.
@@ -2150,24 +2150,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetTextureColorMod: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "r": {
                     "type": "Uint8",
-                    "name": "r"
+                    "index": 1
                 },
-                {
+                "g": {
                     "type": "Uint8",
-                    "name": "g"
+                    "index": 2
                 },
-                {
+                "b": {
                     "type": "Uint8",
-                    "name": "b"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Get the additional color value used in render copy operations.
@@ -2183,24 +2183,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetTextureColorMod: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "r": {
                     "type": "Uint8*",
-                    "name": "r"
+                    "index": 1
                 },
-                {
+                "g": {
                     "type": "Uint8*",
-                    "name": "g"
+                    "index": 2
                 },
-                {
+                "b": {
                     "type": "Uint8*",
-                    "name": "b"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Set an additional alpha value used in render copy operations.
@@ -2215,16 +2215,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetTextureAlphaMod: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "alpha": {
                     "type": "Uint8",
-                    "name": "alpha"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the additional alpha value used in render copy operations.
@@ -2238,16 +2238,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetTextureAlphaMod: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "alpha": {
                     "type": "Uint8*",
-                    "name": "alpha"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Set the blend mode used for texture copy operations.
@@ -2265,16 +2265,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetTextureBlendMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "blendMode": {
                     "type": "SDL_BlendMode",
-                    "name": "blendMode"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the blend mode used for texture copy operations.
@@ -2288,16 +2288,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetTextureBlendMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "blendMode": {
                     "type": "SDL_BlendMode*",
-                    "name": "blendMode"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Set the scale mode used for texture scale operations.
@@ -2314,16 +2314,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetTextureScaleMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "scaleMode": {
                     "type": "SDL_ScaleMode",
-                    "name": "scaleMode"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the scale mode used for texture scale operations.
@@ -2337,16 +2337,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetTextureScaleMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "scaleMode": {
                     "type": "SDL_ScaleMode*",
-                    "name": "scaleMode"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Update the given texture rectangle with new pixel data.
@@ -2366,24 +2366,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_UpdateTexture: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 },
-                {
+                "pixels": {
                     "type": "void*",
-                    "name": "pixels"
+                    "index": 2
                 },
-                {
+                "pitch": {
                     "type": "int",
-                    "name": "pitch"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Update a rectangle within a planar YV12 or IYUV texture with new pixel data.
@@ -2406,40 +2406,40 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_UpdateYUVTexture: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 },
-                {
+                "Yplane": {
                     "type": "Uint8*",
-                    "name": "Yplane"
+                    "index": 2
                 },
-                {
+                "Ypitch": {
                     "type": "int",
-                    "name": "Ypitch"
+                    "index": 3
                 },
-                {
+                "Uplane": {
                     "type": "Uint8*",
-                    "name": "Uplane"
+                    "index": 4
                 },
-                {
+                "Upitch": {
                     "type": "int",
-                    "name": "Upitch"
+                    "index": 5
                 },
-                {
+                "Vplane": {
                     "type": "Uint8*",
-                    "name": "Vplane"
+                    "index": 6
                 },
-                {
+                "Vpitch": {
                     "type": "int",
-                    "name": "Vpitch"
+                    "index": 7
                 }
-            ]
+            }
         },
         /**
          *  Lock a portion of the texture for write-only pixel access.
@@ -2458,24 +2458,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_LockTexture: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 },
-                {
+                "pixels": {
                     "type": "void**",
-                    "name": "pixels"
+                    "index": 2
                 },
-                {
+                "pitch": {
                     "type": "int*",
-                    "name": "pitch"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Lock a portion of the texture for write-only pixel access.
@@ -2494,20 +2494,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_LockTextureToSurface: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 },
-                {
+                "surface": {
                     "type": "SDL_Surface**",
-                    "name": "surface"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Unlock a texture, uploading the changes to video memory, if needed.
@@ -2518,12 +2518,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_UnlockTexture: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          * Determines whether a window supports the use of render targets
@@ -2534,12 +2534,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderTargetSupported: {
             "output": "SDL_bool",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          * Set a texture as the current rendering target.
@@ -2553,16 +2553,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetRenderTarget: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          * Get the current render target or NULL for the default render target.
@@ -2573,12 +2573,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetRenderTarget: {
             "output": "SDL_Texture*",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Set device independent resolution for rendering
@@ -2605,20 +2605,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderSetLogicalSize: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "w": {
                     "type": "int",
-                    "name": "w"
+                    "index": 1
                 },
-                {
+                "h": {
                     "type": "int",
-                    "name": "h"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Get device independent resolution for rendering
@@ -2631,20 +2631,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderGetLogicalSize: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "w": {
                     "type": "int*",
-                    "name": "w"
+                    "index": 1
                 },
-                {
+                "h": {
                     "type": "int*",
-                    "name": "h"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Set whether to force integer scales for resolution-independent rendering
@@ -2660,16 +2660,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderSetIntegerScale: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "enable": {
                     "type": "SDL_bool",
-                    "name": "enable"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get whether integer scales are forced for resolution-independent rendering
@@ -2680,12 +2680,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderGetIntegerScale: {
             "output": "SDL_bool",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Set the drawing area for rendering on the current target.
@@ -2704,16 +2704,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderSetViewport: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the drawing area for the current target.
@@ -2722,16 +2722,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderGetViewport: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Set the clip rectangle for the current target.
@@ -2746,16 +2746,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderSetClipRect: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the clip rectangle for the current target.
@@ -2768,16 +2768,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderGetClipRect: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get whether clipping is enabled on the given renderer.
@@ -2788,12 +2788,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderIsClipEnabled: {
             "output": "SDL_bool",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Set the drawing scale for rendering on the current target.
@@ -2815,20 +2815,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderSetScale: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "scaleX": {
                     "type": "float",
-                    "name": "scaleX"
+                    "index": 1
                 },
-                {
+                "scaleY": {
                     "type": "float",
-                    "name": "scaleY"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Get the drawing scale for the current target.
@@ -2841,20 +2841,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderGetScale: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "scaleX": {
                     "type": "float*",
-                    "name": "scaleX"
+                    "index": 1
                 },
-                {
+                "scaleY": {
                     "type": "float*",
-                    "name": "scaleY"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Set the color used for drawing operations (Rect, Line and Clear).
@@ -2870,28 +2870,28 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetRenderDrawColor: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "r": {
                     "type": "Uint8",
-                    "name": "r"
+                    "index": 1
                 },
-                {
+                "g": {
                     "type": "Uint8",
-                    "name": "g"
+                    "index": 2
                 },
-                {
+                "b": {
                     "type": "Uint8",
-                    "name": "b"
+                    "index": 3
                 },
-                {
+                "a": {
                     "type": "Uint8",
-                    "name": "a"
+                    "index": 4
                 }
-            ]
+            }
         },
         /**
          *  Get the color used for drawing operations (Rect, Line and Clear).
@@ -2907,28 +2907,28 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetRenderDrawColor: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "r": {
                     "type": "Uint8*",
-                    "name": "r"
+                    "index": 1
                 },
-                {
+                "g": {
                     "type": "Uint8*",
-                    "name": "g"
+                    "index": 2
                 },
-                {
+                "b": {
                     "type": "Uint8*",
-                    "name": "b"
+                    "index": 3
                 },
-                {
+                "a": {
                     "type": "Uint8*",
-                    "name": "a"
+                    "index": 4
                 }
-            ]
+            }
         },
         /**
          *  Set the blend mode used for drawing operations (Fill and Line).
@@ -2945,16 +2945,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetRenderDrawBlendMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "blendMode": {
                     "type": "SDL_BlendMode",
-                    "name": "blendMode"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the blend mode used for drawing operations.
@@ -2968,16 +2968,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetRenderDrawBlendMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "blendMode": {
                     "type": "SDL_BlendMode*",
-                    "name": "blendMode"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Clear the current rendering target with the drawing color
@@ -2989,12 +2989,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderClear: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Draw a point on the current rendering target.
@@ -3007,20 +3007,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderDrawPoint: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "x": {
                     "type": "int",
-                    "name": "x"
+                    "index": 1
                 },
-                {
+                "y": {
                     "type": "int",
-                    "name": "y"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Draw multiple points on the current rendering target.
@@ -3033,20 +3033,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderDrawPoints: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "points": {
                     "type": "SDL_Point*",
-                    "name": "points"
+                    "index": 1
                 },
-                {
+                "count": {
                     "type": "int",
-                    "name": "count"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Draw a line on the current rendering target.
@@ -3061,28 +3061,28 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderDrawLine: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "x1": {
                     "type": "int",
-                    "name": "x1"
+                    "index": 1
                 },
-                {
+                "y1": {
                     "type": "int",
-                    "name": "y1"
+                    "index": 2
                 },
-                {
+                "x2": {
                     "type": "int",
-                    "name": "x2"
+                    "index": 3
                 },
-                {
+                "y2": {
                     "type": "int",
-                    "name": "y2"
+                    "index": 4
                 }
-            ]
+            }
         },
         /**
          *  Draw a series of connected lines on the current rendering target.
@@ -3095,20 +3095,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderDrawLines: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "points": {
                     "type": "SDL_Point*",
-                    "name": "points"
+                    "index": 1
                 },
-                {
+                "count": {
                     "type": "int",
-                    "name": "count"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Draw a rectangle on the current rendering target.
@@ -3120,16 +3120,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderDrawRect: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Draw some number of rectangles on the current rendering target.
@@ -3142,20 +3142,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderDrawRects: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rects": {
                     "type": "SDL_Rect*",
-                    "name": "rects"
+                    "index": 1
                 },
-                {
+                "count": {
                     "type": "int",
-                    "name": "count"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Fill a rectangle on the current rendering target with the drawing color.
@@ -3168,16 +3168,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderFillRect: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Fill some number of rectangles on the current rendering target with the drawing color.
@@ -3190,20 +3190,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderFillRects: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rects": {
                     "type": "SDL_Rect*",
-                    "name": "rects"
+                    "index": 1
                 },
-                {
+                "count": {
                     "type": "int",
-                    "name": "count"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Copy a portion of the texture to the current rendering target.
@@ -3219,24 +3219,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderCopy: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 1
                 },
-                {
+                "srcrect": {
                     "type": "SDL_Rect*",
-                    "name": "srcrect"
+                    "index": 2
                 },
-                {
+                "dstrect": {
                     "type": "SDL_Rect*",
-                    "name": "dstrect"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Copy a portion of the source texture to the current rendering target, rotating it by angle around the given center
@@ -3255,36 +3255,36 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderCopyEx: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 1
                 },
-                {
+                "srcrect": {
                     "type": "SDL_Rect*",
-                    "name": "srcrect"
+                    "index": 2
                 },
-                {
+                "dstrect": {
                     "type": "SDL_Rect*",
-                    "name": "dstrect"
+                    "index": 3
                 },
-                {
+                "angle": {
                     "type": "double",
-                    "name": "angle"
+                    "index": 4
                 },
-                {
+                "center": {
                     "type": "SDL_Point*",
-                    "name": "center"
+                    "index": 5
                 },
-                {
+                "flip": {
                     "type": "SDL_RendererFlip",
-                    "name": "flip"
+                    "index": 6
                 }
-            ]
+            }
         },
         /**
          *  Draw a point on the current rendering target.
@@ -3297,20 +3297,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderDrawPointF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "x": {
                     "type": "float",
-                    "name": "x"
+                    "index": 1
                 },
-                {
+                "y": {
                     "type": "float",
-                    "name": "y"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Draw multiple points on the current rendering target.
@@ -3323,20 +3323,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderDrawPointsF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "points": {
                     "type": "SDL_FPoint*",
-                    "name": "points"
+                    "index": 1
                 },
-                {
+                "count": {
                     "type": "int",
-                    "name": "count"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Draw a line on the current rendering target.
@@ -3351,28 +3351,28 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderDrawLineF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "x1": {
                     "type": "float",
-                    "name": "x1"
+                    "index": 1
                 },
-                {
+                "y1": {
                     "type": "float",
-                    "name": "y1"
+                    "index": 2
                 },
-                {
+                "x2": {
                     "type": "float",
-                    "name": "x2"
+                    "index": 3
                 },
-                {
+                "y2": {
                     "type": "float",
-                    "name": "y2"
+                    "index": 4
                 }
-            ]
+            }
         },
         /**
          *  Draw a series of connected lines on the current rendering target.
@@ -3385,20 +3385,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderDrawLinesF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "points": {
                     "type": "SDL_FPoint*",
-                    "name": "points"
+                    "index": 1
                 },
-                {
+                "count": {
                     "type": "int",
-                    "name": "count"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Draw a rectangle on the current rendering target.
@@ -3410,16 +3410,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderDrawRectF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_FRect*",
-                    "name": "rect"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Draw some number of rectangles on the current rendering target.
@@ -3432,20 +3432,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderDrawRectsF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rects": {
                     "type": "SDL_FRect*",
-                    "name": "rects"
+                    "index": 1
                 },
-                {
+                "count": {
                     "type": "int",
-                    "name": "count"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Fill a rectangle on the current rendering target with the drawing color.
@@ -3458,16 +3458,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderFillRectF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_FRect*",
-                    "name": "rect"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Fill some number of rectangles on the current rendering target with the drawing color.
@@ -3480,20 +3480,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderFillRectsF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rects": {
                     "type": "SDL_FRect*",
-                    "name": "rects"
+                    "index": 1
                 },
-                {
+                "count": {
                     "type": "int",
-                    "name": "count"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Copy a portion of the texture to the current rendering target.
@@ -3509,24 +3509,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderCopyF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 1
                 },
-                {
+                "srcrect": {
                     "type": "SDL_Rect*",
-                    "name": "srcrect"
+                    "index": 2
                 },
-                {
+                "dstrect": {
                     "type": "SDL_FRect*",
-                    "name": "dstrect"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Copy a portion of the source texture to the current rendering target, rotating it by angle around the given center
@@ -3545,36 +3545,36 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderCopyExF: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 1
                 },
-                {
+                "srcrect": {
                     "type": "SDL_Rect*",
-                    "name": "srcrect"
+                    "index": 2
                 },
-                {
+                "dstrect": {
                     "type": "SDL_FRect*",
-                    "name": "dstrect"
+                    "index": 3
                 },
-                {
+                "angle": {
                     "type": "double",
-                    "name": "angle"
+                    "index": 4
                 },
-                {
+                "center": {
                     "type": "SDL_FPoint*",
-                    "name": "center"
+                    "index": 5
                 },
-                {
+                "flip": {
                     "type": "SDL_RendererFlip",
-                    "name": "flip"
+                    "index": 6
                 }
-            ]
+            }
         },
         /**
          *  Read pixels from the current rendering target.
@@ -3593,40 +3593,40 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderReadPixels: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 },
-                {
+                "format": {
                     "type": "Uint32",
-                    "name": "format"
+                    "index": 2
                 },
-                {
+                "pixels": {
                     "type": "void*",
-                    "name": "pixels"
+                    "index": 3
                 },
-                {
+                "pitch": {
                     "type": "int",
-                    "name": "pitch"
+                    "index": 4
                 }
-            ]
+            }
         },
         /**
          *  Update the screen with rendering performed.
          */
         SDL_RenderPresent: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Destroy the specified texture.
@@ -3636,12 +3636,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_DestroyTexture: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Destroy the rendering context for a window and free associated
@@ -3651,12 +3651,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_DestroyRenderer: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Force the rendering context to flush any pending commands to the
@@ -3683,12 +3683,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderFlush: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Bind the texture to the current OpenGL/ES/ES2 context for use with
@@ -3702,20 +3702,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_BindTexture: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 },
-                {
+                "texw": {
                     "type": "float*",
-                    "name": "texw"
+                    "index": 1
                 },
-                {
+                "texh": {
                     "type": "float*",
-                    "name": "texh"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Unbind a texture from the current OpenGL/ES/ES2 context.
@@ -3726,12 +3726,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GL_UnbindTexture: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "texture": {
                     "type": "SDL_Texture*",
-                    "name": "texture"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get the CAMetalLayer associated with the given Metal renderer
@@ -3744,12 +3744,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderGetMetalLayer: {
             "output": "void*",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get the Metal command encoder for the current frame
@@ -3762,12 +3762,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RenderGetMetalCommandEncoder: {
             "output": "void*",
-            "params": [
-                {
+            "params": {
+                "renderer": {
                     "type": "SDL_Renderer*",
-                    "name": "renderer"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          * Get the path where the application resides.
@@ -3794,7 +3794,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetBasePath: {
             "output": "char*",
-            "params": []
+            "params": {}
         },
         /**
          * Get the user-and-app-specific path where files can be written.
@@ -3859,16 +3859,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetPrefPath: {
             "output": "char*",
-            "params": [
-                {
+            "params": {
+                "org": {
                     "type": "char*",
-                    "name": "org"
+                    "index": 0
                 },
-                {
+                "app": {
                     "type": "char*",
-                    "name": "app"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Allocate and free an RGB surface.
@@ -3890,145 +3890,145 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_CreateRGBSurface: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "flags": {
                     "type": "Uint32",
-                    "name": "flags"
+                    "index": 0
                 },
-                {
+                "width": {
                     "type": "int",
-                    "name": "width"
+                    "index": 1
                 },
-                {
+                "height": {
                     "type": "int",
-                    "name": "height"
+                    "index": 2
                 },
-                {
+                "depth": {
                     "type": "int",
-                    "name": "depth"
+                    "index": 3
                 },
-                {
+                "Rmask": {
                     "type": "Uint32",
-                    "name": "Rmask"
+                    "index": 4
                 },
-                {
+                "Gmask": {
                     "type": "Uint32",
-                    "name": "Gmask"
+                    "index": 5
                 },
-                {
+                "Bmask": {
                     "type": "Uint32",
-                    "name": "Bmask"
+                    "index": 6
                 },
-                {
+                "Amask": {
                     "type": "Uint32",
-                    "name": "Amask"
+                    "index": 7
                 }
-            ]
+            }
         },
         /* !!! FIXME for 2.1: why does this ask for depth? Format provides that. */
         SDL_CreateRGBSurfaceWithFormat: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "flags": {
                     "type": "Uint32",
-                    "name": "flags"
+                    "index": 0
                 },
-                {
+                "width": {
                     "type": "int",
-                    "name": "width"
+                    "index": 1
                 },
-                {
+                "height": {
                     "type": "int",
-                    "name": "height"
+                    "index": 2
                 },
-                {
+                "depth": {
                     "type": "int",
-                    "name": "depth"
+                    "index": 3
                 },
-                {
+                "format": {
                     "type": "Uint32",
-                    "name": "format"
+                    "index": 4
                 }
-            ]
+            }
         },
         SDL_CreateRGBSurfaceFrom: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "pixels": {
                     "type": "void*",
-                    "name": "pixels"
+                    "index": 0
                 },
-                {
+                "width": {
                     "type": "int",
-                    "name": "width"
+                    "index": 1
                 },
-                {
+                "height": {
                     "type": "int",
-                    "name": "height"
+                    "index": 2
                 },
-                {
+                "depth": {
                     "type": "int",
-                    "name": "depth"
+                    "index": 3
                 },
-                {
+                "pitch": {
                     "type": "int",
-                    "name": "pitch"
+                    "index": 4
                 },
-                {
+                "Rmask": {
                     "type": "Uint32",
-                    "name": "Rmask"
+                    "index": 5
                 },
-                {
+                "Gmask": {
                     "type": "Uint32",
-                    "name": "Gmask"
+                    "index": 6
                 },
-                {
+                "Bmask": {
                     "type": "Uint32",
-                    "name": "Bmask"
+                    "index": 7
                 },
-                {
+                "Amask": {
                     "type": "Uint32",
-                    "name": "Amask"
+                    "index": 8
                 }
-            ]
+            }
         },
         SDL_CreateRGBSurfaceWithFormatFrom: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "pixels": {
                     "type": "void*",
-                    "name": "pixels"
+                    "index": 0
                 },
-                {
+                "width": {
                     "type": "int",
-                    "name": "width"
+                    "index": 1
                 },
-                {
+                "height": {
                     "type": "int",
-                    "name": "height"
+                    "index": 2
                 },
-                {
+                "depth": {
                     "type": "int",
-                    "name": "depth"
+                    "index": 3
                 },
-                {
+                "pitch": {
                     "type": "int",
-                    "name": "pitch"
+                    "index": 4
                 },
-                {
+                "format": {
                     "type": "Uint32",
-                    "name": "format"
+                    "index": 5
                 }
-            ]
+            }
         },
         SDL_FreeSurface: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Set the palette used by a surface.
@@ -4039,16 +4039,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetSurfacePalette: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "palette": {
                     "type": "SDL_Palette*",
-                    "name": "palette"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Sets up a surface for directly accessing the pixels.
@@ -4071,22 +4071,22 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_LockSurface: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 }
-            ]
+            }
         },
         /** @see SDL_LockSurface() */
         SDL_UnlockSurface: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Load a surface from a seekable SDL data stream (memory or file).
@@ -4099,16 +4099,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_LoadBMP_RW: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_RWops*",
-                    "name": "src"
+                    "index": 0
                 },
-                {
+                "freesrc": {
                     "type": "int",
-                    "name": "freesrc"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Save a surface to a seekable SDL data stream (memory or file).
@@ -4125,20 +4125,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SaveBMP_RW: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "dst": {
                     "type": "SDL_RWops*",
-                    "name": "dst"
+                    "index": 1
                 },
-                {
+                "freedst": {
                     "type": "int",
-                    "name": "freedst"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Sets the RLE acceleration hint for a surface.
@@ -4150,16 +4150,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetSurfaceRLE: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "flag": {
                     "type": "int",
-                    "name": "flag"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Sets the color key (transparent pixel) in a blittable surface.
@@ -4174,20 +4174,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetColorKey: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "flag": {
                     "type": "int",
-                    "name": "flag"
+                    "index": 1
                 },
-                {
+                "key": {
                     "type": "Uint32",
-                    "name": "key"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Returns whether the surface has a color key
@@ -4196,12 +4196,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_HasColorKey: {
             "output": "SDL_bool",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Gets the color key (transparent pixel) in a blittable surface.
@@ -4215,16 +4215,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetColorKey: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "key": {
                     "type": "Uint32*",
-                    "name": "key"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Set an additional color value used in blit operations.
@@ -4240,24 +4240,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetSurfaceColorMod: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "r": {
                     "type": "Uint8",
-                    "name": "r"
+                    "index": 1
                 },
-                {
+                "g": {
                     "type": "Uint8",
-                    "name": "g"
+                    "index": 2
                 },
-                {
+                "b": {
                     "type": "Uint8",
-                    "name": "b"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Get the additional color value used in blit operations.
@@ -4273,24 +4273,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetSurfaceColorMod: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "r": {
                     "type": "Uint8*",
-                    "name": "r"
+                    "index": 1
                 },
-                {
+                "g": {
                     "type": "Uint8*",
-                    "name": "g"
+                    "index": 2
                 },
-                {
+                "b": {
                     "type": "Uint8*",
-                    "name": "b"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Set an additional alpha value used in blit operations.
@@ -4304,16 +4304,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetSurfaceAlphaMod: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "alpha": {
                     "type": "Uint8",
-                    "name": "alpha"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the additional alpha value used in blit operations.
@@ -4327,16 +4327,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetSurfaceAlphaMod: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "alpha": {
                     "type": "Uint8*",
-                    "name": "alpha"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Set the blend mode used for blit operations.
@@ -4350,16 +4350,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetSurfaceBlendMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "blendMode": {
                     "type": "SDL_BlendMode",
-                    "name": "blendMode"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the blend mode used for blit operations.
@@ -4373,16 +4373,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetSurfaceBlendMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "blendMode": {
                     "type": "SDL_BlendMode*",
-                    "name": "blendMode"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Sets the clipping rectangle for the destination surface in a blit.
@@ -4399,16 +4399,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetClipRect: {
             "output": "SDL_bool",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Gets the clipping rectangle for the destination surface in a blit.
@@ -4418,28 +4418,28 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetClipRect: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 }
-            ]
+            }
         },
         /*
          * Creates a new surface identical to the existing surface
          */
         SDL_DuplicateSurface: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Creates a new surface of the specified format, and then copies and maps
@@ -4453,37 +4453,37 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_ConvertSurface: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_Surface*",
-                    "name": "src"
+                    "index": 0
                 },
-                {
+                "fmt": {
                     "type": "SDL_PixelFormat*",
-                    "name": "fmt"
+                    "index": 1
                 },
-                {
+                "flags": {
                     "type": "Uint32",
-                    "name": "flags"
+                    "index": 2
                 }
-            ]
+            }
         },
         SDL_ConvertSurfaceFormat: {
             "output": "SDL_Surface*",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_Surface*",
-                    "name": "src"
+                    "index": 0
                 },
-                {
+                "pixel_format": {
                     "type": "Uint32",
-                    "name": "pixel_format"
+                    "index": 1
                 },
-                {
+                "flags": {
                     "type": "Uint32",
-                    "name": "flags"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          * Copy a block of pixels of one format to another format
@@ -4492,40 +4492,40 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_ConvertPixels: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "width": {
                     "type": "int",
-                    "name": "width"
+                    "index": 0
                 },
-                {
+                "height": {
                     "type": "int",
-                    "name": "height"
+                    "index": 1
                 },
-                {
+                "src_format": {
                     "type": "Uint32",
-                    "name": "src_format"
+                    "index": 2
                 },
-                {
+                "src": {
                     "type": "void*",
-                    "name": "src"
+                    "index": 3
                 },
-                {
+                "src_pitch": {
                     "type": "int",
-                    "name": "src_pitch"
+                    "index": 4
                 },
-                {
+                "dst_format": {
                     "type": "Uint32",
-                    "name": "dst_format"
+                    "index": 5
                 },
-                {
+                "dst": {
                     "type": "void*",
-                    "name": "dst"
+                    "index": 6
                 },
-                {
+                "dst_pitch": {
                     "type": "int",
-                    "name": "dst_pitch"
+                    "index": 7
                 }
-            ]
+            }
         },
         /**
          *  Performs a fast fill of the given rectangle with \c color.
@@ -4539,41 +4539,41 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_FillRect: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "dst": {
                     "type": "SDL_Surface*",
-                    "name": "dst"
+                    "index": 0
                 },
-                {
+                "rect": {
                     "type": "SDL_Rect*",
-                    "name": "rect"
+                    "index": 1
                 },
-                {
+                "color": {
                     "type": "Uint32",
-                    "name": "color"
+                    "index": 2
                 }
-            ]
+            }
         },
         SDL_FillRects: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "dst": {
                     "type": "SDL_Surface*",
-                    "name": "dst"
+                    "index": 0
                 },
-                {
+                "rects": {
                     "type": "SDL_Rect*",
-                    "name": "rects"
+                    "index": 1
                 },
-                {
+                "count": {
                     "type": "int",
-                    "name": "count"
+                    "index": 2
                 },
-                {
+                "color": {
                     "type": "Uint32",
-                    "name": "color"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  This is the public blit function, SDL_BlitSurface(), and it performs
@@ -4581,24 +4581,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_UpperBlit: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_Surface*",
-                    "name": "src"
+                    "index": 0
                 },
-                {
+                "srcrect": {
                     "type": "SDL_Rect*",
-                    "name": "srcrect"
+                    "index": 1
                 },
-                {
+                "dst": {
                     "type": "SDL_Surface*",
-                    "name": "dst"
+                    "index": 2
                 },
-                {
+                "dstrect": {
                     "type": "SDL_Rect*",
-                    "name": "dstrect"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  This is a semi-private blit function and it performs low-level surface
@@ -4606,24 +4606,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_LowerBlit: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_Surface*",
-                    "name": "src"
+                    "index": 0
                 },
-                {
+                "srcrect": {
                     "type": "SDL_Rect*",
-                    "name": "srcrect"
+                    "index": 1
                 },
-                {
+                "dst": {
                     "type": "SDL_Surface*",
-                    "name": "dst"
+                    "index": 2
                 },
-                {
+                "dstrect": {
                     "type": "SDL_Rect*",
-                    "name": "dstrect"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Perform a fast, low quality, stretch blit between two surfaces of the
@@ -4633,24 +4633,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SoftStretch: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_Surface*",
-                    "name": "src"
+                    "index": 0
                 },
-                {
+                "srcrect": {
                     "type": "SDL_Rect*",
-                    "name": "srcrect"
+                    "index": 1
                 },
-                {
+                "dst": {
                     "type": "SDL_Surface*",
-                    "name": "dst"
+                    "index": 2
                 },
-                {
+                "dstrect": {
                     "type": "SDL_Rect*",
-                    "name": "dstrect"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  This is the public scaled blit function, SDL_BlitScaled(), and it performs
@@ -4658,24 +4658,24 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_UpperBlitScaled: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_Surface*",
-                    "name": "src"
+                    "index": 0
                 },
-                {
+                "srcrect": {
                     "type": "SDL_Rect*",
-                    "name": "srcrect"
+                    "index": 1
                 },
-                {
+                "dst": {
                     "type": "SDL_Surface*",
-                    "name": "dst"
+                    "index": 2
                 },
-                {
+                "dstrect": {
                     "type": "SDL_Rect*",
-                    "name": "dstrect"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  This is a semi-private blit function and it performs low-level surface
@@ -4683,59 +4683,59 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_LowerBlitScaled: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "src": {
                     "type": "SDL_Surface*",
-                    "name": "src"
+                    "index": 0
                 },
-                {
+                "srcrect": {
                     "type": "SDL_Rect*",
-                    "name": "srcrect"
+                    "index": 1
                 },
-                {
+                "dst": {
                     "type": "SDL_Surface*",
-                    "name": "dst"
+                    "index": 2
                 },
-                {
+                "dstrect": {
                     "type": "SDL_Rect*",
-                    "name": "dstrect"
+                    "index": 3
                 }
-            ]
+            }
         },
         /**
          *  Set the YUV conversion mode
          */
         SDL_SetYUVConversionMode: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "mode": {
                     "type": "SDL_YUV_CONVERSION_MODE",
-                    "name": "mode"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Get the YUV conversion mode
          */
         SDL_GetYUVConversionMode: {
             "output": "SDL_YUV_CONVERSION_MODE",
-            "params": []
+            "params": {}
         },
         /**
          *  Get the YUV conversion mode, returning the correct mode for the resolution when the current conversion mode is SDL_YUV_CONVERSION_AUTOMATIC
          */
         SDL_GetYUVConversionModeForResolution: {
             "output": "SDL_YUV_CONVERSION_MODE",
-            "params": [
-                {
+            "params": {
+                "width": {
                     "type": "int",
-                    "name": "width"
+                    "index": 0
                 },
-                {
+                "height": {
                     "type": "int",
-                    "name": "height"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Pumps the event loop, gathering events from the input devices.
@@ -4746,7 +4746,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_PumpEvents: {
             "output": "void",
-            "params": []
+            "params": {}
         },
         /**
          *  Checks the event queue for messages and optionally returns them.
@@ -4768,53 +4768,53 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_PeepEvents: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "events": {
                     "type": "SDL_Event*",
-                    "name": "events"
+                    "index": 0
                 },
-                {
+                "numevents": {
                     "type": "int",
-                    "name": "numevents"
+                    "index": 1
                 },
-                {
+                "action": {
                     "type": "SDL_eventaction",
-                    "name": "action"
+                    "index": 2
                 },
-                {
+                "minType": {
                     "type": "Uint32",
-                    "name": "minType"
+                    "index": 3
                 },
-                {
+                "maxType": {
                     "type": "Uint32",
-                    "name": "maxType"
+                    "index": 4
                 }
-            ]
+            }
         },
         /**
          *  Checks to see if certain event types are in the event queue.
          */
         SDL_HasEvent: {
             "output": "SDL_bool",
-            "params": [
-                {
+            "params": {
+                "type": {
                     "type": "Uint32",
-                    "name": "type"
+                    "index": 0
                 }
-            ]
+            }
         },
         SDL_HasEvents: {
             "output": "SDL_bool",
-            "params": [
-                {
+            "params": {
+                "minType": {
                     "type": "Uint32",
-                    "name": "minType"
+                    "index": 0
                 },
-                {
+                "maxType": {
                     "type": "Uint32",
-                    "name": "maxType"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  This function clears events from the event queue
@@ -4824,25 +4824,25 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_FlushEvent: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "type": {
                     "type": "Uint32",
-                    "name": "type"
+                    "index": 0
                 }
-            ]
+            }
         },
         SDL_FlushEvents: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "minType": {
                     "type": "Uint32",
-                    "name": "minType"
+                    "index": 0
                 },
-                {
+                "maxType": {
                     "type": "Uint32",
-                    "name": "maxType"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Polls for currently pending events.
@@ -4854,12 +4854,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_PollEvent: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "event": {
                     "type": "SDL_Event*",
-                    "name": "event"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Waits indefinitely for the next available event.
@@ -4871,12 +4871,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_WaitEvent: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "event": {
                     "type": "SDL_Event*",
-                    "name": "event"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Waits until the specified timeout (in milliseconds) for the next
@@ -4890,16 +4890,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_WaitEventTimeout: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "event": {
                     "type": "SDL_Event*",
-                    "name": "event"
+                    "index": 0
                 },
-                {
+                "timeout": {
                     "type": "int",
-                    "name": "timeout"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Add an event to the event queue.
@@ -4909,12 +4909,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_PushEvent: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "event": {
                     "type": "SDL_Event*",
-                    "name": "event"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Sets up a filter to process all events before they change internal state and
@@ -4943,16 +4943,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetEventFilter: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "filter": {
                     "type": "SDL_EventFilter",
-                    "name": "filter"
+                    "index": 0
                 },
-                {
+                "userdata": {
                     "type": "void*",
-                    "name": "userdata"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Return the current event filter - can be used to "chain" filters.
@@ -4960,48 +4960,48 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetEventFilter: {
             "output": "SDL_bool",
-            "params": [
-                {
+            "params": {
+                "filter": {
                     "type": "SDL_EventFilter*",
-                    "name": "filter"
+                    "index": 0
                 },
-                {
+                "userdata": {
                     "type": "void**",
-                    "name": "userdata"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Add a function which is called when an event is added to the queue.
          */
         SDL_AddEventWatch: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "filter": {
                     "type": "SDL_EventFilter",
-                    "name": "filter"
+                    "index": 0
                 },
-                {
+                "userdata": {
                     "type": "void*",
-                    "name": "userdata"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Remove an event watch function added with SDL_AddEventWatch()
          */
         SDL_DelEventWatch: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "filter": {
                     "type": "SDL_EventFilter",
-                    "name": "filter"
+                    "index": 0
                 },
-                {
+                "userdata": {
                     "type": "void*",
-                    "name": "userdata"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Run the filter function on the current event queue, removing any
@@ -5009,16 +5009,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_FilterEvents: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "filter": {
                     "type": "SDL_EventFilter",
-                    "name": "filter"
+                    "index": 0
                 },
-                {
+                "userdata": {
                     "type": "void*",
-                    "name": "userdata"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  This function allows you to set the state of processing certain events.
@@ -5031,16 +5031,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_EventState: {
             "output": "Uint8",
-            "params": [
-                {
+            "params": {
+                "type": {
                     "type": "Uint32",
-                    "name": "type"
+                    "index": 0
                 },
-                {
+                "state": {
                     "type": "int",
-                    "name": "state"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  This function allocates a set of user-defined events, and returns
@@ -5051,19 +5051,19 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_RegisterEvents: {
             "output": "Uint32",
-            "params": [
-                {
+            "params": {
+                "numevents": {
                     "type": "int",
-                    "name": "numevents"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
- *  Get the window which currently has mouse focus.
- */
+         *  Get the window which currently has mouse focus.
+         */
         SDL_GetMouseFocus: {
             "output": "SDL_Window*",
-            "params": []
+            "params": {}
         },
         /**
          *  Retrieve the current state of the mouse.
@@ -5075,16 +5075,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetMouseState: {
             "output": "Uint32",
-            "params": [
-                {
+            "params": {
+                "x": {
                     "type": "int*",
-                    "name": "x"
+                    "index": 0
                 },
-                {
+                "y": {
                     "type": "int*",
-                    "name": "y"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Get the current state of the mouse, in relation to the desktop
@@ -5111,16 +5111,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetGlobalMouseState: {
             "output": "Uint32",
-            "params": [
-                {
+            "params": {
+                "x": {
                     "type": "int*",
-                    "name": "x"
+                    "index": 0
                 },
-                {
+                "y": {
                     "type": "int*",
-                    "name": "y"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Retrieve the relative state of the mouse.
@@ -5131,16 +5131,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetRelativeMouseState: {
             "output": "Uint32",
-            "params": [
-                {
+            "params": {
+                "x": {
                     "type": "int*",
-                    "name": "x"
+                    "index": 0
                 },
-                {
+                "y": {
                     "type": "int*",
-                    "name": "y"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Moves the mouse to the given position within the window.
@@ -5153,20 +5153,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_WarpMouseInWindow: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "window": {
                     "type": "SDL_Window*",
-                    "name": "window"
+                    "index": 0
                 },
-                {
+                "x": {
                     "type": "int",
-                    "name": "x"
+                    "index": 1
                 },
-                {
+                "y": {
                     "type": "int",
-                    "name": "y"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Moves the mouse to the given position in global screen space.
@@ -5179,16 +5179,16 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_WarpMouseGlobal: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "x": {
                     "type": "int",
-                    "name": "x"
+                    "index": 0
                 },
-                {
+                "y": {
                     "type": "int",
-                    "name": "y"
+                    "index": 1
                 }
-            ]
+            }
         },
         /**
          *  Set relative mouse mode.
@@ -5208,12 +5208,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_SetRelativeMouseMode: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "enabled": {
                     "type": "SDL_bool",
-                    "name": "enabled"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Capture the mouse, to track input outside an SDL window.
@@ -5246,12 +5246,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_CaptureMouse: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "enabled": {
                     "type": "SDL_bool",
-                    "name": "enabled"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Query whether relative mouse mode is enabled.
@@ -5260,7 +5260,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_GetRelativeMouseMode: {
             "output": "SDL_bool",
-            "params": []
+            "params": {}
         },
         /**
          *  Create a cursor, using the specified bitmap data and
@@ -5282,32 +5282,32 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_CreateCursor: {
             "output": "SDL_Cursor*",
-            "params": [
-                {
+            "params": {
+                "data": {
                     "type": "Uint8*",
-                    "name": "data"
+                    "index": 0
                 },
-                {
+                "mask": {
                     "type": "Uint8*",
-                    "name": "mask"
+                    "index": 1
                 },
-                {
+                "w": {
                     "type": "int",
-                    "name": "w"
+                    "index": 2
                 },
-                {
+                "h": {
                     "type": "int",
-                    "name": "h"
+                    "index": 3
                 },
-                {
+                "hot_x": {
                     "type": "int",
-                    "name": "hot_x"
+                    "index": 4
                 },
-                {
+                "hot_y": {
                     "type": "int",
-                    "name": "hot_y"
+                    "index": 5
                 }
-            ]
+            }
         },
         /**
          *  Create a color cursor.
@@ -5316,20 +5316,20 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_CreateColorCursor: {
             "output": "SDL_Cursor*",
-            "params": [
-                {
+            "params": {
+                "surface": {
                     "type": "SDL_Surface*",
-                    "name": "surface"
+                    "index": 0
                 },
-                {
+                "hot_x": {
                     "type": "int",
-                    "name": "hot_x"
+                    "index": 1
                 },
-                {
+                "hot_y": {
                     "type": "int",
-                    "name": "hot_y"
+                    "index": 2
                 }
-            ]
+            }
         },
         /**
          *  Create a system cursor.
@@ -5338,38 +5338,38 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_CreateSystemCursor: {
             "output": "SDL_Cursor*",
-            "params": [
-                {
+            "params": {
+                "id": {
                     "type": "SDL_SystemCursor",
-                    "name": "id"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Set the active cursor.
          */
         SDL_SetCursor: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "cursor": {
                     "type": "SDL_Cursor*",
-                    "name": "cursor"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Return the active cursor.
          */
         SDL_GetCursor: {
             "output": "SDL_Cursor*",
-            "params": []
+            "params": {}
         },
         /**
          *  Return the default cursor.
          */
         SDL_GetDefaultCursor: {
             "output": "SDL_Cursor*",
-            "params": []
+            "params": {}
         },
         /**
          *  Frees a cursor created with SDL_CreateCursor() or similar functions.
@@ -5380,12 +5380,12 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_FreeCursor: {
             "output": "void",
-            "params": [
-                {
+            "params": {
+                "cursor": {
                     "type": "SDL_Cursor*",
-                    "name": "cursor"
+                    "index": 0
                 }
-            ]
+            }
         },
         /**
          *  Toggle whether or not the cursor is shown.
@@ -5397,13 +5397,13 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          */
         SDL_ShowCursor: {
             "output": "int",
-            "params": [
-                {
+            "params": {
+                "toggle": {
                     "type": "int",
-                    "name": "toggle"
+                    "index": 0
                 }
-            ]
-        },
+            }
+        }
     } as const,
     values: {
         /**< fullscreen window */
