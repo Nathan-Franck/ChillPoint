@@ -1,17 +1,20 @@
 export type FilterTypes<T extends { [key: string]: any }, U extends T[keyof T]> = {
     [key in keyof T as T[key] extends U ? key : never]: T[key];
-}
+};
 
 export type Ordered<T extends { index: number }> = { [key in string]: T };
 
 export type KeyFromOrderedIndex<T extends Ordered<any>, Index extends number> = keyof {
     [key in keyof T as T[key]["index"] extends Index ? key : never]: key
-}
+};
+
 export type TupleFromOrdered<
     T extends Ordered<any>,
+    SubKey extends keyof T[keyof T],
     R extends unknown[] = [],
-    V = KeyFromOrderedIndex<T, R['length']>
-    > = {} extends T ? R : TupleFromOrdered<Pick<T, Exclude<keyof T, V>>, [...R, V]>;
+    Key = KeyFromOrderedIndex<T, R['length']>,
+    //@ts-ignore
+    > = {} extends T ? R : TupleFromOrdered<Pick<T, Exclude<keyof T, Key>>, SubKey, [...R, T[Key][SubKey]]>;
 
 export namespace Scripting {
     export function get_keys<T>(obj: T): (keyof T)[] {

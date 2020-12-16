@@ -1862,12 +1862,41 @@ end,
 ["Util.FFI"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 require("lualib_bundle");
 local ____exports = {}
+local ____Util_2EScripting = require("Util.Scripting")
+local Scripting = ____Util_2EScripting.Scripting
+local FFI
 ____exports.ffi = require("ffi")
-____exports.FFI = {}
-local FFI = ____exports.FFI
+____exports.Pointers = {}
+local Pointers = ____exports.Pointers
 do
-    function FFI.new_array(from)
-        return ____exports.ffi.new(from)
+    function Pointers.create(blueprint)
+        return __TS__ArrayReduce(
+            Scripting.get_keys(blueprint),
+            function(____, result, key) return __TS__ObjectAssign(
+                {},
+                result,
+                {
+                    [key] = ____exports.FFI.new_array(blueprint[key], 1)
+                }
+            ) end,
+            {}
+        )
+    end
+    function Pointers.result(pointers)
+        return __TS__ArrayReduce(
+            Scripting.get_keys(pointers),
+            function(____, result, key) return __TS__ObjectAssign({}, result, {[key] = pointers[key][0]}) end,
+            {}
+        )
+    end
+end
+____exports.FFI = {}
+FFI = ____exports.FFI
+do
+    function FFI.new_array(from, count)
+        return ____exports.ffi.new(
+            ((tostring(from) .. "[") .. tostring(count)) .. "]"
+        )
     end
     local FFIHeaderLookup = {uint = "int", ["char*"] = "const char*", ["const char*"] = "const char*", SDL_TimerCallback = "void*", SDL_YUV_CONVERSION_MODE = "void*", SDL_bool = "bool", SDL_TimerID = "int", SDL_DisplayOrientation = "int", SDL_GLContext = "void*", SDL_GLattr = "int", Uint8 = "int", Uint32 = "int", Uint64 = "uint64_t", SDL_HitTest = "int", SDL_RendererFlip = "int", SDL_ScaleMode = "int", SDL_BlendMode = "int", SDL_EventFilter = "void*", SDL_eventaction = "void*", SDL_SystemCursor = "void*"}
     local function void_star_fallback(____type)
@@ -1877,8 +1906,51 @@ do
         end
         return (__TS__StringEndsWith(____type, "*") and "void*") or ____type
     end
+    local function multi_return_interface(header, cdef_header)
+        return __TS__ArrayReduce(
+            Scripting.get_keys(header),
+            function(____, multi_interface, function_name)
+                do
+                    local ____try, ____returned, ____returnValue = pcall(
+                        function()
+                            local cdef_function = cdef_header[function_name]
+                            local head_function = header[function_name]
+                            local function resulting_func(args)
+                                local params_array = __TS__ArrayReduce(
+                                    Scripting.get_keys(args),
+                                    function(____, param_tuple, key)
+                                        if not (head_function.params[key] ~= nil) then
+                                            return param_tuple
+                                        end
+                                        local index = head_function.params[key].index
+                                        param_tuple[index + 1] = args[key]
+                                        return param_tuple
+                                    end,
+                                    {}
+                                )
+                                local result = cdef_function(
+                                    unpack(params_array)
+                                )
+                                return result
+                            end
+                            return true, __TS__ObjectAssign({}, multi_interface, {[function_name] = resulting_func})
+                        end
+                    )
+                    if not ____try then
+                        ____returned, ____returnValue = (function()
+                            return true, multi_interface
+                        end)()
+                    end
+                    if ____returned then
+                        return ____returnValue
+                    end
+                end
+            end,
+            {}
+        )
+    end
     local function generate_cdef_header(header)
-        return table.concat(
+        local result = table.concat(
             __TS__ArrayMap(
                 __TS__ObjectEntries(header),
                 function(____, ____bindingPattern0)
@@ -1889,60 +1961,52 @@ do
                     return ((((tostring(
                         void_star_fallback(func.output)
                     ) .. " ") .. tostring(function_name)) .. "(") .. tostring(
-                        func.params:filter(
-                            function(arg) return arg.name ~= nil end
-                        ):map(
-                            function(arg) return (tostring(
-                                void_star_fallback(arg.type)
-                            ) .. " ") .. tostring(arg.name) end
-                        ):join(", ")
+                        table.concat(
+                            __TS__ArrayMap(
+                                __TS__ArraySort(
+                                    __TS__ObjectEntries(func.params),
+                                    function(____, ____bindingPattern0, ____bindingPattern1)
+                                        local _1 = ____bindingPattern0[1]
+                                        local value_1
+                                        value_1 = ____bindingPattern0[2]
+                                        local _2 = ____bindingPattern1[1]
+                                        local value_2
+                                        value_2 = ____bindingPattern1[2]
+                                        return value_1.index - value_2.index
+                                    end
+                                ),
+                                function(____, ____bindingPattern0)
+                                    local key
+                                    key = ____bindingPattern0[1]
+                                    local value
+                                    value = ____bindingPattern0[2]
+                                    return (tostring(
+                                        void_star_fallback(value.type)
+                                    ) .. " ") .. tostring(key)
+                                end
+                            ),
+                            ", " or ","
+                        )
                     )) .. ");"
                 end
             ),
             "\n" or ","
         )
-    end
-    local function entries(obj)
-        return __TS__ObjectEntries(obj)
-    end
-    local function wrap_interface(header, extern_interface)
-        return __TS__ArrayReduce(
-            __TS__ArrayMap(
-                entries(header),
-                function(____, ____bindingPattern0)
-                    local function_name
-                    function_name = ____bindingPattern0[1]
-                    local func
-                    func = ____bindingPattern0[2]
-                    local params = func.params
-                    return {
-                        function_name,
-                        function(args)
-                            local ordered_args = params:map(
-                                function(param) return args[param.name] end
-                            )
-                            return extern_interface[function_name](
-                                __TS__Spread(ordered_args)
-                            )
-                        end
-                    }
-                end
-            ),
-            function(____, result, ____bindingPattern0)
-                local function_name
-                function_name = ____bindingPattern0[1]
-                local new_func
-                new_func = ____bindingPattern0[2]
-                return __TS__ObjectAssign({}, result, {[function_name] = new_func})
-            end,
-            {}
-        )
+        return result
     end
     function FFI.load_library(args)
         local cdef_header = generate_cdef_header(args.header)
         ____exports.ffi.cdef(cdef_header)
         local extern_interface = ____exports.ffi.load(args.file_name)
-        return {types = extern_interface, values = args.values, header = args.header}
+        return {
+            types = extern_interface,
+            values = __TS__ObjectAssign(
+                {},
+                args.values,
+                multi_return_interface(args.header, extern_interface)
+            ),
+            header = args.header
+        }
     end
 end
 return ____exports
@@ -2033,6 +2097,7 @@ local ____Lib_2ESDL_2EImg = require("Lib.SDL.Img")
 local sdl_img = ____Lib_2ESDL_2EImg.sdl_img
 local ____Util_2EFFI = require("Util.FFI")
 local ffi = ____Util_2EFFI.ffi
+local Refs = ____Util_2EFFI.Pointers
 local ____Util_2EScripting = require("Util.Scripting")
 local Scripting = ____Util_2EScripting.Scripting
 local function load_texture(path)
@@ -2049,6 +2114,46 @@ local frames = 0
 local time = os.clock()
 local positions = {}
 local sheet_inputs = {["seagull.bmp"] = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, ["feather.bmp"] = {{x = 0, y = 0, w = 4, h = 8}, {x = 8, y = 0, w = 4, h = 8}, {x = 16, y = 0, w = 4, h = 8}}, ["snowball.bmp"] = {{x = 0, y = 0, w = 16, h = 16}}, ["snow_particle.bmp"] = {{x = 0, y = 0, w = 5, h = 5}}}
+____exports.Heap = {}
+local Heap = ____exports.Heap
+do
+    function Heap.insert(heap, value, time)
+        local ____ = heap
+    end
+end
+local EventLoop = {}
+do
+    local time_queue = ____
+    function EventLoop.Wait(seconds)
+        return
+    end
+    function EventLoop.promise(resolve)
+    end
+end
+local prom = (function()
+    local ____self = (function()
+        local ____self = __TS__New(
+            Promise,
+            function(____, resolve)
+                resolve(nil, "hi")
+            end
+        )
+        return ____self["then"](
+            ____self,
+            function(____, result) return __TS__New(
+                Promise,
+                function(____, resolve) return resolve(
+                    nil,
+                    tostring(result) .. "hi"
+                ) end
+            ) end
+        )
+    end)()
+    return ____self["then"](
+        ____self,
+        function(____, result) return print(result) end
+    )
+end)()
 local sheets = Scripting.transform_object(
     sheet_inputs,
     function(sprites, image_path) return {
@@ -2056,25 +2161,22 @@ local sheets = Scripting.transform_object(
         sprites = sprites
     } end
 )
+local sheet = sheets["seagull.bmp"]
+local sprite = sheet.sprites[3]
 local function draw_item(item)
     local x = item.x
     local y = item.y
-    local sheet = sheets["seagull.bmp"]
-    local sprite = sheet.sprites[3]
-    local screen_rect = ffi.new(
-        "SDL_Rect",
-        __TS__ObjectAssign({}, sprite, {x = x, y = y})
-    )
+    local screen_rect = ffi.new("SDL_Rect", {x = x, y = y, w = sprite.w, h = sprite.h})
     local sprite_rect = ffi.new("SDL_Rect", sprite)
     sdl.SDL_RenderCopy(renderer, sheet.texture, sprite_rect, screen_rect)
 end
-local count = 0
+local count = 5000
 do
     local i = 0
     while i < count do
         positions[i + 1] = {
-            x = (math.random() * 400) + 100,
-            y = (math.random() * 400) + 100
+            x = math.random() * 800,
+            y = math.random() * 600
         }
         i = i + 1
     end
@@ -2083,39 +2185,38 @@ local event = ffi.new("SDL_Event")
 local mouse_position = {x = 0, y = 0}
 while true do
     while sdl.SDL_PollEvent(event) > 0 do
-        local ____switch8 = event.type
-        local _, x, y
-        if ____switch8 == SDL.SDL_KEYDOWN then
-            goto ____switch8_case_0
-        elseif ____switch8 == SDL.SDL_KEYUP then
-            goto ____switch8_case_1
-        elseif ____switch8 == SDL.SDL_MOUSEMOTION then
-            goto ____switch8_case_2
+        local ____switch17 = event.type
+        local refs, button_state
+        if ____switch17 == SDL.SDL_KEYDOWN then
+            goto ____switch17_case_0
+        elseif ____switch17 == SDL.SDL_KEYUP then
+            goto ____switch17_case_1
+        elseif ____switch17 == SDL.SDL_MOUSEMOTION then
+            goto ____switch17_case_2
         end
-        goto ____switch8_case_default
-        ::____switch8_case_0::
+        goto ____switch17_case_default
+        ::____switch17_case_0::
         do
             print("Key press detected")
-            goto ____switch8_end
+            goto ____switch17_end
         end
-        ::____switch8_case_1::
+        ::____switch17_case_1::
         do
             print("Key release detected")
-            goto ____switch8_end
+            goto ____switch17_end
         end
-        ::____switch8_case_2::
+        ::____switch17_case_2::
         do
-            _, x, y = unpack(
-                SDL:SDL_GetMouseState("int")
-            )
-            mouse_position = {x = x, y = y}
-            goto ____switch8_end
+            refs = Refs.create({x = "int", y = "int"})
+            button_state = SDL.SDL_GetMouseState(refs)
+            mouse_position = Refs.result(refs)
+            goto ____switch17_end
         end
-        ::____switch8_case_default::
+        ::____switch17_case_default::
         do
-            goto ____switch8_end
+            goto ____switch17_end
         end
-        ::____switch8_end::
+        ::____switch17_end::
     end
     sdl.SDL_RenderClear(renderer)
     do
