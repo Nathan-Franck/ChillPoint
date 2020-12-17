@@ -28,14 +28,14 @@ export namespace Scripting {
                 [key_value[0]]: key_value[1],
             }), {} as { [key in Key]: Value })
     }
-    export function transform_object<T, U>(
+    export function transform_object<T, U extends { [key in keyof T]: unknown }>(
         obj: T,
-        transform: <Key extends keyof T>(value: T[Key], key: Key) => U
+        transform: <Key extends keyof T>(value: T[Key], key: Key) => U[keyof T]
     ) {
         return get_keys(obj).
             reduce((new_obj, key) => ({
                 ...new_obj,
                 [key]: transform(obj[key], key),
-            }), {} as { [key in keyof T]: U });
+            }), {} as U);
     }
 }

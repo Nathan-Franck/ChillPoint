@@ -37,7 +37,7 @@ async function display_parser() {
         }
     });
 
-    const file = await fetch("SDL_image.h");
+    const file = await fetch("SDL.h");
     const text = await file.text();
     const style: Style = {
         backgroundColor: "black",

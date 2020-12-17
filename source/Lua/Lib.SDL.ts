@@ -1,4 +1,131 @@
-import { FFI } from "./Util.FFI";
+import { FFI, ffi } from "./Util.FFI";
+
+ffi.cdef(`
+    typedef struct SDL_Rect
+    {
+        int x, y;
+        int w, h;
+    } SDL_Rect;
+
+    typedef struct SDL_Keysym
+    {
+        int scancode;      /**< SDL physical key code - see ::SDL_Scancode for details */
+        int sym;            /**< SDL virtual key code - see ::SDL_Keycode for details */
+        int mod;                 /**< current key modifiers */
+        int unused;
+    } SDL_Keysym;
+
+    typedef struct{
+        int scancode;
+        int sym;
+        int mod;
+        int unicode;
+    } SDL_keysym;
+
+    typedef struct{
+        int type;
+        int state;
+        SDL_keysym keysym;
+    } SDL_KeyboardEvent;
+
+    /**
+     *  \brief Mouse motion event structure (event.motion.*)
+     */
+    typedef struct SDL_MouseMotionEvent
+    {
+        int type;        /**< ::SDL_MOUSEMOTION */
+        int timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
+        int windowID;    /**< The window with mouse focus, if any */
+        int which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
+        int state;       /**< The current button state */
+        int x;           /**< X coordinate, relative to window */
+        int y;           /**< Y coordinate, relative to window */
+        int xrel;        /**< The relative motion in the X direction */
+        int yrel;        /**< The relative motion in the Y direction */
+    } SDL_MouseMotionEvent;
+
+    /**
+     *  \brief Mouse button event structure (event.button.*)
+     */
+    typedef struct SDL_MouseButtonEvent
+    {
+        int type;        /**< ::SDL_MOUSEBUTTONDOWN or ::SDL_MOUSEBUTTONUP */
+        int timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
+        int windowID;    /**< The window with mouse focus, if any */
+        int which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
+        int button;       /**< The mouse button index */
+        int state;        /**< ::SDL_PRESSED or ::SDL_RELEASED */
+        int clicks;       /**< 1 for single-click, 2 for double-click, etc. */
+        int padding1;
+        int x;           /**< X coordinate, relative to window */
+        int y;           /**< Y coordinate, relative to window */
+    } SDL_MouseButtonEvent;
+
+    typedef struct SDL_Surface
+    {
+        int flags;               /**< Read-only */
+        void *format;    /**< Read-only */
+        int w, h;                   /**< Read-only */
+        int pitch;                  /**< Read-only */
+        void *pixels;               /**< Read-write */
+    
+        // /** Application data associated with the surface */
+        // void *userdata;             /**< Read-write */
+    
+        // /** information needed for surfaces requiring locks */
+        // int locked;                 /**< Read-only */
+        // void *lock_data;            /**< Read-only */
+    
+        // /** clipping information */
+        // SDL_Rect clip_rect;         /**< Read-only */
+    
+        // /** info for fast blit mapping to other surfaces */
+        // struct SDL_BlitMap *map;    /**< Private */
+    
+        // /** Reference count -- used when freeing surface */
+        // int refcount;               /**< Read-mostly */
+    } SDL_Surface;
+
+    typedef union SDL_Event
+    {
+        int type;                    /**< Event type, shared with all events */
+        // SDL_CommonEvent common;         /**< Common event data */
+        // SDL_DisplayEvent display;       /**< Display event data */
+        // SDL_WindowEvent window;         /**< Window event data */
+        SDL_KeyboardEvent key;          /**< Keyboard event data */
+        // SDL_TextEditingEvent edit;      /**< Text editing event data */
+        // SDL_TextInputEvent text;        /**< Text input event data */
+        SDL_MouseMotionEvent motion;    /**< Mouse motion event data */
+        SDL_MouseButtonEvent button;    /**< Mouse button event data */
+        // SDL_MouseWheelEvent wheel;      /**< Mouse wheel event data */
+        // SDL_JoyAxisEvent jaxis;         /**< Joystick axis event data */
+        // SDL_JoyBallEvent jball;         /**< Joystick ball event data */
+        // SDL_JoyHatEvent jhat;           /**< Joystick hat event data */
+        // SDL_JoyButtonEvent jbutton;     /**< Joystick button event data */
+        // SDL_JoyDeviceEvent jdevice;     /**< Joystick device change event data */
+        // SDL_ControllerAxisEvent caxis;      /**< Game Controller axis event data */
+        // SDL_ControllerButtonEvent cbutton;  /**< Game Controller button event data */
+        // SDL_ControllerDeviceEvent cdevice;  /**< Game Controller device event data */
+        // SDL_AudioDeviceEvent adevice;   /**< Audio device event data */
+        // SDL_SensorEvent sensor;         /**< Sensor event data */
+        // SDL_QuitEvent quit;             /**< Quit request event data */
+        // SDL_UserEvent user;             /**< Custom event data */
+        // SDL_SysWMEvent syswm;           /**< System dependent window event data */
+        // SDL_TouchFingerEvent tfinger;   /**< Touch finger event data */
+        // SDL_MultiGestureEvent mgesture; /**< Gesture event data */
+        // SDL_DollarGestureEvent dgesture; /**< Gesture event data */
+        // SDL_DropEvent drop;             /**< Drag and drop event data */
+
+        /* This is necessary for ABI compatibility between Visual C++ and GCC
+        Visual C++ will respect the push pack pragma and use 52 bytes for
+        this structure, and GCC will use the alignment of the largest datatype
+        within the union, which is 8 bytes.
+
+        So... we'll add padding to force the size to be 56 bytes for both.
+        */
+        int padding[56];
+    } SDL_Event;
+`);
 
 export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library({
     file_name: "SDL2",
@@ -10,7 +137,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
             "output": "int",
             "params": {
                 "flags": {
-                "type": "Uint32",
+                    "type": "Uint32",
                     "index": 0
                 }
             }
@@ -5401,6 +5528,327 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
                 "toggle": {
                     "type": "int",
                     "index": 0
+                }
+            }
+        },
+        /**
+         * Get the human readable name of a pixel format
+         */
+        SDL_GetPixelFormatName: {
+            "output": "char*",
+            "params": {
+                "format": {
+                    "type": "Uint32",
+                    "index": 0
+                }
+            }
+        },
+        /**
+         *  Convert one of the enumerated pixel formats to a bpp and RGBA masks.
+         *
+         *  @returns SDL_TRUE, or SDL_FALSE if the conversion wasn't possible.
+         *
+         *  @see SDL_MasksToPixelFormatEnum()
+         */
+        SDL_PixelFormatEnumToMasks: {
+            "output": "SDL_bool",
+            "params": {
+                "format": {
+                    "type": "Uint32",
+                    "index": 0
+                },
+                "bpp": {
+                    "type": "int*",
+                    "index": 1
+                },
+                "Rmask": {
+                    "type": "Uint32*",
+                    "index": 2
+                },
+                "Gmask": {
+                    "type": "Uint32*",
+                    "index": 3
+                },
+                "Bmask": {
+                    "type": "Uint32*",
+                    "index": 4
+                },
+                "Amask": {
+                    "type": "Uint32*",
+                    "index": 5
+                }
+            }
+        },
+        /**
+         *  Convert a bpp and RGBA masks to an enumerated pixel format.
+         *
+         *  @returns The pixel format, or ::SDL_PIXELFORMAT_UNKNOWN if the conversion
+         *          wasn't possible.
+         *
+         *  @see SDL_PixelFormatEnumToMasks()
+         */
+        SDL_MasksToPixelFormatEnum: {
+            "output": "Uint32",
+            "params": {
+                "bpp": {
+                    "type": "int",
+                    "index": 0
+                },
+                "Rmask": {
+                    "type": "Uint32",
+                    "index": 1
+                },
+                "Gmask": {
+                    "type": "Uint32",
+                    "index": 2
+                },
+                "Bmask": {
+                    "type": "Uint32",
+                    "index": 3
+                },
+                "Amask": {
+                    "type": "Uint32",
+                    "index": 4
+                }
+            }
+        },
+        /**
+         *  Create an SDL_PixelFormat structure from a pixel format enum.
+         */
+        SDL_AllocFormat: {
+            "output": "SDL_PixelFormat*",
+            "params": {
+                "pixel_format": {
+                    "type": "Uint32",
+                    "index": 0
+                }
+            }
+        },
+        /**
+         *  Free an SDL_PixelFormat structure.
+         */
+        SDL_FreeFormat: {
+            "output": "void",
+            "params": {
+                "format": {
+                    "type": "SDL_PixelFormat*",
+                    "index": 0
+                }
+            }
+        },
+        /**
+         *  Create a palette structure with the specified number of color
+         *         entries.
+         *
+         *  @returns A new palette, or NULL if there wasn't enough memory.
+         *
+         *  @remarks The palette entries are initialized to white.
+         *
+         *  @see SDL_FreePalette()
+         */
+        SDL_AllocPalette: {
+            "output": "SDL_Palette*",
+            "params": {
+                "ncolors": {
+                    "type": "int",
+                    "index": 0
+                }
+            }
+        },
+        /**
+         *  Set the palette for a pixel format structure.
+         */
+        SDL_SetPixelFormatPalette: {
+            "output": "int",
+            "params": {
+                "format": {
+                    "type": "SDL_PixelFormat*",
+                    "index": 0
+                },
+                "palette": {
+                    "type": "SDL_Palette*",
+                    "index": 1
+                }
+            }
+        },
+        /**
+         *  Set a range of colors in a palette.
+         *
+         *  @param palette    The palette to modify.
+         *  @param colors     An array of colors to copy into the palette.
+         *  @param firstcolor The index of the first palette entry to modify.
+         *  @param ncolors    The number of entries to modify.
+         *
+         *  @returns 0 on success, or -1 if not all of the colors could be set.
+         */
+        SDL_SetPaletteColors: {
+            "output": "int",
+            "params": {
+                "palette": {
+                    "type": "SDL_Palette*",
+                    "index": 0
+                },
+                "colors": {
+                    "type": "SDL_Color*",
+                    "index": 1
+                },
+                "firstcolor": {
+                    "type": "int",
+                    "index": 2
+                },
+                "ncolors": {
+                    "type": "int",
+                    "index": 3
+                }
+            }
+        },
+        /**
+         *  Free a palette created with SDL_AllocPalette().
+         *
+         *  @see SDL_AllocPalette()
+         */
+        SDL_FreePalette: {
+            "output": "void",
+            "params": {
+                "palette": {
+                    "type": "SDL_Palette*",
+                    "index": 0
+                }
+            }
+        },
+        /**
+         *  Maps an RGB triple to an opaque pixel value for a given pixel format.
+         *
+         *  @see SDL_MapRGBA
+         */
+        SDL_MapRGB: {
+            "output": "Uint32",
+            "params": {
+                "format": {
+                    "type": "SDL_PixelFormat*",
+                    "index": 0
+                },
+                "r": {
+                    "type": "Uint8",
+                    "index": 1
+                },
+                "g": {
+                    "type": "Uint8",
+                    "index": 2
+                },
+                "b": {
+                    "type": "Uint8",
+                    "index": 3
+                }
+            }
+        },
+        /**
+         *  Maps an RGBA quadruple to a pixel value for a given pixel format.
+         *
+         *  @see SDL_MapRGB
+         */
+        SDL_MapRGBA: {
+            "output": "Uint32",
+            "params": {
+                "format": {
+                    "type": "SDL_PixelFormat*",
+                    "index": 0
+                },
+                "r": {
+                    "type": "Uint8",
+                    "index": 1
+                },
+                "g": {
+                    "type": "Uint8",
+                    "index": 2
+                },
+                "b": {
+                    "type": "Uint8",
+                    "index": 3
+                },
+                "a": {
+                    "type": "Uint8",
+                    "index": 4
+                }
+            }
+        },
+        /**
+         *  Get the RGB components from a pixel of the specified format.
+         *
+         *  @see SDL_GetRGBA
+         */
+        SDL_GetRGB: {
+            "output": "void",
+            "params": {
+                "pixel": {
+                    "type": "Uint32",
+                    "index": 0
+                },
+                "format": {
+                    "type": "SDL_PixelFormat*",
+                    "index": 1
+                },
+                "r": {
+                    "type": "Uint8*",
+                    "index": 2
+                },
+                "g": {
+                    "type": "Uint8*",
+                    "index": 3
+                },
+                "b": {
+                    "type": "Uint8*",
+                    "index": 4
+                }
+            }
+        },
+        /**
+         *  Get the RGBA components from a pixel of the specified format.
+         *
+         *  @see SDL_GetRGB
+         */
+        SDL_GetRGBA: {
+            "output": "void",
+            "params": {
+                "pixel": {
+                    "type": "Uint32",
+                    "index": 0
+                },
+                "format": {
+                    "type": "SDL_PixelFormat*",
+                    "index": 1
+                },
+                "r": {
+                    "type": "Uint8*",
+                    "index": 2
+                },
+                "g": {
+                    "type": "Uint8*",
+                    "index": 3
+                },
+                "b": {
+                    "type": "Uint8*",
+                    "index": 4
+                },
+                "a": {
+                    "type": "Uint8*",
+                    "index": 5
+                }
+            }
+        },
+        /**
+         *  Calculate a 256 entry gamma ramp for a gamma value.
+         */
+        SDL_CalculateGammaRamp: {
+            "output": "void",
+            "params": {
+                "gamma": {
+                    "type": "float",
+                    "index": 0
+                },
+                "ramp": {
+                    "type": "Uint16*",
+                    "index": 1
                 }
             }
         }

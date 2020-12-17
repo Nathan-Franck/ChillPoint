@@ -12,9 +12,11 @@ export const ffi = require("ffi") as {
 
 export type External<T extends string> = {
     [key in T]: void;
+} & {
+    [key: string]: any;   
 };
 
-export namespace Pointers {
+export namespace Refs {
     export type Blueprint = { [key: string]: keyof FFI.BaseTypeLookup };
     export type Type<T extends Blueprint> = { [key in keyof T]: FFI.Array<T[key]> };
     export function create<T extends Blueprint>(blueprint: T) {
@@ -78,6 +80,7 @@ export namespace FFI {
         "const char*": "const char*",
 
         // 🚧 Temp SDL specific 🚧
+        "SDL_Surface*": "SDL_Surface*",
         "SDL_TimerCallback": "void*",
         "SDL_YUV_CONVERSION_MODE": "void*",
         "SDL_bool": "bool",
