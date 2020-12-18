@@ -20,6 +20,9 @@ export namespace Scripting {
     export function get_keys<T>(obj: T): (keyof T)[] {
         return Object.keys(obj) as (keyof T)[];
     }
+    export function reduce_keys<T, U>(obj: T, accum: <Key extends keyof T>(this: any, result: U, current_key: Key) => U): U {
+        return get_keys(obj).reduce(accum, {} as U);
+    }
     export function key_value_to_object<Key extends string | number, Value>(keys: readonly Key[], key_to_value: (key: Key) => Value) {
         return keys.
             map(key => [key, key_to_value(key)] as const).

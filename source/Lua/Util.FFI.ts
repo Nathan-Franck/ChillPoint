@@ -8,32 +8,29 @@ export const ffi = require("ffi") as {
     string: (this: void, string: any) => string,
     new: (this: void, type: string, args?: any) => any,
     typeof: (this: void, type: string) => (this: void, ...args: any) => any,
+    cast: (this: void, type: string, from: any) => any,
 };
 
 export type External<T extends string> = {
     [key in T]: void;
 } & {
-    [key: string]: any;   
+    [key: string]: any;
 };
 
 export namespace Refs {
     export type Blueprint = { [key: string]: keyof FFI.BaseTypeLookup };
     export type Type<T extends Blueprint> = { [key in keyof T]: FFI.Array<T[key]> };
     export function create<T extends Blueprint>(blueprint: T) {
-        return Scripting.
-            get_keys(blueprint).
-            reduce((result, key) => ({
-                ...result,
-                [key]: FFI.new_array<typeof blueprint[typeof key]>(blueprint[key], 1),
-            }), {} as Type<T>);
+        return Scripting.reduce_keys<Blueprint, Type<T>>(blueprint, (result, key) => ({
+            ...result,
+            [key]: FFI.new_array<typeof blueprint[typeof key]>(blueprint[key], 1),
+        }));
     }
     export function result<T extends Blueprint>(pointers: Type<T>) {
-        return Scripting.
-            get_keys(pointers).
-            reduce((result, key) => ({
-                ...result,
-                [key]: pointers[key][0],
-            }), {} as { [key in keyof T]: FFI.BaseTypeLookup[T[key]] });
+        return Scripting.reduce_keys<Type<T>, { [key in keyof T]: FFI.BaseTypeLookup[T[key]] }>(pointers, (result, key) => ({
+            ...result,
+            [key]: pointers[key][0],
+        }));
     }
 }
 
@@ -136,31 +133,32 @@ export namespace FFI {
         type NamedParams<T extends Ordered<NamedParameter>> = {
             [key in keyof T]: FuncParam<T[key]["type"]>
         };
-        return Scripting.get_keys(header).
-            reduce((multi_interface, function_name) => {
-                try {
-                    const cdef_function = cdef_header[function_name];
-                    const head_function = header[function_name];
-                    const resulting_func = (args: NamedParams<typeof head_function.params>) => {
-                        const params_array = Scripting.get_keys(args).
-                            reduce((param_tuple, key) => {
-                                if (!(key in head_function.params)) { return param_tuple; }
-                                const index = head_function.params[key].index;
-                                param_tuple[index] = args[key];
-                                return param_tuple;
-                            }, [] as any[])
-                        //@ts-ignore
-                        const result = cdef_function(...params_array);
-                        return result;
-                    }
-                    return {
-                        ...multi_interface,
-                        [function_name]: resulting_func,
-                    };
-                } catch {
-                    return multi_interface;
+        return Scripting.reduce_keys<
+            T, { [key in keyof T]: (args: NamedParams<T[key]["params"]>) => FuncParam<T[key]["output"]> }
+        >(header, (multi_interface, function_name) => {
+            try {
+                const cdef_function = cdef_header[function_name];
+                const head_function = header[function_name];
+                const resulting_func = (args: NamedParams<typeof head_function.params>) => {
+                    const params_array = Scripting.get_keys(args).
+                        reduce((param_tuple, key) => {
+                            if (!(key in head_function.params)) { return param_tuple; }
+                            const index = head_function.params[key].index;
+                            param_tuple[index] = args[key];
+                            return param_tuple;
+                        }, [] as any[])
+                    //@ts-ignore
+                    const result = cdef_function(...params_array);
+                    return result;
                 }
-            }, {} as { [key in keyof T]: (args: NamedParams<T[key]["params"]>) => FuncParam<T[key]["output"]> });
+                return {
+                    ...multi_interface,
+                    [function_name]: resulting_func,
+                };
+            } catch {
+                return multi_interface;
+            }
+        });
     }
 
     function generate_cdef_header(header: HeaderFile) {

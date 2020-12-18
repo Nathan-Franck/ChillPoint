@@ -1,8 +1,9 @@
 import { renderer, window } from "./Game.Init";
 import { sdl, SDL } from "./Lib.SDL";
 import { sdl_img } from "./Lib.SDL.Img";
-import { ffi, Refs } from "./Util.FFI";
+import { FFI, ffi, Refs } from "./Util.FFI";
 import { Scripting } from "./Util.Scripting";
+import { Vec2 } from "./Util.VecMath";
 
 function load_texture(path: string) {
     const full_path = ffi.string(sdl.SDL_GetBasePath()) + path;
@@ -11,9 +12,20 @@ function load_texture(path: string) {
     const new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface);
     return new_texture;
 }
+function load_sheets<T extends { [key: string]: { sprites: any, animations: any } }>(sheet_inputs: T) {
+    return Scripting.reduce_keys<T, {
+        [key in keyof T]: T[key] & { texture: ReturnType<typeof load_texture> }
+    }>(sheet_inputs, (sheets, image_path) => ({
+        ...sheets,
+        [image_path]: {
+            texture: load_texture(image_path as string),
+            sprites: sheet_inputs[image_path].sprites,
+            animations: sheet_inputs[image_path].animations,
+        },
+    }));
+}
 
 let frames = 0;
-const positions = [];
 const sheet_inputs = <const>{
     "seagull.bmp": {
         sprites: [
@@ -25,6 +37,12 @@ const sheet_inputs = <const>{
         animations: {
             fly: [0, 2, 1, 2],
         }
+    },
+    "player.bmp": {
+        sprites: [
+            { x: 0, y: 0, w: 27, h: 48 },
+        ],
+        animations: {},
     },
     "feather.bmp": {
         sprites: [
@@ -47,62 +65,95 @@ const sheet_inputs = <const>{
         animations: {}
     },
 };
+const sheets = load_sheets(sheet_inputs);
 
-const sheets =  Scripting.get_keys(sheet_inputs).
-    reduce((sheets, image_path) => ({
-        ...sheets,
-        [image_path]: {
-            texture: load_texture(image_path),
-            sprites: sheet_inputs[image_path].sprites,
-            animations: sheet_inputs[image_path].animations,
-        },
-    }), {} as {
-        [key in keyof typeof sheet_inputs]: typeof sheet_inputs[key] & { texture: ReturnType<typeof load_texture> }
-    });
-const sheet = sheets["seagull.bmp"];
-const sh2eet = sheets["background.bmp"];
-sh2eet.animations
-let time = sdl.SDL_GetTicks();
-function draw_item(item: { x: number, y: number }) {
-    const animation = sheet.animations.fly;
-    const animation_index = Math.floor(time / 100) % animation.length;
-    const index = animation[animation_index];
-    const sprite = sheet.sprites[index];
-    const { x, y } = item;
+function draw_item<Sheet extends keyof typeof sheets>(item: { sheet: Sheet, sprite: number, position: { x: number, y: number }}) {
+    const sheet = sheets[item.sheet];
+    const sprite = sheet.sprites[item.sprite];
+    const { x, y } = item.position;
     const screen_rect = ffi.new("SDL_Rect", { x, y, w: sprite.w * 2, h: sprite.h * 2 });
     const sprite_rect = ffi.new("SDL_Rect", sprite);
     sdl.SDL_RenderCopy(renderer, sheet.texture, sprite_rect, screen_rect);
 }
+
+// ⚙ Aspects of the game tweakable for design or player comfort
+const settings = {
+    controls: { left: SDL.SDL_SCANCODE_LEFT, right: SDL.SDL_SCANCODE_RIGHT, fire: SDL.SDL_SCANCODE_SPACE },
+} as const;
+
+const player_stats = {
+    speed: 0.25,
+} as const;
+
+// 🏃‍♀️ Main player character state, should remain fairly constant throughout gameplay
+const player = {
+    input: {
+        left: 0,
+        right: 0,
+        fire: 0,
+    },
+    position: { x: 400, y: 300 },
+    last_fire_time: 0,
+    jump_velocity: undefined as Vec2 | undefined
+};
+
 const count = 5;
+const positions = [];
 for (let i = 0; i < count; i++) {
     positions[i] = { x: Math.random() * 800, y: Math.random() * 600 };
 }
+
 const event = ffi.new("SDL_Event");
+let time = sdl.SDL_GetTicks();
+const start_time = time;
 let mouse_position = { x: 0, y: 0 };
 while (true) {
+    const next_time = sdl.SDL_GetTicks();
+    const delta_time = next_time - time;
     time = sdl.SDL_GetTicks();
     while (sdl.SDL_PollEvent(event) > 0) {
         switch (event.type) {
-            case SDL.SDL_KEYDOWN:
-                print("Key press detected"); break;
+            case SDL.SDL_KEYDOWN: {
+                Scripting.get_keys(settings.controls).forEach(key => {
+                    if (event.key.keysym.mod != settings.controls[key]) return;
+                    player.input[key] = time;
+                });
+                break;
+            }
             case SDL.SDL_KEYUP:
-                print("Key release detected"); break;
-            case SDL.SDL_MOUSEMOTION:
+                Scripting.get_keys(settings.controls).forEach(key => {
+                    if (event.key.keysym.mod != settings.controls[key]) return;
+                    player.input[key] = 0;
+                });
+                break;
+            case SDL.SDL_MOUSEMOTION: {
                 const refs = Refs.create({ x: "int", y: "int" });
                 const button_state = SDL.SDL_GetMouseState(refs);
                 mouse_position = Refs.result(refs);
                 break;
+            }
             default: break;
         }
     }
     sdl.SDL_RenderClear(renderer);
     sdl.SDL_RenderCopy(renderer, sheets["background.bmp"].texture, null, null);
 
-    for (let i = 0; i < count; i++) { draw_item(positions[i]); }
-    draw_item(mouse_position);
+    // 🏃‍♀️ Basic player movement
+    {
+        function sign(value: number) {
+            if (value == 0) return 0;
+            return value / Math.abs(value);
+        }
+        const direction = sign(player.input.right - player.input.left);
+        player.position.x += direction * delta_time * player_stats.speed;
+    }
+
+    for (let i = 0; i < count; i++) { draw_item({ sheet: "seagull.bmp", sprite: 0, position: positions[i] }); }
+    draw_item({ sheet: "feather.bmp", sprite: 0, position: mouse_position });
+    draw_item({ sheet: "player.bmp", sprite: 0, position: player.position });
 
     sdl.SDL_RenderPresent(renderer);
 
     frames++;
-    //if (frames % 500 == 0) { print((os.clock() - time) / frames * 1000); }
+    //if (frames % 500 == 0) { print((time - start_time) / frames); }
 }

@@ -1825,6 +1825,13 @@ do
     function Scripting.get_keys(obj)
         return __TS__ObjectKeys(obj)
     end
+    function Scripting.reduce_keys(obj, accum)
+        return __TS__ArrayReduce(
+            Scripting.get_keys(obj),
+            accum,
+            {}
+        )
+    end
     function Scripting.key_value_to_object(keys, key_to_value)
         return __TS__ArrayReduce(
             __TS__ArrayMap(
@@ -1870,23 +1877,21 @@ ____exports.Refs = {}
 local Refs = ____exports.Refs
 do
     function Refs.create(blueprint)
-        return __TS__ArrayReduce(
-            Scripting.get_keys(blueprint),
+        return Scripting.reduce_keys(
+            blueprint,
             function(____, result, key) return __TS__ObjectAssign(
                 {},
                 result,
                 {
                     [key] = ____exports.FFI.new_array(blueprint[key], 1)
                 }
-            ) end,
-            {}
+            ) end
         )
     end
     function Refs.result(pointers)
-        return __TS__ArrayReduce(
-            Scripting.get_keys(pointers),
-            function(____, result, key) return __TS__ObjectAssign({}, result, {[key] = pointers[key][0]}) end,
-            {}
+        return Scripting.reduce_keys(
+            pointers,
+            function(____, result, key) return __TS__ObjectAssign({}, result, {[key] = pointers[key][0]}) end
         )
     end
 end
@@ -1907,8 +1912,8 @@ do
         return (__TS__StringEndsWith(____type, "*") and "void*") or ____type
     end
     local function multi_return_interface(header, cdef_header)
-        return __TS__ArrayReduce(
-            Scripting.get_keys(header),
+        return Scripting.reduce_keys(
+            header,
             function(____, multi_interface, function_name)
                 do
                     local ____try, ____returned, ____returnValue = pcall(
@@ -1945,8 +1950,7 @@ do
                         return ____returnValue
                     end
                 end
-            end,
-            {}
+            end
         )
     end
     local function generate_cdef_header(header)
@@ -2016,11 +2020,11 @@ local ____exports = {}
 local ____Util_2EFFI = require("Util.FFI")
 local FFI = ____Util_2EFFI.FFI
 local ffi = ____Util_2EFFI.ffi
-ffi.cdef("\n    typedef struct SDL_Rect\n    {\n        int x, y;\n        int w, h;\n    } SDL_Rect;\n\n    typedef struct SDL_Keysym\n    {\n        int scancode;      /**< SDL physical key code - see ::SDL_Scancode for details */\n        int sym;            /**< SDL virtual key code - see ::SDL_Keycode for details */\n        int mod;                 /**< current key modifiers */\n        int unused;\n    } SDL_Keysym;\n\n    typedef struct{\n        int scancode;\n        int sym;\n        int mod;\n        int unicode;\n    } SDL_keysym;\n\n    typedef struct{\n        int type;\n        int state;\n        SDL_keysym keysym;\n    } SDL_KeyboardEvent;\n\n    /**\n     *  \brief Mouse motion event structure (event.motion.*)\n     */\n    typedef struct SDL_MouseMotionEvent\n    {\n        int type;        /**< ::SDL_MOUSEMOTION */\n        int timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */\n        int windowID;    /**< The window with mouse focus, if any */\n        int which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */\n        int state;       /**< The current button state */\n        int x;           /**< X coordinate, relative to window */\n        int y;           /**< Y coordinate, relative to window */\n        int xrel;        /**< The relative motion in the X direction */\n        int yrel;        /**< The relative motion in the Y direction */\n    } SDL_MouseMotionEvent;\n\n    /**\n     *  \brief Mouse button event structure (event.button.*)\n     */\n    typedef struct SDL_MouseButtonEvent\n    {\n        int type;        /**< ::SDL_MOUSEBUTTONDOWN or ::SDL_MOUSEBUTTONUP */\n        int timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */\n        int windowID;    /**< The window with mouse focus, if any */\n        int which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */\n        int button;       /**< The mouse button index */\n        int state;        /**< ::SDL_PRESSED or ::SDL_RELEASED */\n        int clicks;       /**< 1 for single-click, 2 for double-click, etc. */\n        int padding1;\n        int x;           /**< X coordinate, relative to window */\n        int y;           /**< Y coordinate, relative to window */\n    } SDL_MouseButtonEvent;\n\n    typedef struct SDL_Surface\n    {\n        int flags;               /**< Read-only */\n        void *format;    /**< Read-only */\n        int w, h;                   /**< Read-only */\n        int pitch;                  /**< Read-only */\n        void *pixels;               /**< Read-write */\n    \n        // /** Application data associated with the surface */\n        // void *userdata;             /**< Read-write */\n    \n        // /** information needed for surfaces requiring locks */\n        // int locked;                 /**< Read-only */\n        // void *lock_data;            /**< Read-only */\n    \n        // /** clipping information */\n        // SDL_Rect clip_rect;         /**< Read-only */\n    \n        // /** info for fast blit mapping to other surfaces */\n        // struct SDL_BlitMap *map;    /**< Private */\n    \n        // /** Reference count -- used when freeing surface */\n        // int refcount;               /**< Read-mostly */\n    } SDL_Surface;\n\n    typedef union SDL_Event\n    {\n        int type;                    /**< Event type, shared with all events */\n        // SDL_CommonEvent common;         /**< Common event data */\n        // SDL_DisplayEvent display;       /**< Display event data */\n        // SDL_WindowEvent window;         /**< Window event data */\n        SDL_KeyboardEvent key;          /**< Keyboard event data */\n        // SDL_TextEditingEvent edit;      /**< Text editing event data */\n        // SDL_TextInputEvent text;        /**< Text input event data */\n        SDL_MouseMotionEvent motion;    /**< Mouse motion event data */\n        SDL_MouseButtonEvent button;    /**< Mouse button event data */\n        // SDL_MouseWheelEvent wheel;      /**< Mouse wheel event data */\n        // SDL_JoyAxisEvent jaxis;         /**< Joystick axis event data */\n        // SDL_JoyBallEvent jball;         /**< Joystick ball event data */\n        // SDL_JoyHatEvent jhat;           /**< Joystick hat event data */\n        // SDL_JoyButtonEvent jbutton;     /**< Joystick button event data */\n        // SDL_JoyDeviceEvent jdevice;     /**< Joystick device change event data */\n        // SDL_ControllerAxisEvent caxis;      /**< Game Controller axis event data */\n        // SDL_ControllerButtonEvent cbutton;  /**< Game Controller button event data */\n        // SDL_ControllerDeviceEvent cdevice;  /**< Game Controller device event data */\n        // SDL_AudioDeviceEvent adevice;   /**< Audio device event data */\n        // SDL_SensorEvent sensor;         /**< Sensor event data */\n        // SDL_QuitEvent quit;             /**< Quit request event data */\n        // SDL_UserEvent user;             /**< Custom event data */\n        // SDL_SysWMEvent syswm;           /**< System dependent window event data */\n        // SDL_TouchFingerEvent tfinger;   /**< Touch finger event data */\n        // SDL_MultiGestureEvent mgesture; /**< Gesture event data */\n        // SDL_DollarGestureEvent dgesture; /**< Gesture event data */\n        // SDL_DropEvent drop;             /**< Drag and drop event data */\n\n        /* This is necessary for ABI compatibility between Visual C++ and GCC\n        Visual C++ will respect the push pack pragma and use 52 bytes for\n        this structure, and GCC will use the alignment of the largest datatype\n        within the union, which is 8 bytes.\n\n        So... we'll add padding to force the size to be 56 bytes for both.\n        */\n        int padding[56];\n    } SDL_Event;\n")
+ffi.cdef("\n    typedef enum\n    {\n        SDLK_UNKNOWN = 0\n        // TODO: Populate rest as needed\n    } SDL_Keycode;\n\n    typedef enum\n    {\n        SDLCODE_UNKNOWN = 0\n        // TODO: Populate rest as needed\n    } SDL_Scancode;\n\n    typedef enum\n    {\n        SDLMOD_UNKNOWN = 0\n    } SDL_Keymod;\n\n    typedef struct SDL_Rect\n    {\n        int x, y;\n        int w, h;\n    } SDL_Rect;\n\n    typedef struct SDL_Keysym\n    {\n        int scancode;      /**< SDL physical key code - see ::SDL_Scancode for details */\n        int sym;            /**< SDL virtual key code - see ::SDL_Keycode for details */\n        int mod;                 /**< current key modifiers */\n        int unused;\n    } SDL_Keysym;\n\n    typedef struct{\n        int scancode;\n        int sym;\n        int mod;\n        int unicode;\n    } SDL_keysym;\n\n    typedef struct{\n        int type;\n        int state;\n        SDL_keysym keysym;\n    } SDL_KeyboardEvent;\n\n    /**\n     *  \brief Mouse motion event structure (event.motion.*)\n     */\n    typedef struct SDL_MouseMotionEvent\n    {\n        int type;        /**< ::SDL_MOUSEMOTION */\n        int timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */\n        int windowID;    /**< The window with mouse focus, if any */\n        int which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */\n        int state;       /**< The current button state */\n        int x;           /**< X coordinate, relative to window */\n        int y;           /**< Y coordinate, relative to window */\n        int xrel;        /**< The relative motion in the X direction */\n        int yrel;        /**< The relative motion in the Y direction */\n    } SDL_MouseMotionEvent;\n\n    /**\n     *  \brief Mouse button event structure (event.button.*)\n     */\n    typedef struct SDL_MouseButtonEvent\n    {\n        int type;        /**< ::SDL_MOUSEBUTTONDOWN or ::SDL_MOUSEBUTTONUP */\n        int timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */\n        int windowID;    /**< The window with mouse focus, if any */\n        int which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */\n        int button;       /**< The mouse button index */\n        int state;        /**< ::SDL_PRESSED or ::SDL_RELEASED */\n        int clicks;       /**< 1 for single-click, 2 for double-click, etc. */\n        int padding1;\n        int x;           /**< X coordinate, relative to window */\n        int y;           /**< Y coordinate, relative to window */\n    } SDL_MouseButtonEvent;\n\n    typedef struct SDL_Surface\n    {\n        int flags;               /**< Read-only */\n        void *format;    /**< Read-only */\n        int w, h;                   /**< Read-only */\n        int pitch;                  /**< Read-only */\n        void *pixels;               /**< Read-write */\n    \n        // /** Application data associated with the surface */\n        // void *userdata;             /**< Read-write */\n    \n        // /** information needed for surfaces requiring locks */\n        // int locked;                 /**< Read-only */\n        // void *lock_data;            /**< Read-only */\n    \n        // /** clipping information */\n        // SDL_Rect clip_rect;         /**< Read-only */\n    \n        // /** info for fast blit mapping to other surfaces */\n        // struct SDL_BlitMap *map;    /**< Private */\n    \n        // /** Reference count -- used when freeing surface */\n        // int refcount;               /**< Read-mostly */\n    } SDL_Surface;\n\n    typedef union SDL_Event\n    {\n        int type;                    /**< Event type, shared with all events */\n        // SDL_CommonEvent common;         /**< Common event data */\n        // SDL_DisplayEvent display;       /**< Display event data */\n        // SDL_WindowEvent window;         /**< Window event data */\n        SDL_KeyboardEvent key;          /**< Keyboard event data */\n        // SDL_TextEditingEvent edit;      /**< Text editing event data */\n        // SDL_TextInputEvent text;        /**< Text input event data */\n        SDL_MouseMotionEvent motion;    /**< Mouse motion event data */\n        SDL_MouseButtonEvent button;    /**< Mouse button event data */\n        // SDL_MouseWheelEvent wheel;      /**< Mouse wheel event data */\n        // SDL_JoyAxisEvent jaxis;         /**< Joystick axis event data */\n        // SDL_JoyBallEvent jball;         /**< Joystick ball event data */\n        // SDL_JoyHatEvent jhat;           /**< Joystick hat event data */\n        // SDL_JoyButtonEvent jbutton;     /**< Joystick button event data */\n        // SDL_JoyDeviceEvent jdevice;     /**< Joystick device change event data */\n        // SDL_ControllerAxisEvent caxis;      /**< Game Controller axis event data */\n        // SDL_ControllerButtonEvent cbutton;  /**< Game Controller button event data */\n        // SDL_ControllerDeviceEvent cdevice;  /**< Game Controller device event data */\n        // SDL_AudioDeviceEvent adevice;   /**< Audio device event data */\n        // SDL_SensorEvent sensor;         /**< Sensor event data */\n        // SDL_QuitEvent quit;             /**< Quit request event data */\n        // SDL_UserEvent user;             /**< Custom event data */\n        // SDL_SysWMEvent syswm;           /**< System dependent window event data */\n        // SDL_TouchFingerEvent tfinger;   /**< Touch finger event data */\n        // SDL_MultiGestureEvent mgesture; /**< Gesture event data */\n        // SDL_DollarGestureEvent dgesture; /**< Gesture event data */\n        // SDL_DropEvent drop;             /**< Drag and drop event data */\n\n        /* This is necessary for ABI compatibility between Visual C++ and GCC\n        Visual C++ will respect the push pack pragma and use 52 bytes for\n        this structure, and GCC will use the alignment of the largest datatype\n        within the union, which is 8 bytes.\n\n        So... we'll add padding to force the size to be 56 bytes for both.\n        */\n        int padding[56];\n    } SDL_Event;\n")
 local ____ = FFI.load_library(
     {
         file_name = "SDL2",
-        header = {SDL_Init = {output = "int", params = {flags = {type = "Uint32", index = 0}}}, SDL_InitSubSystem = {output = "int", params = {flags = {type = "Uint32", index = 0}}}, SDL_QuitSubSystem = {output = "void", params = {flags = {type = "Uint32", index = 0}}}, SDL_WasInit = {output = "Uint32", params = {flags = {type = "Uint32", index = 0}}}, SDL_Quit = {output = "void", params = {}}, SDL_GetTicks = {output = "Uint32", params = {}}, SDL_GetPerformanceCounter = {output = "Uint64", params = {}}, SDL_GetPerformanceFrequency = {output = "Uint64", params = {}}, SDL_Delay = {output = "void", params = {ms = {type = "Uint32", index = 0}}}, SDL_AddTimer = {output = "SDL_TimerID", params = {interval = {type = "Uint32", index = 0}, callback = {type = "SDL_TimerCallback", index = 1}, param = {type = "void*", index = 2}}}, SDL_RemoveTimer = {output = "SDL_bool", params = {id = {type = "SDL_TimerID", index = 0}}}, SDL_GetNumVideoDrivers = {output = "int", params = {}}, SDL_GetVideoDriver = {output = "char*", params = {index = {type = "int", index = 0}}}, SDL_VideoInit = {output = "int", params = {driver_name = {type = "char*", index = 0}}}, SDL_VideoQuit = {output = "void", params = {}}, SDL_GetCurrentVideoDriver = {output = "char*", params = {}}, SDL_GetNumVideoDisplays = {output = "int", params = {}}, SDL_GetDisplayName = {output = "char*", params = {displayIndex = {type = "int", index = 0}}}, SDL_GetDisplayBounds = {output = "int", params = {displayIndex = {type = "int", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_GetDisplayUsableBounds = {output = "int", params = {displayIndex = {type = "int", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_GetDisplayDPI = {output = "int", params = {displayIndex = {type = "int", index = 0}, ddpi = {type = "float*", index = 1}, hdpi = {type = "float*", index = 2}, vdpi = {type = "float*", index = 3}}}, SDL_GetDisplayOrientation = {output = "SDL_DisplayOrientation", params = {displayIndex = {type = "int", index = 0}}}, SDL_GetNumDisplayModes = {output = "int", params = {displayIndex = {type = "int", index = 0}}}, SDL_GetDisplayMode = {output = "int", params = {displayIndex = {type = "int", index = 0}, modeIndex = {type = "int", index = 1}, mode = {type = "SDL_DisplayMode*", index = 2}}}, SDL_GetDesktopDisplayMode = {output = "int", params = {displayIndex = {type = "int", index = 0}, mode = {type = "SDL_DisplayMode*", index = 1}}}, SDL_GetCurrentDisplayMode = {output = "int", params = {displayIndex = {type = "int", index = 0}, mode = {type = "SDL_DisplayMode*", index = 1}}}, SDL_GetClosestDisplayMode = {output = "SDL_DisplayMode*", params = {displayIndex = {type = "int", index = 0}, mode = {type = "SDL_DisplayMode*", index = 1}, closest = {type = "SDL_DisplayMode*", index = 2}}}, SDL_GetWindowDisplayIndex = {output = "int", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_SetWindowDisplayMode = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, mode = {type = "SDL_DisplayMode*", index = 1}}}, SDL_GetWindowDisplayMode = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, mode = {type = "SDL_DisplayMode*", index = 1}}}, SDL_GetWindowPixelFormat = {output = "Uint32", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_CreateWindow = {output = "SDL_Window*", params = {title = {type = "char*", index = 0}, x = {type = "int", index = 1}, y = {type = "int", index = 2}, w = {type = "int", index = 3}, h = {type = "int", index = 4}, flags = {type = "Uint32", index = 5}}}, SDL_CreateWindowFrom = {output = "SDL_Window*", params = {data = {type = "void*", index = 0}}}, SDL_GetWindowID = {output = "Uint32", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_GetWindowFromID = {output = "SDL_Window*", params = {id = {type = "Uint32", index = 0}}}, SDL_GetWindowFlags = {output = "Uint32", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_SetWindowTitle = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, title = {type = "char*", index = 1}}}, SDL_GetWindowTitle = {output = "char*", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_SetWindowIcon = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, icon = {type = "SDL_Surface*", index = 1}}}, SDL_SetWindowData = {output = "void*", params = {window = {type = "SDL_Window*", index = 0}, name = {type = "char*", index = 1}, userdata = {type = "void*", index = 2}}}, SDL_GetWindowData = {output = "void*", params = {window = {type = "SDL_Window*", index = 0}, name = {type = "char*", index = 1}}}, SDL_SetWindowPosition = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, x = {type = "int", index = 1}, y = {type = "int", index = 2}}}, SDL_GetWindowPosition = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, x = {type = "int*", index = 1}, y = {type = "int*", index = 2}}}, SDL_SetWindowSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, w = {type = "int", index = 1}, h = {type = "int", index = 2}}}, SDL_GetWindowSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, w = {type = "int*", index = 1}, h = {type = "int*", index = 2}}}, SDL_GetWindowBordersSize = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, top = {type = "int*", index = 1}, left = {type = "int*", index = 2}, bottom = {type = "int*", index = 3}, right = {type = "int*", index = 4}}}, SDL_SetWindowMinimumSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, min_w = {type = "int", index = 1}, min_h = {type = "int", index = 2}}}, SDL_GetWindowMinimumSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, w = {type = "int*", index = 1}, h = {type = "int*", index = 2}}}, SDL_SetWindowMaximumSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, max_w = {type = "int", index = 1}, max_h = {type = "int", index = 2}}}, SDL_GetWindowMaximumSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, w = {type = "int*", index = 1}, h = {type = "int*", index = 2}}}, SDL_SetWindowBordered = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, bordered = {type = "SDL_bool", index = 1}}}, SDL_SetWindowResizable = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, resizable = {type = "SDL_bool", index = 1}}}, SDL_ShowWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_HideWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_RaiseWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_MaximizeWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_MinimizeWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_RestoreWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_SetWindowFullscreen = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, flags = {type = "Uint32", index = 1}}}, SDL_GetWindowSurface = {output = "SDL_Surface*", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_UpdateWindowSurface = {output = "int", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_UpdateWindowSurfaceRects = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, rects = {type = "SDL_Rect*", index = 1}, numrects = {type = "int", index = 2}}}, SDL_SetWindowGrab = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, grabbed = {type = "SDL_bool", index = 1}}}, SDL_GetWindowGrab = {output = "SDL_bool", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_GetGrabbedWindow = {output = "SDL_Window*", params = {}}, SDL_SetWindowBrightness = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, brightness = {type = "float", index = 1}}}, SDL_GetWindowBrightness = {output = "float", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_SetWindowOpacity = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, opacity = {type = "float", index = 1}}}, SDL_GetWindowOpacity = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, out_opacity = {type = "float*", index = 1}}}, SDL_SetWindowModalFor = {output = "int", params = {modal_window = {type = "SDL_Window*", index = 0}, parent_window = {type = "SDL_Window*", index = 1}}}, SDL_SetWindowInputFocus = {output = "int", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_SetWindowGammaRamp = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, red = {type = "Uint16*", index = 1}, green = {type = "Uint16*", index = 2}, blue = {type = "Uint16*", index = 3}}}, SDL_GetWindowGammaRamp = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, red = {type = "Uint16*", index = 1}, green = {type = "Uint16*", index = 2}, blue = {type = "Uint16*", index = 3}}}, SDL_SetWindowHitTest = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, callback = {type = "SDL_HitTest", index = 1}, callback_data = {type = "void*", index = 2}}}, SDL_DestroyWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_IsScreenSaverEnabled = {output = "SDL_bool", params = {}}, SDL_EnableScreenSaver = {output = "void", params = {}}, SDL_DisableScreenSaver = {output = "void", params = {}}, SDL_GL_LoadLibrary = {output = "int", params = {path = {type = "char*", index = 0}}}, SDL_GL_GetProcAddress = {output = "void*", params = {proc = {type = "char*", index = 0}}}, SDL_GL_UnloadLibrary = {output = "void", params = {}}, SDL_GL_ExtensionSupported = {output = "SDL_bool", params = {extension = {type = "char*", index = 0}}}, SDL_GL_ResetAttributes = {output = "void", params = {}}, SDL_GL_SetAttribute = {output = "int", params = {attr = {type = "SDL_GLattr", index = 0}, value = {type = "int", index = 1}}}, SDL_GL_GetAttribute = {output = "int", params = {attr = {type = "SDL_GLattr", index = 0}, value = {type = "int*", index = 1}}}, SDL_GL_CreateContext = {output = "SDL_GLContext", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_GL_MakeCurrent = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, context = {type = "SDL_GLContext", index = 1}}}, SDL_GL_GetCurrentWindow = {output = "SDL_Window*", params = {}}, SDL_GL_GetCurrentContext = {output = "SDL_GLContext", params = {}}, SDL_GL_GetDrawableSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, w = {type = "int*", index = 1}, h = {type = "int*", index = 2}}}, SDL_GL_SetSwapInterval = {output = "int", params = {interval = {type = "int", index = 0}}}, SDL_GL_GetSwapInterval = {output = "int", params = {}}, SDL_GL_SwapWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_GL_DeleteContext = {output = "void", params = {context = {type = "SDL_GLContext", index = 0}}}, SDL_GetNumRenderDrivers = {output = "int", params = {}}, SDL_GetRenderDriverInfo = {output = "int", params = {index = {type = "int", index = 0}, info = {type = "SDL_RendererInfo*", index = 1}}}, SDL_CreateWindowAndRenderer = {output = "int", params = {width = {type = "int", index = 0}, height = {type = "int", index = 1}, window_flags = {type = "Uint32", index = 2}, window = {type = "SDL_Window**", index = 3}, renderer = {type = "SDL_Renderer**", index = 4}}}, SDL_CreateRenderer = {output = "SDL_Renderer*", params = {window = {type = "SDL_Window*", index = 0}, index = {type = "int", index = 1}, flags = {type = "Uint32", index = 2}}}, SDL_CreateSoftwareRenderer = {output = "SDL_Renderer*", params = {surface = {type = "SDL_Surface*", index = 0}}}, SDL_GetRenderer = {output = "SDL_Renderer*", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_GetRendererInfo = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, info = {type = "SDL_RendererInfo*", index = 1}}}, SDL_GetRendererOutputSize = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, w = {type = "int*", index = 1}, h = {type = "int*", index = 2}}}, SDL_CreateTexture = {output = "SDL_Texture*", params = {renderer = {type = "SDL_Renderer*", index = 0}, format = {type = "Uint32", index = 1}, access = {type = "int", index = 2}, w = {type = "int", index = 3}, h = {type = "int", index = 4}}}, SDL_CreateTextureFromSurface = {output = "SDL_Texture*", params = {renderer = {type = "SDL_Renderer*", index = 0}, surface = {type = "SDL_Surface*", index = 1}}}, SDL_QueryTexture = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, format = {type = "Uint32*", index = 1}, access = {type = "int*", index = 2}, w = {type = "int*", index = 3}, h = {type = "int*", index = 4}}}, SDL_SetTextureColorMod = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, r = {type = "Uint8", index = 1}, g = {type = "Uint8", index = 2}, b = {type = "Uint8", index = 3}}}, SDL_GetTextureColorMod = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, r = {type = "Uint8*", index = 1}, g = {type = "Uint8*", index = 2}, b = {type = "Uint8*", index = 3}}}, SDL_SetTextureAlphaMod = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, alpha = {type = "Uint8", index = 1}}}, SDL_GetTextureAlphaMod = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, alpha = {type = "Uint8*", index = 1}}}, SDL_SetTextureBlendMode = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, blendMode = {type = "SDL_BlendMode", index = 1}}}, SDL_GetTextureBlendMode = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, blendMode = {type = "SDL_BlendMode*", index = 1}}}, SDL_SetTextureScaleMode = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, scaleMode = {type = "SDL_ScaleMode", index = 1}}}, SDL_GetTextureScaleMode = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, scaleMode = {type = "SDL_ScaleMode*", index = 1}}}, SDL_UpdateTexture = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, rect = {type = "SDL_Rect*", index = 1}, pixels = {type = "void*", index = 2}, pitch = {type = "int", index = 3}}}, SDL_UpdateYUVTexture = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, rect = {type = "SDL_Rect*", index = 1}, Yplane = {type = "Uint8*", index = 2}, Ypitch = {type = "int", index = 3}, Uplane = {type = "Uint8*", index = 4}, Upitch = {type = "int", index = 5}, Vplane = {type = "Uint8*", index = 6}, Vpitch = {type = "int", index = 7}}}, SDL_LockTexture = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, rect = {type = "SDL_Rect*", index = 1}, pixels = {type = "void**", index = 2}, pitch = {type = "int*", index = 3}}}, SDL_LockTextureToSurface = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, rect = {type = "SDL_Rect*", index = 1}, surface = {type = "SDL_Surface**", index = 2}}}, SDL_UnlockTexture = {output = "void", params = {texture = {type = "SDL_Texture*", index = 0}}}, SDL_RenderTargetSupported = {output = "SDL_bool", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_SetRenderTarget = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, texture = {type = "SDL_Texture*", index = 1}}}, SDL_GetRenderTarget = {output = "SDL_Texture*", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_RenderSetLogicalSize = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, w = {type = "int", index = 1}, h = {type = "int", index = 2}}}, SDL_RenderGetLogicalSize = {output = "void", params = {renderer = {type = "SDL_Renderer*", index = 0}, w = {type = "int*", index = 1}, h = {type = "int*", index = 2}}}, SDL_RenderSetIntegerScale = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, enable = {type = "SDL_bool", index = 1}}}, SDL_RenderGetIntegerScale = {output = "SDL_bool", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_RenderSetViewport = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_RenderGetViewport = {output = "void", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_RenderSetClipRect = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_RenderGetClipRect = {output = "void", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_RenderIsClipEnabled = {output = "SDL_bool", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_RenderSetScale = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, scaleX = {type = "float", index = 1}, scaleY = {type = "float", index = 2}}}, SDL_RenderGetScale = {output = "void", params = {renderer = {type = "SDL_Renderer*", index = 0}, scaleX = {type = "float*", index = 1}, scaleY = {type = "float*", index = 2}}}, SDL_SetRenderDrawColor = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, r = {type = "Uint8", index = 1}, g = {type = "Uint8", index = 2}, b = {type = "Uint8", index = 3}, a = {type = "Uint8", index = 4}}}, SDL_GetRenderDrawColor = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, r = {type = "Uint8*", index = 1}, g = {type = "Uint8*", index = 2}, b = {type = "Uint8*", index = 3}, a = {type = "Uint8*", index = 4}}}, SDL_SetRenderDrawBlendMode = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, blendMode = {type = "SDL_BlendMode", index = 1}}}, SDL_GetRenderDrawBlendMode = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, blendMode = {type = "SDL_BlendMode*", index = 1}}}, SDL_RenderClear = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_RenderDrawPoint = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, x = {type = "int", index = 1}, y = {type = "int", index = 2}}}, SDL_RenderDrawPoints = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, points = {type = "SDL_Point*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderDrawLine = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, x1 = {type = "int", index = 1}, y1 = {type = "int", index = 2}, x2 = {type = "int", index = 3}, y2 = {type = "int", index = 4}}}, SDL_RenderDrawLines = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, points = {type = "SDL_Point*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderDrawRect = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_RenderDrawRects = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rects = {type = "SDL_Rect*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderFillRect = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_RenderFillRects = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rects = {type = "SDL_Rect*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderCopy = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, texture = {type = "SDL_Texture*", index = 1}, srcrect = {type = "SDL_Rect*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}}}, SDL_RenderCopyEx = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, texture = {type = "SDL_Texture*", index = 1}, srcrect = {type = "SDL_Rect*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}, angle = {type = "double", index = 4}, center = {type = "SDL_Point*", index = 5}, flip = {type = "SDL_RendererFlip", index = 6}}}, SDL_RenderDrawPointF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, x = {type = "float", index = 1}, y = {type = "float", index = 2}}}, SDL_RenderDrawPointsF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, points = {type = "SDL_FPoint*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderDrawLineF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, x1 = {type = "float", index = 1}, y1 = {type = "float", index = 2}, x2 = {type = "float", index = 3}, y2 = {type = "float", index = 4}}}, SDL_RenderDrawLinesF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, points = {type = "SDL_FPoint*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderDrawRectF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_FRect*", index = 1}}}, SDL_RenderDrawRectsF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rects = {type = "SDL_FRect*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderFillRectF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_FRect*", index = 1}}}, SDL_RenderFillRectsF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rects = {type = "SDL_FRect*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderCopyF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, texture = {type = "SDL_Texture*", index = 1}, srcrect = {type = "SDL_Rect*", index = 2}, dstrect = {type = "SDL_FRect*", index = 3}}}, SDL_RenderCopyExF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, texture = {type = "SDL_Texture*", index = 1}, srcrect = {type = "SDL_Rect*", index = 2}, dstrect = {type = "SDL_FRect*", index = 3}, angle = {type = "double", index = 4}, center = {type = "SDL_FPoint*", index = 5}, flip = {type = "SDL_RendererFlip", index = 6}}}, SDL_RenderReadPixels = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}, format = {type = "Uint32", index = 2}, pixels = {type = "void*", index = 3}, pitch = {type = "int", index = 4}}}, SDL_RenderPresent = {output = "void", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_DestroyTexture = {output = "void", params = {texture = {type = "SDL_Texture*", index = 0}}}, SDL_DestroyRenderer = {output = "void", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_RenderFlush = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_GL_BindTexture = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, texw = {type = "float*", index = 1}, texh = {type = "float*", index = 2}}}, SDL_GL_UnbindTexture = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}}}, SDL_RenderGetMetalLayer = {output = "void*", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_RenderGetMetalCommandEncoder = {output = "void*", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_GetBasePath = {output = "char*", params = {}}, SDL_GetPrefPath = {output = "char*", params = {org = {type = "char*", index = 0}, app = {type = "char*", index = 1}}}, SDL_CreateRGBSurface = {output = "SDL_Surface*", params = {flags = {type = "Uint32", index = 0}, width = {type = "int", index = 1}, height = {type = "int", index = 2}, depth = {type = "int", index = 3}, Rmask = {type = "Uint32", index = 4}, Gmask = {type = "Uint32", index = 5}, Bmask = {type = "Uint32", index = 6}, Amask = {type = "Uint32", index = 7}}}, SDL_CreateRGBSurfaceWithFormat = {output = "SDL_Surface*", params = {flags = {type = "Uint32", index = 0}, width = {type = "int", index = 1}, height = {type = "int", index = 2}, depth = {type = "int", index = 3}, format = {type = "Uint32", index = 4}}}, SDL_CreateRGBSurfaceFrom = {output = "SDL_Surface*", params = {pixels = {type = "void*", index = 0}, width = {type = "int", index = 1}, height = {type = "int", index = 2}, depth = {type = "int", index = 3}, pitch = {type = "int", index = 4}, Rmask = {type = "Uint32", index = 5}, Gmask = {type = "Uint32", index = 6}, Bmask = {type = "Uint32", index = 7}, Amask = {type = "Uint32", index = 8}}}, SDL_CreateRGBSurfaceWithFormatFrom = {output = "SDL_Surface*", params = {pixels = {type = "void*", index = 0}, width = {type = "int", index = 1}, height = {type = "int", index = 2}, depth = {type = "int", index = 3}, pitch = {type = "int", index = 4}, format = {type = "Uint32", index = 5}}}, SDL_FreeSurface = {output = "void", params = {surface = {type = "SDL_Surface*", index = 0}}}, SDL_SetSurfacePalette = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, palette = {type = "SDL_Palette*", index = 1}}}, SDL_LockSurface = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}}}, SDL_UnlockSurface = {output = "void", params = {surface = {type = "SDL_Surface*", index = 0}}}, SDL_LoadBMP_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}, freesrc = {type = "int", index = 1}}}, SDL_SaveBMP_RW = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, dst = {type = "SDL_RWops*", index = 1}, freedst = {type = "int", index = 2}}}, SDL_SetSurfaceRLE = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, flag = {type = "int", index = 1}}}, SDL_SetColorKey = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, flag = {type = "int", index = 1}, key = {type = "Uint32", index = 2}}}, SDL_HasColorKey = {output = "SDL_bool", params = {surface = {type = "SDL_Surface*", index = 0}}}, SDL_GetColorKey = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, key = {type = "Uint32*", index = 1}}}, SDL_SetSurfaceColorMod = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, r = {type = "Uint8", index = 1}, g = {type = "Uint8", index = 2}, b = {type = "Uint8", index = 3}}}, SDL_GetSurfaceColorMod = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, r = {type = "Uint8*", index = 1}, g = {type = "Uint8*", index = 2}, b = {type = "Uint8*", index = 3}}}, SDL_SetSurfaceAlphaMod = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, alpha = {type = "Uint8", index = 1}}}, SDL_GetSurfaceAlphaMod = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, alpha = {type = "Uint8*", index = 1}}}, SDL_SetSurfaceBlendMode = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, blendMode = {type = "SDL_BlendMode", index = 1}}}, SDL_GetSurfaceBlendMode = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, blendMode = {type = "SDL_BlendMode*", index = 1}}}, SDL_SetClipRect = {output = "SDL_bool", params = {surface = {type = "SDL_Surface*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_GetClipRect = {output = "void", params = {surface = {type = "SDL_Surface*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_DuplicateSurface = {output = "SDL_Surface*", params = {surface = {type = "SDL_Surface*", index = 0}}}, SDL_ConvertSurface = {output = "SDL_Surface*", params = {src = {type = "SDL_Surface*", index = 0}, fmt = {type = "SDL_PixelFormat*", index = 1}, flags = {type = "Uint32", index = 2}}}, SDL_ConvertSurfaceFormat = {output = "SDL_Surface*", params = {src = {type = "SDL_Surface*", index = 0}, pixel_format = {type = "Uint32", index = 1}, flags = {type = "Uint32", index = 2}}}, SDL_ConvertPixels = {output = "int", params = {width = {type = "int", index = 0}, height = {type = "int", index = 1}, src_format = {type = "Uint32", index = 2}, src = {type = "void*", index = 3}, src_pitch = {type = "int", index = 4}, dst_format = {type = "Uint32", index = 5}, dst = {type = "void*", index = 6}, dst_pitch = {type = "int", index = 7}}}, SDL_FillRect = {output = "int", params = {dst = {type = "SDL_Surface*", index = 0}, rect = {type = "SDL_Rect*", index = 1}, color = {type = "Uint32", index = 2}}}, SDL_FillRects = {output = "int", params = {dst = {type = "SDL_Surface*", index = 0}, rects = {type = "SDL_Rect*", index = 1}, count = {type = "int", index = 2}, color = {type = "Uint32", index = 3}}}, SDL_UpperBlit = {output = "int", params = {src = {type = "SDL_Surface*", index = 0}, srcrect = {type = "SDL_Rect*", index = 1}, dst = {type = "SDL_Surface*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}}}, SDL_LowerBlit = {output = "int", params = {src = {type = "SDL_Surface*", index = 0}, srcrect = {type = "SDL_Rect*", index = 1}, dst = {type = "SDL_Surface*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}}}, SDL_SoftStretch = {output = "int", params = {src = {type = "SDL_Surface*", index = 0}, srcrect = {type = "SDL_Rect*", index = 1}, dst = {type = "SDL_Surface*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}}}, SDL_UpperBlitScaled = {output = "int", params = {src = {type = "SDL_Surface*", index = 0}, srcrect = {type = "SDL_Rect*", index = 1}, dst = {type = "SDL_Surface*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}}}, SDL_LowerBlitScaled = {output = "int", params = {src = {type = "SDL_Surface*", index = 0}, srcrect = {type = "SDL_Rect*", index = 1}, dst = {type = "SDL_Surface*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}}}, SDL_SetYUVConversionMode = {output = "void", params = {mode = {type = "SDL_YUV_CONVERSION_MODE", index = 0}}}, SDL_GetYUVConversionMode = {output = "SDL_YUV_CONVERSION_MODE", params = {}}, SDL_GetYUVConversionModeForResolution = {output = "SDL_YUV_CONVERSION_MODE", params = {width = {type = "int", index = 0}, height = {type = "int", index = 1}}}, SDL_PumpEvents = {output = "void", params = {}}, SDL_PeepEvents = {output = "int", params = {events = {type = "SDL_Event*", index = 0}, numevents = {type = "int", index = 1}, action = {type = "SDL_eventaction", index = 2}, minType = {type = "Uint32", index = 3}, maxType = {type = "Uint32", index = 4}}}, SDL_HasEvent = {output = "SDL_bool", params = {type = {type = "Uint32", index = 0}}}, SDL_HasEvents = {output = "SDL_bool", params = {minType = {type = "Uint32", index = 0}, maxType = {type = "Uint32", index = 1}}}, SDL_FlushEvent = {output = "void", params = {type = {type = "Uint32", index = 0}}}, SDL_FlushEvents = {output = "void", params = {minType = {type = "Uint32", index = 0}, maxType = {type = "Uint32", index = 1}}}, SDL_PollEvent = {output = "int", params = {event = {type = "SDL_Event*", index = 0}}}, SDL_WaitEvent = {output = "int", params = {event = {type = "SDL_Event*", index = 0}}}, SDL_WaitEventTimeout = {output = "int", params = {event = {type = "SDL_Event*", index = 0}, timeout = {type = "int", index = 1}}}, SDL_PushEvent = {output = "int", params = {event = {type = "SDL_Event*", index = 0}}}, SDL_SetEventFilter = {output = "void", params = {filter = {type = "SDL_EventFilter", index = 0}, userdata = {type = "void*", index = 1}}}, SDL_GetEventFilter = {output = "SDL_bool", params = {filter = {type = "SDL_EventFilter*", index = 0}, userdata = {type = "void**", index = 1}}}, SDL_AddEventWatch = {output = "void", params = {filter = {type = "SDL_EventFilter", index = 0}, userdata = {type = "void*", index = 1}}}, SDL_DelEventWatch = {output = "void", params = {filter = {type = "SDL_EventFilter", index = 0}, userdata = {type = "void*", index = 1}}}, SDL_FilterEvents = {output = "void", params = {filter = {type = "SDL_EventFilter", index = 0}, userdata = {type = "void*", index = 1}}}, SDL_EventState = {output = "Uint8", params = {type = {type = "Uint32", index = 0}, state = {type = "int", index = 1}}}, SDL_RegisterEvents = {output = "Uint32", params = {numevents = {type = "int", index = 0}}}, SDL_GetMouseFocus = {output = "SDL_Window*", params = {}}, SDL_GetMouseState = {output = "Uint32", params = {x = {type = "int*", index = 0}, y = {type = "int*", index = 1}}}, SDL_GetGlobalMouseState = {output = "Uint32", params = {x = {type = "int*", index = 0}, y = {type = "int*", index = 1}}}, SDL_GetRelativeMouseState = {output = "Uint32", params = {x = {type = "int*", index = 0}, y = {type = "int*", index = 1}}}, SDL_WarpMouseInWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, x = {type = "int", index = 1}, y = {type = "int", index = 2}}}, SDL_WarpMouseGlobal = {output = "int", params = {x = {type = "int", index = 0}, y = {type = "int", index = 1}}}, SDL_SetRelativeMouseMode = {output = "int", params = {enabled = {type = "SDL_bool", index = 0}}}, SDL_CaptureMouse = {output = "int", params = {enabled = {type = "SDL_bool", index = 0}}}, SDL_GetRelativeMouseMode = {output = "SDL_bool", params = {}}, SDL_CreateCursor = {output = "SDL_Cursor*", params = {data = {type = "Uint8*", index = 0}, mask = {type = "Uint8*", index = 1}, w = {type = "int", index = 2}, h = {type = "int", index = 3}, hot_x = {type = "int", index = 4}, hot_y = {type = "int", index = 5}}}, SDL_CreateColorCursor = {output = "SDL_Cursor*", params = {surface = {type = "SDL_Surface*", index = 0}, hot_x = {type = "int", index = 1}, hot_y = {type = "int", index = 2}}}, SDL_CreateSystemCursor = {output = "SDL_Cursor*", params = {id = {type = "SDL_SystemCursor", index = 0}}}, SDL_SetCursor = {output = "void", params = {cursor = {type = "SDL_Cursor*", index = 0}}}, SDL_GetCursor = {output = "SDL_Cursor*", params = {}}, SDL_GetDefaultCursor = {output = "SDL_Cursor*", params = {}}, SDL_FreeCursor = {output = "void", params = {cursor = {type = "SDL_Cursor*", index = 0}}}, SDL_ShowCursor = {output = "int", params = {toggle = {type = "int", index = 0}}}, SDL_GetPixelFormatName = {output = "char*", params = {format = {type = "Uint32", index = 0}}}, SDL_PixelFormatEnumToMasks = {output = "SDL_bool", params = {format = {type = "Uint32", index = 0}, bpp = {type = "int*", index = 1}, Rmask = {type = "Uint32*", index = 2}, Gmask = {type = "Uint32*", index = 3}, Bmask = {type = "Uint32*", index = 4}, Amask = {type = "Uint32*", index = 5}}}, SDL_MasksToPixelFormatEnum = {output = "Uint32", params = {bpp = {type = "int", index = 0}, Rmask = {type = "Uint32", index = 1}, Gmask = {type = "Uint32", index = 2}, Bmask = {type = "Uint32", index = 3}, Amask = {type = "Uint32", index = 4}}}, SDL_AllocFormat = {output = "SDL_PixelFormat*", params = {pixel_format = {type = "Uint32", index = 0}}}, SDL_FreeFormat = {output = "void", params = {format = {type = "SDL_PixelFormat*", index = 0}}}, SDL_AllocPalette = {output = "SDL_Palette*", params = {ncolors = {type = "int", index = 0}}}, SDL_SetPixelFormatPalette = {output = "int", params = {format = {type = "SDL_PixelFormat*", index = 0}, palette = {type = "SDL_Palette*", index = 1}}}, SDL_SetPaletteColors = {output = "int", params = {palette = {type = "SDL_Palette*", index = 0}, colors = {type = "SDL_Color*", index = 1}, firstcolor = {type = "int", index = 2}, ncolors = {type = "int", index = 3}}}, SDL_FreePalette = {output = "void", params = {palette = {type = "SDL_Palette*", index = 0}}}, SDL_MapRGB = {output = "Uint32", params = {format = {type = "SDL_PixelFormat*", index = 0}, r = {type = "Uint8", index = 1}, g = {type = "Uint8", index = 2}, b = {type = "Uint8", index = 3}}}, SDL_MapRGBA = {output = "Uint32", params = {format = {type = "SDL_PixelFormat*", index = 0}, r = {type = "Uint8", index = 1}, g = {type = "Uint8", index = 2}, b = {type = "Uint8", index = 3}, a = {type = "Uint8", index = 4}}}, SDL_GetRGB = {output = "void", params = {pixel = {type = "Uint32", index = 0}, format = {type = "SDL_PixelFormat*", index = 1}, r = {type = "Uint8*", index = 2}, g = {type = "Uint8*", index = 3}, b = {type = "Uint8*", index = 4}}}, SDL_GetRGBA = {output = "void", params = {pixel = {type = "Uint32", index = 0}, format = {type = "SDL_PixelFormat*", index = 1}, r = {type = "Uint8*", index = 2}, g = {type = "Uint8*", index = 3}, b = {type = "Uint8*", index = 4}, a = {type = "Uint8*", index = 5}}}, SDL_CalculateGammaRamp = {output = "void", params = {gamma = {type = "float", index = 0}, ramp = {type = "Uint16*", index = 1}}}},
+        header = {SDL_Init = {output = "int", params = {flags = {type = "Uint32", index = 0}}}, SDL_InitSubSystem = {output = "int", params = {flags = {type = "Uint32", index = 0}}}, SDL_QuitSubSystem = {output = "void", params = {flags = {type = "Uint32", index = 0}}}, SDL_WasInit = {output = "Uint32", params = {flags = {type = "Uint32", index = 0}}}, SDL_Quit = {output = "void", params = {}}, SDL_GetTicks = {output = "Uint32", params = {}}, SDL_GetPerformanceCounter = {output = "Uint64", params = {}}, SDL_GetPerformanceFrequency = {output = "Uint64", params = {}}, SDL_Delay = {output = "void", params = {ms = {type = "Uint32", index = 0}}}, SDL_AddTimer = {output = "SDL_TimerID", params = {interval = {type = "Uint32", index = 0}, callback = {type = "SDL_TimerCallback", index = 1}, param = {type = "void*", index = 2}}}, SDL_RemoveTimer = {output = "SDL_bool", params = {id = {type = "SDL_TimerID", index = 0}}}, SDL_GetNumVideoDrivers = {output = "int", params = {}}, SDL_GetVideoDriver = {output = "char*", params = {index = {type = "int", index = 0}}}, SDL_VideoInit = {output = "int", params = {driver_name = {type = "char*", index = 0}}}, SDL_VideoQuit = {output = "void", params = {}}, SDL_GetCurrentVideoDriver = {output = "char*", params = {}}, SDL_GetNumVideoDisplays = {output = "int", params = {}}, SDL_GetDisplayName = {output = "char*", params = {displayIndex = {type = "int", index = 0}}}, SDL_GetDisplayBounds = {output = "int", params = {displayIndex = {type = "int", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_GetDisplayUsableBounds = {output = "int", params = {displayIndex = {type = "int", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_GetDisplayDPI = {output = "int", params = {displayIndex = {type = "int", index = 0}, ddpi = {type = "float*", index = 1}, hdpi = {type = "float*", index = 2}, vdpi = {type = "float*", index = 3}}}, SDL_GetDisplayOrientation = {output = "SDL_DisplayOrientation", params = {displayIndex = {type = "int", index = 0}}}, SDL_GetNumDisplayModes = {output = "int", params = {displayIndex = {type = "int", index = 0}}}, SDL_GetDisplayMode = {output = "int", params = {displayIndex = {type = "int", index = 0}, modeIndex = {type = "int", index = 1}, mode = {type = "SDL_DisplayMode*", index = 2}}}, SDL_GetDesktopDisplayMode = {output = "int", params = {displayIndex = {type = "int", index = 0}, mode = {type = "SDL_DisplayMode*", index = 1}}}, SDL_GetCurrentDisplayMode = {output = "int", params = {displayIndex = {type = "int", index = 0}, mode = {type = "SDL_DisplayMode*", index = 1}}}, SDL_GetClosestDisplayMode = {output = "SDL_DisplayMode*", params = {displayIndex = {type = "int", index = 0}, mode = {type = "SDL_DisplayMode*", index = 1}, closest = {type = "SDL_DisplayMode*", index = 2}}}, SDL_GetWindowDisplayIndex = {output = "int", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_SetWindowDisplayMode = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, mode = {type = "SDL_DisplayMode*", index = 1}}}, SDL_GetWindowDisplayMode = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, mode = {type = "SDL_DisplayMode*", index = 1}}}, SDL_GetWindowPixelFormat = {output = "Uint32", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_CreateWindow = {output = "SDL_Window*", params = {title = {type = "char*", index = 0}, x = {type = "int", index = 1}, y = {type = "int", index = 2}, w = {type = "int", index = 3}, h = {type = "int", index = 4}, flags = {type = "Uint32", index = 5}}}, SDL_CreateWindowFrom = {output = "SDL_Window*", params = {data = {type = "void*", index = 0}}}, SDL_GetWindowID = {output = "Uint32", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_GetWindowFromID = {output = "SDL_Window*", params = {id = {type = "Uint32", index = 0}}}, SDL_GetWindowFlags = {output = "Uint32", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_SetWindowTitle = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, title = {type = "char*", index = 1}}}, SDL_GetWindowTitle = {output = "char*", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_SetWindowIcon = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, icon = {type = "SDL_Surface*", index = 1}}}, SDL_SetWindowData = {output = "void*", params = {window = {type = "SDL_Window*", index = 0}, name = {type = "char*", index = 1}, userdata = {type = "void*", index = 2}}}, SDL_GetWindowData = {output = "void*", params = {window = {type = "SDL_Window*", index = 0}, name = {type = "char*", index = 1}}}, SDL_SetWindowPosition = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, x = {type = "int", index = 1}, y = {type = "int", index = 2}}}, SDL_GetWindowPosition = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, x = {type = "int*", index = 1}, y = {type = "int*", index = 2}}}, SDL_SetWindowSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, w = {type = "int", index = 1}, h = {type = "int", index = 2}}}, SDL_GetWindowSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, w = {type = "int*", index = 1}, h = {type = "int*", index = 2}}}, SDL_GetWindowBordersSize = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, top = {type = "int*", index = 1}, left = {type = "int*", index = 2}, bottom = {type = "int*", index = 3}, right = {type = "int*", index = 4}}}, SDL_SetWindowMinimumSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, min_w = {type = "int", index = 1}, min_h = {type = "int", index = 2}}}, SDL_GetWindowMinimumSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, w = {type = "int*", index = 1}, h = {type = "int*", index = 2}}}, SDL_SetWindowMaximumSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, max_w = {type = "int", index = 1}, max_h = {type = "int", index = 2}}}, SDL_GetWindowMaximumSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, w = {type = "int*", index = 1}, h = {type = "int*", index = 2}}}, SDL_SetWindowBordered = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, bordered = {type = "SDL_bool", index = 1}}}, SDL_SetWindowResizable = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, resizable = {type = "SDL_bool", index = 1}}}, SDL_ShowWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_HideWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_RaiseWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_MaximizeWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_MinimizeWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_RestoreWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_SetWindowFullscreen = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, flags = {type = "Uint32", index = 1}}}, SDL_GetWindowSurface = {output = "SDL_Surface*", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_UpdateWindowSurface = {output = "int", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_UpdateWindowSurfaceRects = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, rects = {type = "SDL_Rect*", index = 1}, numrects = {type = "int", index = 2}}}, SDL_SetWindowGrab = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, grabbed = {type = "SDL_bool", index = 1}}}, SDL_GetWindowGrab = {output = "SDL_bool", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_GetGrabbedWindow = {output = "SDL_Window*", params = {}}, SDL_SetWindowBrightness = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, brightness = {type = "float", index = 1}}}, SDL_GetWindowBrightness = {output = "float", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_SetWindowOpacity = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, opacity = {type = "float", index = 1}}}, SDL_GetWindowOpacity = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, out_opacity = {type = "float*", index = 1}}}, SDL_SetWindowModalFor = {output = "int", params = {modal_window = {type = "SDL_Window*", index = 0}, parent_window = {type = "SDL_Window*", index = 1}}}, SDL_SetWindowInputFocus = {output = "int", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_SetWindowGammaRamp = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, red = {type = "Uint16*", index = 1}, green = {type = "Uint16*", index = 2}, blue = {type = "Uint16*", index = 3}}}, SDL_GetWindowGammaRamp = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, red = {type = "Uint16*", index = 1}, green = {type = "Uint16*", index = 2}, blue = {type = "Uint16*", index = 3}}}, SDL_SetWindowHitTest = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, callback = {type = "SDL_HitTest", index = 1}, callback_data = {type = "void*", index = 2}}}, SDL_DestroyWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_IsScreenSaverEnabled = {output = "SDL_bool", params = {}}, SDL_EnableScreenSaver = {output = "void", params = {}}, SDL_DisableScreenSaver = {output = "void", params = {}}, SDL_GL_LoadLibrary = {output = "int", params = {path = {type = "char*", index = 0}}}, SDL_GL_GetProcAddress = {output = "void*", params = {proc = {type = "char*", index = 0}}}, SDL_GL_UnloadLibrary = {output = "void", params = {}}, SDL_GL_ExtensionSupported = {output = "SDL_bool", params = {extension = {type = "char*", index = 0}}}, SDL_GL_ResetAttributes = {output = "void", params = {}}, SDL_GL_SetAttribute = {output = "int", params = {attr = {type = "SDL_GLattr", index = 0}, value = {type = "int", index = 1}}}, SDL_GL_GetAttribute = {output = "int", params = {attr = {type = "SDL_GLattr", index = 0}, value = {type = "int*", index = 1}}}, SDL_GL_CreateContext = {output = "SDL_GLContext", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_GL_MakeCurrent = {output = "int", params = {window = {type = "SDL_Window*", index = 0}, context = {type = "SDL_GLContext", index = 1}}}, SDL_GL_GetCurrentWindow = {output = "SDL_Window*", params = {}}, SDL_GL_GetCurrentContext = {output = "SDL_GLContext", params = {}}, SDL_GL_GetDrawableSize = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, w = {type = "int*", index = 1}, h = {type = "int*", index = 2}}}, SDL_GL_SetSwapInterval = {output = "int", params = {interval = {type = "int", index = 0}}}, SDL_GL_GetSwapInterval = {output = "int", params = {}}, SDL_GL_SwapWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_GL_DeleteContext = {output = "void", params = {context = {type = "SDL_GLContext", index = 0}}}, SDL_GetNumRenderDrivers = {output = "int", params = {}}, SDL_GetRenderDriverInfo = {output = "int", params = {index = {type = "int", index = 0}, info = {type = "SDL_RendererInfo*", index = 1}}}, SDL_CreateWindowAndRenderer = {output = "int", params = {width = {type = "int", index = 0}, height = {type = "int", index = 1}, window_flags = {type = "Uint32", index = 2}, window = {type = "SDL_Window**", index = 3}, renderer = {type = "SDL_Renderer**", index = 4}}}, SDL_CreateRenderer = {output = "SDL_Renderer*", params = {window = {type = "SDL_Window*", index = 0}, index = {type = "int", index = 1}, flags = {type = "Uint32", index = 2}}}, SDL_CreateSoftwareRenderer = {output = "SDL_Renderer*", params = {surface = {type = "SDL_Surface*", index = 0}}}, SDL_GetRenderer = {output = "SDL_Renderer*", params = {window = {type = "SDL_Window*", index = 0}}}, SDL_GetRendererInfo = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, info = {type = "SDL_RendererInfo*", index = 1}}}, SDL_GetRendererOutputSize = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, w = {type = "int*", index = 1}, h = {type = "int*", index = 2}}}, SDL_CreateTexture = {output = "SDL_Texture*", params = {renderer = {type = "SDL_Renderer*", index = 0}, format = {type = "Uint32", index = 1}, access = {type = "int", index = 2}, w = {type = "int", index = 3}, h = {type = "int", index = 4}}}, SDL_CreateTextureFromSurface = {output = "SDL_Texture*", params = {renderer = {type = "SDL_Renderer*", index = 0}, surface = {type = "SDL_Surface*", index = 1}}}, SDL_QueryTexture = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, format = {type = "Uint32*", index = 1}, access = {type = "int*", index = 2}, w = {type = "int*", index = 3}, h = {type = "int*", index = 4}}}, SDL_SetTextureColorMod = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, r = {type = "Uint8", index = 1}, g = {type = "Uint8", index = 2}, b = {type = "Uint8", index = 3}}}, SDL_GetTextureColorMod = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, r = {type = "Uint8*", index = 1}, g = {type = "Uint8*", index = 2}, b = {type = "Uint8*", index = 3}}}, SDL_SetTextureAlphaMod = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, alpha = {type = "Uint8", index = 1}}}, SDL_GetTextureAlphaMod = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, alpha = {type = "Uint8*", index = 1}}}, SDL_SetTextureBlendMode = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, blendMode = {type = "SDL_BlendMode", index = 1}}}, SDL_GetTextureBlendMode = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, blendMode = {type = "SDL_BlendMode*", index = 1}}}, SDL_SetTextureScaleMode = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, scaleMode = {type = "SDL_ScaleMode", index = 1}}}, SDL_GetTextureScaleMode = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, scaleMode = {type = "SDL_ScaleMode*", index = 1}}}, SDL_UpdateTexture = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, rect = {type = "SDL_Rect*", index = 1}, pixels = {type = "void*", index = 2}, pitch = {type = "int", index = 3}}}, SDL_UpdateYUVTexture = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, rect = {type = "SDL_Rect*", index = 1}, Yplane = {type = "Uint8*", index = 2}, Ypitch = {type = "int", index = 3}, Uplane = {type = "Uint8*", index = 4}, Upitch = {type = "int", index = 5}, Vplane = {type = "Uint8*", index = 6}, Vpitch = {type = "int", index = 7}}}, SDL_LockTexture = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, rect = {type = "SDL_Rect*", index = 1}, pixels = {type = "void**", index = 2}, pitch = {type = "int*", index = 3}}}, SDL_LockTextureToSurface = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, rect = {type = "SDL_Rect*", index = 1}, surface = {type = "SDL_Surface**", index = 2}}}, SDL_UnlockTexture = {output = "void", params = {texture = {type = "SDL_Texture*", index = 0}}}, SDL_RenderTargetSupported = {output = "SDL_bool", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_SetRenderTarget = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, texture = {type = "SDL_Texture*", index = 1}}}, SDL_GetRenderTarget = {output = "SDL_Texture*", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_RenderSetLogicalSize = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, w = {type = "int", index = 1}, h = {type = "int", index = 2}}}, SDL_RenderGetLogicalSize = {output = "void", params = {renderer = {type = "SDL_Renderer*", index = 0}, w = {type = "int*", index = 1}, h = {type = "int*", index = 2}}}, SDL_RenderSetIntegerScale = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, enable = {type = "SDL_bool", index = 1}}}, SDL_RenderGetIntegerScale = {output = "SDL_bool", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_RenderSetViewport = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_RenderGetViewport = {output = "void", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_RenderSetClipRect = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_RenderGetClipRect = {output = "void", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_RenderIsClipEnabled = {output = "SDL_bool", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_RenderSetScale = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, scaleX = {type = "float", index = 1}, scaleY = {type = "float", index = 2}}}, SDL_RenderGetScale = {output = "void", params = {renderer = {type = "SDL_Renderer*", index = 0}, scaleX = {type = "float*", index = 1}, scaleY = {type = "float*", index = 2}}}, SDL_SetRenderDrawColor = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, r = {type = "Uint8", index = 1}, g = {type = "Uint8", index = 2}, b = {type = "Uint8", index = 3}, a = {type = "Uint8", index = 4}}}, SDL_GetRenderDrawColor = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, r = {type = "Uint8*", index = 1}, g = {type = "Uint8*", index = 2}, b = {type = "Uint8*", index = 3}, a = {type = "Uint8*", index = 4}}}, SDL_SetRenderDrawBlendMode = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, blendMode = {type = "SDL_BlendMode", index = 1}}}, SDL_GetRenderDrawBlendMode = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, blendMode = {type = "SDL_BlendMode*", index = 1}}}, SDL_RenderClear = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_RenderDrawPoint = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, x = {type = "int", index = 1}, y = {type = "int", index = 2}}}, SDL_RenderDrawPoints = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, points = {type = "SDL_Point*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderDrawLine = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, x1 = {type = "int", index = 1}, y1 = {type = "int", index = 2}, x2 = {type = "int", index = 3}, y2 = {type = "int", index = 4}}}, SDL_RenderDrawLines = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, points = {type = "SDL_Point*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderDrawRect = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_RenderDrawRects = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rects = {type = "SDL_Rect*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderFillRect = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_RenderFillRects = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rects = {type = "SDL_Rect*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderCopy = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, texture = {type = "SDL_Texture*", index = 1}, srcrect = {type = "SDL_Rect*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}}}, SDL_RenderCopyEx = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, texture = {type = "SDL_Texture*", index = 1}, srcrect = {type = "SDL_Rect*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}, angle = {type = "double", index = 4}, center = {type = "SDL_Point*", index = 5}, flip = {type = "SDL_RendererFlip", index = 6}}}, SDL_RenderDrawPointF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, x = {type = "float", index = 1}, y = {type = "float", index = 2}}}, SDL_RenderDrawPointsF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, points = {type = "SDL_FPoint*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderDrawLineF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, x1 = {type = "float", index = 1}, y1 = {type = "float", index = 2}, x2 = {type = "float", index = 3}, y2 = {type = "float", index = 4}}}, SDL_RenderDrawLinesF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, points = {type = "SDL_FPoint*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderDrawRectF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_FRect*", index = 1}}}, SDL_RenderDrawRectsF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rects = {type = "SDL_FRect*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderFillRectF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_FRect*", index = 1}}}, SDL_RenderFillRectsF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rects = {type = "SDL_FRect*", index = 1}, count = {type = "int", index = 2}}}, SDL_RenderCopyF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, texture = {type = "SDL_Texture*", index = 1}, srcrect = {type = "SDL_Rect*", index = 2}, dstrect = {type = "SDL_FRect*", index = 3}}}, SDL_RenderCopyExF = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, texture = {type = "SDL_Texture*", index = 1}, srcrect = {type = "SDL_Rect*", index = 2}, dstrect = {type = "SDL_FRect*", index = 3}, angle = {type = "double", index = 4}, center = {type = "SDL_FPoint*", index = 5}, flip = {type = "SDL_RendererFlip", index = 6}}}, SDL_RenderReadPixels = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}, rect = {type = "SDL_Rect*", index = 1}, format = {type = "Uint32", index = 2}, pixels = {type = "void*", index = 3}, pitch = {type = "int", index = 4}}}, SDL_RenderPresent = {output = "void", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_DestroyTexture = {output = "void", params = {texture = {type = "SDL_Texture*", index = 0}}}, SDL_DestroyRenderer = {output = "void", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_RenderFlush = {output = "int", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_GL_BindTexture = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}, texw = {type = "float*", index = 1}, texh = {type = "float*", index = 2}}}, SDL_GL_UnbindTexture = {output = "int", params = {texture = {type = "SDL_Texture*", index = 0}}}, SDL_RenderGetMetalLayer = {output = "void*", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_RenderGetMetalCommandEncoder = {output = "void*", params = {renderer = {type = "SDL_Renderer*", index = 0}}}, SDL_GetBasePath = {output = "char*", params = {}}, SDL_GetPrefPath = {output = "char*", params = {org = {type = "char*", index = 0}, app = {type = "char*", index = 1}}}, SDL_CreateRGBSurface = {output = "SDL_Surface*", params = {flags = {type = "Uint32", index = 0}, width = {type = "int", index = 1}, height = {type = "int", index = 2}, depth = {type = "int", index = 3}, Rmask = {type = "Uint32", index = 4}, Gmask = {type = "Uint32", index = 5}, Bmask = {type = "Uint32", index = 6}, Amask = {type = "Uint32", index = 7}}}, SDL_CreateRGBSurfaceWithFormat = {output = "SDL_Surface*", params = {flags = {type = "Uint32", index = 0}, width = {type = "int", index = 1}, height = {type = "int", index = 2}, depth = {type = "int", index = 3}, format = {type = "Uint32", index = 4}}}, SDL_CreateRGBSurfaceFrom = {output = "SDL_Surface*", params = {pixels = {type = "void*", index = 0}, width = {type = "int", index = 1}, height = {type = "int", index = 2}, depth = {type = "int", index = 3}, pitch = {type = "int", index = 4}, Rmask = {type = "Uint32", index = 5}, Gmask = {type = "Uint32", index = 6}, Bmask = {type = "Uint32", index = 7}, Amask = {type = "Uint32", index = 8}}}, SDL_CreateRGBSurfaceWithFormatFrom = {output = "SDL_Surface*", params = {pixels = {type = "void*", index = 0}, width = {type = "int", index = 1}, height = {type = "int", index = 2}, depth = {type = "int", index = 3}, pitch = {type = "int", index = 4}, format = {type = "Uint32", index = 5}}}, SDL_FreeSurface = {output = "void", params = {surface = {type = "SDL_Surface*", index = 0}}}, SDL_SetSurfacePalette = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, palette = {type = "SDL_Palette*", index = 1}}}, SDL_LockSurface = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}}}, SDL_UnlockSurface = {output = "void", params = {surface = {type = "SDL_Surface*", index = 0}}}, SDL_LoadBMP_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}, freesrc = {type = "int", index = 1}}}, SDL_SaveBMP_RW = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, dst = {type = "SDL_RWops*", index = 1}, freedst = {type = "int", index = 2}}}, SDL_SetSurfaceRLE = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, flag = {type = "int", index = 1}}}, SDL_SetColorKey = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, flag = {type = "int", index = 1}, key = {type = "Uint32", index = 2}}}, SDL_HasColorKey = {output = "SDL_bool", params = {surface = {type = "SDL_Surface*", index = 0}}}, SDL_GetColorKey = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, key = {type = "Uint32*", index = 1}}}, SDL_SetSurfaceColorMod = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, r = {type = "Uint8", index = 1}, g = {type = "Uint8", index = 2}, b = {type = "Uint8", index = 3}}}, SDL_GetSurfaceColorMod = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, r = {type = "Uint8*", index = 1}, g = {type = "Uint8*", index = 2}, b = {type = "Uint8*", index = 3}}}, SDL_SetSurfaceAlphaMod = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, alpha = {type = "Uint8", index = 1}}}, SDL_GetSurfaceAlphaMod = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, alpha = {type = "Uint8*", index = 1}}}, SDL_SetSurfaceBlendMode = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, blendMode = {type = "SDL_BlendMode", index = 1}}}, SDL_GetSurfaceBlendMode = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, blendMode = {type = "SDL_BlendMode*", index = 1}}}, SDL_SetClipRect = {output = "SDL_bool", params = {surface = {type = "SDL_Surface*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_GetClipRect = {output = "void", params = {surface = {type = "SDL_Surface*", index = 0}, rect = {type = "SDL_Rect*", index = 1}}}, SDL_DuplicateSurface = {output = "SDL_Surface*", params = {surface = {type = "SDL_Surface*", index = 0}}}, SDL_ConvertSurface = {output = "SDL_Surface*", params = {src = {type = "SDL_Surface*", index = 0}, fmt = {type = "SDL_PixelFormat*", index = 1}, flags = {type = "Uint32", index = 2}}}, SDL_ConvertSurfaceFormat = {output = "SDL_Surface*", params = {src = {type = "SDL_Surface*", index = 0}, pixel_format = {type = "Uint32", index = 1}, flags = {type = "Uint32", index = 2}}}, SDL_ConvertPixels = {output = "int", params = {width = {type = "int", index = 0}, height = {type = "int", index = 1}, src_format = {type = "Uint32", index = 2}, src = {type = "void*", index = 3}, src_pitch = {type = "int", index = 4}, dst_format = {type = "Uint32", index = 5}, dst = {type = "void*", index = 6}, dst_pitch = {type = "int", index = 7}}}, SDL_FillRect = {output = "int", params = {dst = {type = "SDL_Surface*", index = 0}, rect = {type = "SDL_Rect*", index = 1}, color = {type = "Uint32", index = 2}}}, SDL_FillRects = {output = "int", params = {dst = {type = "SDL_Surface*", index = 0}, rects = {type = "SDL_Rect*", index = 1}, count = {type = "int", index = 2}, color = {type = "Uint32", index = 3}}}, SDL_UpperBlit = {output = "int", params = {src = {type = "SDL_Surface*", index = 0}, srcrect = {type = "SDL_Rect*", index = 1}, dst = {type = "SDL_Surface*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}}}, SDL_LowerBlit = {output = "int", params = {src = {type = "SDL_Surface*", index = 0}, srcrect = {type = "SDL_Rect*", index = 1}, dst = {type = "SDL_Surface*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}}}, SDL_SoftStretch = {output = "int", params = {src = {type = "SDL_Surface*", index = 0}, srcrect = {type = "SDL_Rect*", index = 1}, dst = {type = "SDL_Surface*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}}}, SDL_UpperBlitScaled = {output = "int", params = {src = {type = "SDL_Surface*", index = 0}, srcrect = {type = "SDL_Rect*", index = 1}, dst = {type = "SDL_Surface*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}}}, SDL_LowerBlitScaled = {output = "int", params = {src = {type = "SDL_Surface*", index = 0}, srcrect = {type = "SDL_Rect*", index = 1}, dst = {type = "SDL_Surface*", index = 2}, dstrect = {type = "SDL_Rect*", index = 3}}}, SDL_SetYUVConversionMode = {output = "void", params = {mode = {type = "SDL_YUV_CONVERSION_MODE", index = 0}}}, SDL_GetYUVConversionMode = {output = "SDL_YUV_CONVERSION_MODE", params = {}}, SDL_GetYUVConversionModeForResolution = {output = "SDL_YUV_CONVERSION_MODE", params = {width = {type = "int", index = 0}, height = {type = "int", index = 1}}}, SDL_PumpEvents = {output = "void", params = {}}, SDL_PeepEvents = {output = "int", params = {events = {type = "SDL_Event*", index = 0}, numevents = {type = "int", index = 1}, action = {type = "SDL_eventaction", index = 2}, minType = {type = "Uint32", index = 3}, maxType = {type = "Uint32", index = 4}}}, SDL_HasEvent = {output = "SDL_bool", params = {type = {type = "Uint32", index = 0}}}, SDL_HasEvents = {output = "SDL_bool", params = {minType = {type = "Uint32", index = 0}, maxType = {type = "Uint32", index = 1}}}, SDL_FlushEvent = {output = "void", params = {type = {type = "Uint32", index = 0}}}, SDL_FlushEvents = {output = "void", params = {minType = {type = "Uint32", index = 0}, maxType = {type = "Uint32", index = 1}}}, SDL_PollEvent = {output = "int", params = {event = {type = "SDL_Event*", index = 0}}}, SDL_WaitEvent = {output = "int", params = {event = {type = "SDL_Event*", index = 0}}}, SDL_WaitEventTimeout = {output = "int", params = {event = {type = "SDL_Event*", index = 0}, timeout = {type = "int", index = 1}}}, SDL_PushEvent = {output = "int", params = {event = {type = "SDL_Event*", index = 0}}}, SDL_SetEventFilter = {output = "void", params = {filter = {type = "SDL_EventFilter", index = 0}, userdata = {type = "void*", index = 1}}}, SDL_GetEventFilter = {output = "SDL_bool", params = {filter = {type = "SDL_EventFilter*", index = 0}, userdata = {type = "void**", index = 1}}}, SDL_AddEventWatch = {output = "void", params = {filter = {type = "SDL_EventFilter", index = 0}, userdata = {type = "void*", index = 1}}}, SDL_DelEventWatch = {output = "void", params = {filter = {type = "SDL_EventFilter", index = 0}, userdata = {type = "void*", index = 1}}}, SDL_FilterEvents = {output = "void", params = {filter = {type = "SDL_EventFilter", index = 0}, userdata = {type = "void*", index = 1}}}, SDL_EventState = {output = "Uint8", params = {type = {type = "Uint32", index = 0}, state = {type = "int", index = 1}}}, SDL_RegisterEvents = {output = "Uint32", params = {numevents = {type = "int", index = 0}}}, SDL_GetMouseFocus = {output = "SDL_Window*", params = {}}, SDL_GetMouseState = {output = "Uint32", params = {x = {type = "int*", index = 0}, y = {type = "int*", index = 1}}}, SDL_GetGlobalMouseState = {output = "Uint32", params = {x = {type = "int*", index = 0}, y = {type = "int*", index = 1}}}, SDL_GetRelativeMouseState = {output = "Uint32", params = {x = {type = "int*", index = 0}, y = {type = "int*", index = 1}}}, SDL_WarpMouseInWindow = {output = "void", params = {window = {type = "SDL_Window*", index = 0}, x = {type = "int", index = 1}, y = {type = "int", index = 2}}}, SDL_WarpMouseGlobal = {output = "int", params = {x = {type = "int", index = 0}, y = {type = "int", index = 1}}}, SDL_SetRelativeMouseMode = {output = "int", params = {enabled = {type = "SDL_bool", index = 0}}}, SDL_CaptureMouse = {output = "int", params = {enabled = {type = "SDL_bool", index = 0}}}, SDL_GetRelativeMouseMode = {output = "SDL_bool", params = {}}, SDL_CreateCursor = {output = "SDL_Cursor*", params = {data = {type = "Uint8*", index = 0}, mask = {type = "Uint8*", index = 1}, w = {type = "int", index = 2}, h = {type = "int", index = 3}, hot_x = {type = "int", index = 4}, hot_y = {type = "int", index = 5}}}, SDL_CreateColorCursor = {output = "SDL_Cursor*", params = {surface = {type = "SDL_Surface*", index = 0}, hot_x = {type = "int", index = 1}, hot_y = {type = "int", index = 2}}}, SDL_CreateSystemCursor = {output = "SDL_Cursor*", params = {id = {type = "SDL_SystemCursor", index = 0}}}, SDL_SetCursor = {output = "void", params = {cursor = {type = "SDL_Cursor*", index = 0}}}, SDL_GetCursor = {output = "SDL_Cursor*", params = {}}, SDL_GetDefaultCursor = {output = "SDL_Cursor*", params = {}}, SDL_FreeCursor = {output = "void", params = {cursor = {type = "SDL_Cursor*", index = 0}}}, SDL_ShowCursor = {output = "int", params = {toggle = {type = "int", index = 0}}}, SDL_GetPixelFormatName = {output = "char*", params = {format = {type = "Uint32", index = 0}}}, SDL_PixelFormatEnumToMasks = {output = "SDL_bool", params = {format = {type = "Uint32", index = 0}, bpp = {type = "int*", index = 1}, Rmask = {type = "Uint32*", index = 2}, Gmask = {type = "Uint32*", index = 3}, Bmask = {type = "Uint32*", index = 4}, Amask = {type = "Uint32*", index = 5}}}, SDL_MasksToPixelFormatEnum = {output = "Uint32", params = {bpp = {type = "int", index = 0}, Rmask = {type = "Uint32", index = 1}, Gmask = {type = "Uint32", index = 2}, Bmask = {type = "Uint32", index = 3}, Amask = {type = "Uint32", index = 4}}}, SDL_AllocFormat = {output = "SDL_PixelFormat*", params = {pixel_format = {type = "Uint32", index = 0}}}, SDL_FreeFormat = {output = "void", params = {format = {type = "SDL_PixelFormat*", index = 0}}}, SDL_AllocPalette = {output = "SDL_Palette*", params = {ncolors = {type = "int", index = 0}}}, SDL_SetPixelFormatPalette = {output = "int", params = {format = {type = "SDL_PixelFormat*", index = 0}, palette = {type = "SDL_Palette*", index = 1}}}, SDL_SetPaletteColors = {output = "int", params = {palette = {type = "SDL_Palette*", index = 0}, colors = {type = "SDL_Color*", index = 1}, firstcolor = {type = "int", index = 2}, ncolors = {type = "int", index = 3}}}, SDL_FreePalette = {output = "void", params = {palette = {type = "SDL_Palette*", index = 0}}}, SDL_MapRGB = {output = "Uint32", params = {format = {type = "SDL_PixelFormat*", index = 0}, r = {type = "Uint8", index = 1}, g = {type = "Uint8", index = 2}, b = {type = "Uint8", index = 3}}}, SDL_MapRGBA = {output = "Uint32", params = {format = {type = "SDL_PixelFormat*", index = 0}, r = {type = "Uint8", index = 1}, g = {type = "Uint8", index = 2}, b = {type = "Uint8", index = 3}, a = {type = "Uint8", index = 4}}}, SDL_GetRGB = {output = "void", params = {pixel = {type = "Uint32", index = 0}, format = {type = "SDL_PixelFormat*", index = 1}, r = {type = "Uint8*", index = 2}, g = {type = "Uint8*", index = 3}, b = {type = "Uint8*", index = 4}}}, SDL_GetRGBA = {output = "void", params = {pixel = {type = "Uint32", index = 0}, format = {type = "SDL_PixelFormat*", index = 1}, r = {type = "Uint8*", index = 2}, g = {type = "Uint8*", index = 3}, b = {type = "Uint8*", index = 4}, a = {type = "Uint8*", index = 5}}}, SDL_CalculateGammaRamp = {output = "void", params = {gamma = {type = "float", index = 0}, ramp = {type = "Uint16*", index = 1}}}, SDL_GetKeyboardFocus = {output = "SDL_Window*", params = {}}, SDL_GetKeyboardState = {output = "Uint8*", params = {numkeys = {type = "int*", index = 0}}}, SDL_GetModState = {output = "SDL_Keymod", params = {}}, SDL_SetModState = {output = "void", params = {modstate = {type = "SDL_Keymod", index = 0}}}, SDL_GetKeyFromScancode = {output = "SDL_Keycode", params = {scancode = {type = "SDL_Scancode", index = 0}}}, SDL_GetScancodeFromKey = {output = "SDL_Scancode", params = {key = {type = "SDL_Keycode", index = 0}}}, SDL_GetScancodeName = {output = "char*", params = {scancode = {type = "SDL_Scancode", index = 0}}}, SDL_GetScancodeFromName = {output = "SDL_Scancode", params = {name = {type = "char*", index = 0}}}, SDL_GetKeyName = {output = "char*", params = {key = {type = "SDL_Keycode", index = 0}}}, SDL_GetKeyFromName = {output = "SDL_Keycode", params = {name = {type = "char*", index = 0}}}, SDL_StartTextInput = {output = "void", params = {}}, SDL_IsTextInputActive = {output = "SDL_bool", params = {}}, SDL_StopTextInput = {output = "void", params = {}}, SDL_SetTextInputRect = {output = "void", params = {rect = {type = "SDL_Rect*", index = 0}}}, SDL_HasScreenKeyboardSupport = {output = "SDL_bool", params = {}}, SDL_IsScreenKeyboardShown = {output = "SDL_bool", params = {window = {type = "SDL_Window*", index = 0}}}},
         values = {
             SDL_WINDOW_FULLSCREEN = 1,
             SDL_WINDOW_OPENGL = 2,
@@ -2055,7 +2059,250 @@ local ____ = FFI.load_library(
             SDL_MOUSEMOTION = 1024,
             SDL_MOUSEBUTTONDOWN = 1025,
             SDL_MOUSEBUTTONUP = 1026,
-            SDL_MOUSEWHEEL = 1027
+            SDL_MOUSEWHEEL = 1027,
+            SDL_SCANCODE_UNKNOWN = 0,
+            SDL_SCANCODE_A = 4,
+            SDL_SCANCODE_B = 5,
+            SDL_SCANCODE_C = 6,
+            SDL_SCANCODE_D = 7,
+            SDL_SCANCODE_E = 8,
+            SDL_SCANCODE_F = 9,
+            SDL_SCANCODE_G = 10,
+            SDL_SCANCODE_H = 11,
+            SDL_SCANCODE_I = 12,
+            SDL_SCANCODE_J = 13,
+            SDL_SCANCODE_K = 14,
+            SDL_SCANCODE_L = 15,
+            SDL_SCANCODE_M = 16,
+            SDL_SCANCODE_N = 17,
+            SDL_SCANCODE_O = 18,
+            SDL_SCANCODE_P = 19,
+            SDL_SCANCODE_Q = 20,
+            SDL_SCANCODE_R = 21,
+            SDL_SCANCODE_S = 22,
+            SDL_SCANCODE_T = 23,
+            SDL_SCANCODE_U = 24,
+            SDL_SCANCODE_V = 25,
+            SDL_SCANCODE_W = 26,
+            SDL_SCANCODE_X = 27,
+            SDL_SCANCODE_Y = 28,
+            SDL_SCANCODE_Z = 29,
+            SDL_SCANCODE_1 = 30,
+            SDL_SCANCODE_2 = 31,
+            SDL_SCANCODE_3 = 32,
+            SDL_SCANCODE_4 = 33,
+            SDL_SCANCODE_5 = 34,
+            SDL_SCANCODE_6 = 35,
+            SDL_SCANCODE_7 = 36,
+            SDL_SCANCODE_8 = 37,
+            SDL_SCANCODE_9 = 38,
+            SDL_SCANCODE_0 = 39,
+            SDL_SCANCODE_RETURN = 40,
+            SDL_SCANCODE_ESCAPE = 41,
+            SDL_SCANCODE_BACKSPACE = 42,
+            SDL_SCANCODE_TAB = 43,
+            SDL_SCANCODE_SPACE = 44,
+            SDL_SCANCODE_MINUS = 45,
+            SDL_SCANCODE_EQUALS = 46,
+            SDL_SCANCODE_LEFTBRACKET = 47,
+            SDL_SCANCODE_RIGHTBRACKET = 48,
+            SDL_SCANCODE_BACKSLASH = 49,
+            SDL_SCANCODE_NONUSHASH = 50,
+            SDL_SCANCODE_SEMICOLON = 51,
+            SDL_SCANCODE_APOSTROPHE = 52,
+            SDL_SCANCODE_GRAVE = 53,
+            SDL_SCANCODE_COMMA = 54,
+            SDL_SCANCODE_PERIOD = 55,
+            SDL_SCANCODE_SLASH = 56,
+            SDL_SCANCODE_CAPSLOCK = 57,
+            SDL_SCANCODE_F1 = 58,
+            SDL_SCANCODE_F2 = 59,
+            SDL_SCANCODE_F3 = 60,
+            SDL_SCANCODE_F4 = 61,
+            SDL_SCANCODE_F5 = 62,
+            SDL_SCANCODE_F6 = 63,
+            SDL_SCANCODE_F7 = 64,
+            SDL_SCANCODE_F8 = 65,
+            SDL_SCANCODE_F9 = 66,
+            SDL_SCANCODE_F10 = 67,
+            SDL_SCANCODE_F11 = 68,
+            SDL_SCANCODE_F12 = 69,
+            SDL_SCANCODE_PRINTSCREEN = 70,
+            SDL_SCANCODE_SCROLLLOCK = 71,
+            SDL_SCANCODE_PAUSE = 72,
+            SDL_SCANCODE_INSERT = 73,
+            SDL_SCANCODE_HOME = 74,
+            SDL_SCANCODE_PAGEUP = 75,
+            SDL_SCANCODE_DELETE = 76,
+            SDL_SCANCODE_END = 77,
+            SDL_SCANCODE_PAGEDOWN = 78,
+            SDL_SCANCODE_RIGHT = 79,
+            SDL_SCANCODE_LEFT = 80,
+            SDL_SCANCODE_DOWN = 81,
+            SDL_SCANCODE_UP = 82,
+            SDL_SCANCODE_NUMLOCKCLEAR = 83,
+            SDL_SCANCODE_KP_DIVIDE = 84,
+            SDL_SCANCODE_KP_MULTIPLY = 85,
+            SDL_SCANCODE_KP_MINUS = 86,
+            SDL_SCANCODE_KP_PLUS = 87,
+            SDL_SCANCODE_KP_ENTER = 88,
+            SDL_SCANCODE_KP_1 = 89,
+            SDL_SCANCODE_KP_2 = 90,
+            SDL_SCANCODE_KP_3 = 91,
+            SDL_SCANCODE_KP_4 = 92,
+            SDL_SCANCODE_KP_5 = 93,
+            SDL_SCANCODE_KP_6 = 94,
+            SDL_SCANCODE_KP_7 = 95,
+            SDL_SCANCODE_KP_8 = 96,
+            SDL_SCANCODE_KP_9 = 97,
+            SDL_SCANCODE_KP_0 = 98,
+            SDL_SCANCODE_KP_PERIOD = 99,
+            SDL_SCANCODE_NONUSBACKSLASH = 100,
+            SDL_SCANCODE_APPLICATION = 101,
+            SDL_SCANCODE_POWER = 102,
+            SDL_SCANCODE_F13 = 104,
+            SDL_SCANCODE_F14 = 105,
+            SDL_SCANCODE_F15 = 106,
+            SDL_SCANCODE_F16 = 107,
+            SDL_SCANCODE_F17 = 108,
+            SDL_SCANCODE_F18 = 109,
+            SDL_SCANCODE_F19 = 110,
+            SDL_SCANCODE_F20 = 111,
+            SDL_SCANCODE_F21 = 112,
+            SDL_SCANCODE_F22 = 113,
+            SDL_SCANCODE_F23 = 114,
+            SDL_SCANCODE_F24 = 115,
+            SDL_SCANCODE_EXECUTE = 116,
+            SDL_SCANCODE_HELP = 117,
+            SDL_SCANCODE_MENU = 118,
+            SDL_SCANCODE_SELECT = 119,
+            SDL_SCANCODE_STOP = 120,
+            SDL_SCANCODE_AGAIN = 121,
+            SDL_SCANCODE_UNDO = 122,
+            SDL_SCANCODE_CUT = 123,
+            SDL_SCANCODE_COPY = 124,
+            SDL_SCANCODE_PASTE = 125,
+            SDL_SCANCODE_FIND = 126,
+            SDL_SCANCODE_MUTE = 127,
+            SDL_SCANCODE_VOLUMEUP = 128,
+            SDL_SCANCODE_VOLUMEDOWN = 129,
+            SDL_SCANCODE_KP_COMMA = 133,
+            SDL_SCANCODE_KP_EQUALSAS400 = 134,
+            SDL_SCANCODE_INTERNATIONAL1 = 135,
+            SDL_SCANCODE_INTERNATIONAL2 = 136,
+            SDL_SCANCODE_INTERNATIONAL3 = 137,
+            SDL_SCANCODE_INTERNATIONAL4 = 138,
+            SDL_SCANCODE_INTERNATIONAL5 = 139,
+            SDL_SCANCODE_INTERNATIONAL6 = 140,
+            SDL_SCANCODE_INTERNATIONAL7 = 141,
+            SDL_SCANCODE_INTERNATIONAL8 = 142,
+            SDL_SCANCODE_INTERNATIONAL9 = 143,
+            SDL_SCANCODE_LANG1 = 144,
+            SDL_SCANCODE_LANG2 = 145,
+            SDL_SCANCODE_LANG3 = 146,
+            SDL_SCANCODE_LANG4 = 147,
+            SDL_SCANCODE_LANG5 = 148,
+            SDL_SCANCODE_LANG6 = 149,
+            SDL_SCANCODE_LANG7 = 150,
+            SDL_SCANCODE_LANG8 = 151,
+            SDL_SCANCODE_LANG9 = 152,
+            SDL_SCANCODE_ALTERASE = 153,
+            SDL_SCANCODE_SYSREQ = 154,
+            SDL_SCANCODE_CANCEL = 155,
+            SDL_SCANCODE_CLEAR = 156,
+            SDL_SCANCODE_PRIOR = 157,
+            SDL_SCANCODE_RETURN2 = 158,
+            SDL_SCANCODE_SEPARATOR = 159,
+            SDL_SCANCODE_OUT = 160,
+            SDL_SCANCODE_OPER = 161,
+            SDL_SCANCODE_CLEARAGAIN = 162,
+            SDL_SCANCODE_CRSEL = 163,
+            SDL_SCANCODE_EXSEL = 164,
+            SDL_SCANCODE_KP_00 = 176,
+            SDL_SCANCODE_KP_000 = 177,
+            SDL_SCANCODE_THOUSANDSSEPARATOR = 178,
+            SDL_SCANCODE_DECIMALSEPARATOR = 179,
+            SDL_SCANCODE_CURRENCYUNIT = 180,
+            SDL_SCANCODE_CURRENCYSUBUNIT = 181,
+            SDL_SCANCODE_KP_LEFTPAREN = 182,
+            SDL_SCANCODE_KP_RIGHTPAREN = 183,
+            SDL_SCANCODE_KP_LEFTBRACE = 184,
+            SDL_SCANCODE_KP_RIGHTBRACE = 185,
+            SDL_SCANCODE_KP_TAB = 186,
+            SDL_SCANCODE_KP_BACKSPACE = 187,
+            SDL_SCANCODE_KP_A = 188,
+            SDL_SCANCODE_KP_B = 189,
+            SDL_SCANCODE_KP_C = 190,
+            SDL_SCANCODE_KP_D = 191,
+            SDL_SCANCODE_KP_E = 192,
+            SDL_SCANCODE_KP_F = 193,
+            SDL_SCANCODE_KP_XOR = 194,
+            SDL_SCANCODE_KP_POWER = 195,
+            SDL_SCANCODE_KP_PERCENT = 196,
+            SDL_SCANCODE_KP_LESS = 197,
+            SDL_SCANCODE_KP_GREATER = 198,
+            SDL_SCANCODE_KP_AMPERSAND = 199,
+            SDL_SCANCODE_KP_DBLAMPERSAND = 200,
+            SDL_SCANCODE_KP_VERTICALBAR = 201,
+            SDL_SCANCODE_KP_DBLVERTICALBAR = 202,
+            SDL_SCANCODE_KP_COLON = 203,
+            SDL_SCANCODE_KP_HASH = 204,
+            SDL_SCANCODE_KP_SPACE = 205,
+            SDL_SCANCODE_KP_AT = 206,
+            SDL_SCANCODE_KP_EXCLAM = 207,
+            SDL_SCANCODE_KP_MEMSTORE = 208,
+            SDL_SCANCODE_KP_MEMRECALL = 209,
+            SDL_SCANCODE_KP_MEMCLEAR = 210,
+            SDL_SCANCODE_KP_MEMADD = 211,
+            SDL_SCANCODE_KP_MEMSUBTRACT = 212,
+            SDL_SCANCODE_KP_MEMMULTIPLY = 213,
+            SDL_SCANCODE_KP_MEMDIVIDE = 214,
+            SDL_SCANCODE_KP_PLUSMINUS = 215,
+            SDL_SCANCODE_KP_CLEAR = 216,
+            SDL_SCANCODE_KP_CLEARENTRY = 217,
+            SDL_SCANCODE_KP_BINARY = 218,
+            SDL_SCANCODE_KP_OCTAL = 219,
+            SDL_SCANCODE_KP_DECIMAL = 220,
+            SDL_SCANCODE_KP_HEXADECIMAL = 221,
+            SDL_SCANCODE_LCTRL = 224,
+            SDL_SCANCODE_LSHIFT = 225,
+            SDL_SCANCODE_LALT = 226,
+            SDL_SCANCODE_LGUI = 227,
+            SDL_SCANCODE_RCTRL = 228,
+            SDL_SCANCODE_RSHIFT = 229,
+            SDL_SCANCODE_RALT = 230,
+            SDL_SCANCODE_RGUI = 231,
+            SDL_SCANCODE_MODE = 257,
+            SDL_SCANCODE_AUDIONEXT = 258,
+            SDL_SCANCODE_AUDIOPREV = 259,
+            SDL_SCANCODE_AUDIOSTOP = 260,
+            SDL_SCANCODE_AUDIOPLAY = 261,
+            SDL_SCANCODE_AUDIOMUTE = 262,
+            SDL_SCANCODE_MEDIASELECT = 263,
+            SDL_SCANCODE_WWW = 264,
+            SDL_SCANCODE_MAIL = 265,
+            SDL_SCANCODE_CALCULATOR = 266,
+            SDL_SCANCODE_COMPUTER = 267,
+            SDL_SCANCODE_AC_SEARCH = 268,
+            SDL_SCANCODE_AC_HOME = 269,
+            SDL_SCANCODE_AC_BACK = 270,
+            SDL_SCANCODE_AC_FORWARD = 271,
+            SDL_SCANCODE_AC_STOP = 272,
+            SDL_SCANCODE_AC_REFRESH = 273,
+            SDL_SCANCODE_AC_BOOKMARKS = 274,
+            SDL_SCANCODE_BRIGHTNESSDOWN = 275,
+            SDL_SCANCODE_BRIGHTNESSUP = 276,
+            SDL_SCANCODE_DISPLAYSWITCH = 277,
+            SDL_SCANCODE_KBDILLUMTOGGLE = 278,
+            SDL_SCANCODE_KBDILLUMDOWN = 279,
+            SDL_SCANCODE_KBDILLUMUP = 280,
+            SDL_SCANCODE_EJECT = 281,
+            SDL_SCANCODE_SLEEP = 282,
+            SDL_SCANCODE_APP1 = 283,
+            SDL_SCANCODE_APP2 = 284,
+            SDL_SCANCODE_AUDIOREWIND = 285,
+            SDL_SCANCODE_AUDIOFASTFORWARD = 286,
+            SDL_NUM_SCANCODES = 512
         }
     }
 )
@@ -2071,7 +2318,11 @@ local SDL = ____Lib_2ESDL.SDL
 local sdl = ____Lib_2ESDL.sdl
 sdl.SDL_Init(SDL.SDL_INIT_VIDEO)
 ____exports.window = sdl.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, 800, 600, 0)
-____exports.renderer = sdl.SDL_CreateRenderer(____exports.window, -1, SDL.SDL_RENDERER_ACCELERATED)
+____exports.renderer = sdl.SDL_CreateRenderer(
+    ____exports.window,
+    -1,
+    bit.band(SDL.SDL_RENDERER_ACCELERATED, SDL.SDL_RENDERER_PRESENTVSYNC)
+)
 sdl.SDL_SetRenderDrawColor(____exports.renderer, 255, 0, 255, 255)
 return ____exports
 end,
@@ -2082,157 +2333,6 @@ local FFI = ____Util_2EFFI.FFI
 local ____ = FFI.load_library({values = {IMG_INIT_JPG = 1, IMG_INIT_PNG = 2, IMG_INIT_TIF = 4, IMG_INIT_WEBP = 8}, file_name = "SDL2_image", header = {IMG_Linked_Version = {output = "SDL_version*", params = {}}, IMG_Init = {output = "int", params = {flags = {type = "int", index = 0}}}, IMG_Quit = {output = "void", params = {}}, IMG_LoadTyped_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}, freesrc = {type = "int", index = 1}, type = {type = "char*", index = 2}}}, IMG_Load = {output = "SDL_Surface*", params = {file = {type = "char*", index = 0}}}, IMG_Load_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}, freesrc = {type = "int", index = 1}}}, IMG_LoadTexture = {output = "SDL_Texture*", params = {renderer = {type = "SDL_Renderer*", index = 0}, file = {type = "char*", index = 1}}}, IMG_LoadTexture_RW = {output = "SDL_Texture*", params = {renderer = {type = "SDL_Renderer*", index = 0}, src = {type = "SDL_RWops*", index = 1}, freesrc = {type = "int", index = 2}}}, IMG_LoadTextureTyped_RW = {output = "SDL_Texture*", params = {renderer = {type = "SDL_Renderer*", index = 0}, src = {type = "SDL_RWops*", index = 1}, freesrc = {type = "int", index = 2}, type = {type = "char*", index = 3}}}, IMG_isICO = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isCUR = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isBMP = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isGIF = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isJPG = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isLBM = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isPCX = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isPNG = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isPNM = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isSVG = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isTIF = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isXCF = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isXPM = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isXV = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_isWEBP = {output = "int", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadICO_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadCUR_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadBMP_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadGIF_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadJPG_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadLBM_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadPCX_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadPNG_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadPNM_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadSVG_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadTGA_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadTIF_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadXCF_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadXPM_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadXV_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_LoadWEBP_RW = {output = "SDL_Surface*", params = {src = {type = "SDL_RWops*", index = 0}}}, IMG_ReadXPMFromArray = {output = "SDL_Surface*", params = {xpm = {type = "char**", index = 0}}}, IMG_SavePNG = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, file = {type = "char*", index = 1}}}, IMG_SavePNG_RW = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, dst = {type = "SDL_RWops*", index = 1}, freedst = {type = "int", index = 2}}}, IMG_SaveJPG = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, file = {type = "char*", index = 1}, quality = {type = "int", index = 2}}}, IMG_SaveJPG_RW = {output = "int", params = {surface = {type = "SDL_Surface*", index = 0}, dst = {type = "SDL_RWops*", index = 1}, freedst = {type = "int", index = 2}, quality = {type = "int", index = 3}}}}})
 ____exports.sdl_img = ____.types
 ____exports.SDL_IMG = ____.values
-return ____exports
-end,
-["Entry.LuaGame"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
-require("lualib_bundle");
-local ____exports = {}
-local ____Game_2EInit = require("Game.Init")
-local renderer = ____Game_2EInit.renderer
-local ____Lib_2ESDL = require("Lib.SDL")
-local sdl = ____Lib_2ESDL.sdl
-local SDL = ____Lib_2ESDL.SDL
-local ____Lib_2ESDL_2EImg = require("Lib.SDL.Img")
-local sdl_img = ____Lib_2ESDL_2EImg.sdl_img
-local ____Util_2EFFI = require("Util.FFI")
-local ffi = ____Util_2EFFI.ffi
-local Refs = ____Util_2EFFI.Refs
-local ____Util_2EScripting = require("Util.Scripting")
-local Scripting = ____Util_2EScripting.Scripting
-local function load_texture(path)
-    local full_path = tostring(
-        ffi.string(
-            sdl.SDL_GetBasePath()
-        )
-    ) .. tostring(path)
-    local loaded_surface = sdl_img.IMG_Load(full_path)
-    sdl.SDL_SetColorKey(
-        loaded_surface,
-        1,
-        sdl.SDL_MapRGB(loaded_surface.format, 255, 0, 255)
-    )
-    local new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface)
-    return new_texture
-end
-local frames = 0
-local positions = {}
-local sheet_inputs = {["seagull.bmp"] = {sprites = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 2, 1, 2}}}, ["feather.bmp"] = {sprites = {{x = 0, y = 0, w = 4, h = 8}, {x = 8, y = 0, w = 4, h = 8}, {x = 16, y = 0, w = 4, h = 8}}, animations = {}}, ["snowball.bmp"] = {sprites = {{x = 0, y = 0, w = 16, h = 16}}, animations = {}}, ["snow_particle.bmp"] = {sprites = {{x = 0, y = 0, w = 5, h = 5}}, animations = {}}, ["background.bmp"] = {sprites = {{x = 0, y = 0, w = 800, h = 600}}, animations = {}}}
-local sheets = __TS__ArrayReduce(
-    Scripting.get_keys(sheet_inputs),
-    function(____, sheets, image_path) return __TS__ObjectAssign(
-        {},
-        sheets,
-        {
-            [image_path] = {
-                texture = load_texture(image_path),
-                sprites = sheet_inputs[image_path].sprites,
-                animations = sheet_inputs[image_path].animations
-            }
-        }
-    ) end,
-    {}
-)
-local sheet = sheets["seagull.bmp"]
-local sh2eet = sheets["background.bmp"]
-local ____ = sh2eet.animations
-local time = sdl.SDL_GetTicks()
-local function draw_item(item)
-    local animation = sheet.animations.fly
-    local animation_index = math.floor(time / 100) % #animation
-    local index = animation[animation_index + 1]
-    local sprite = sheet.sprites[index + 1]
-    local x = item.x
-    local y = item.y
-    local screen_rect = ffi.new("SDL_Rect", {x = x, y = y, w = sprite.w * 2, h = sprite.h * 2})
-    local sprite_rect = ffi.new("SDL_Rect", sprite)
-    sdl.SDL_RenderCopy(renderer, sheet.texture, sprite_rect, screen_rect)
-end
-local count = 5
-do
-    local i = 0
-    while i < count do
-        positions[i + 1] = {
-            x = math.random() * 800,
-            y = math.random() * 600
-        }
-        i = i + 1
-    end
-end
-local event = ffi.new("SDL_Event")
-local mouse_position = {x = 0, y = 0}
-while true do
-    time = sdl.SDL_GetTicks()
-    while sdl.SDL_PollEvent(event) > 0 do
-        local ____switch8 = event.type
-        local refs, button_state
-        if ____switch8 == SDL.SDL_KEYDOWN then
-            goto ____switch8_case_0
-        elseif ____switch8 == SDL.SDL_KEYUP then
-            goto ____switch8_case_1
-        elseif ____switch8 == SDL.SDL_MOUSEMOTION then
-            goto ____switch8_case_2
-        end
-        goto ____switch8_case_default
-        ::____switch8_case_0::
-        do
-            print("Key press detected")
-            goto ____switch8_end
-        end
-        ::____switch8_case_1::
-        do
-            print("Key release detected")
-            goto ____switch8_end
-        end
-        ::____switch8_case_2::
-        do
-            refs = Refs.create({x = "int", y = "int"})
-            button_state = SDL.SDL_GetMouseState(refs)
-            mouse_position = Refs.result(refs)
-            goto ____switch8_end
-        end
-        ::____switch8_case_default::
-        do
-            goto ____switch8_end
-        end
-        ::____switch8_end::
-    end
-    sdl.SDL_RenderClear(renderer)
-    sdl.SDL_RenderCopy(renderer, sheets["background.bmp"].texture, nil, nil)
-    do
-        local i = 0
-        while i < count do
-            draw_item(positions[i + 1])
-            i = i + 1
-        end
-    end
-    draw_item(mouse_position)
-    sdl.SDL_RenderPresent(renderer)
-    frames = frames + 1
-end
-return ____exports
-end,
-["Util.Promise"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
-end,
-["Util.SmoothCurve"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
-local ____exports = {}
-____exports.SmoothCurve = {}
-local SmoothCurve = ____exports.SmoothCurve
-do
-    function SmoothCurve.sample(curve, time)
-        local smooth_index = ((time - curve.x_range[1]) / (curve.x_range[2] - curve.x_range[1])) * (#curve.y_values - 1)
-        local index = math.floor(smooth_index)
-        local current = math.min(
-            math.max(index, 0),
-            #curve.y_values - 1
-        )
-        local next = math.min(
-            math.max(index + 1, 0),
-            #curve.y_values - 1
-        )
-        local lerp = smooth_index - index
-        return (curve.y_values[current + 1] * (1 - lerp)) + (curve.y_values[next + 1] * lerp)
-    end
-end
 return ____exports
 end,
 ["Util.VecMath"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
@@ -4042,6 +4142,192 @@ do
             out[16] = a[16]
         end
         return out
+    end
+end
+return ____exports
+end,
+["Entry.LuaGame"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+require("lualib_bundle");
+local ____exports = {}
+local ____Game_2EInit = require("Game.Init")
+local renderer = ____Game_2EInit.renderer
+local ____Lib_2ESDL = require("Lib.SDL")
+local sdl = ____Lib_2ESDL.sdl
+local SDL = ____Lib_2ESDL.SDL
+local ____Lib_2ESDL_2EImg = require("Lib.SDL.Img")
+local sdl_img = ____Lib_2ESDL_2EImg.sdl_img
+local ____Util_2EFFI = require("Util.FFI")
+local ffi = ____Util_2EFFI.ffi
+local Refs = ____Util_2EFFI.Refs
+local ____Util_2EScripting = require("Util.Scripting")
+local Scripting = ____Util_2EScripting.Scripting
+local function load_texture(path)
+    local full_path = tostring(
+        ffi.string(
+            sdl.SDL_GetBasePath()
+        )
+    ) .. tostring(path)
+    local loaded_surface = sdl_img.IMG_Load(full_path)
+    sdl.SDL_SetColorKey(
+        loaded_surface,
+        1,
+        sdl.SDL_MapRGB(loaded_surface.format, 255, 0, 255)
+    )
+    local new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface)
+    return new_texture
+end
+local function load_sheets(sheet_inputs)
+    return Scripting.reduce_keys(
+        sheet_inputs,
+        function(____, sheets, image_path) return __TS__ObjectAssign(
+            {},
+            sheets,
+            {
+                [image_path] = {
+                    texture = load_texture(image_path),
+                    sprites = sheet_inputs[image_path].sprites,
+                    animations = sheet_inputs[image_path].animations
+                }
+            }
+        ) end
+    )
+end
+local frames = 0
+local sheet_inputs = {["seagull.bmp"] = {sprites = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 2, 1, 2}}}, ["player.bmp"] = {sprites = {{x = 0, y = 0, w = 27, h = 48}}, animations = {}}, ["feather.bmp"] = {sprites = {{x = 0, y = 0, w = 4, h = 8}, {x = 8, y = 0, w = 4, h = 8}, {x = 16, y = 0, w = 4, h = 8}}, animations = {}}, ["snowball.bmp"] = {sprites = {{x = 0, y = 0, w = 16, h = 16}}, animations = {}}, ["snow_particle.bmp"] = {sprites = {{x = 0, y = 0, w = 5, h = 5}}, animations = {}}, ["background.bmp"] = {sprites = {{x = 0, y = 0, w = 800, h = 600}}, animations = {}}}
+local sheets = load_sheets(sheet_inputs)
+local function draw_item(item)
+    local sheet = sheets[item.sheet]
+    local sprite = sheet.sprites[item.sprite + 1]
+    local ____ = item.position
+    local x = ____.x
+    local y = ____.y
+    local screen_rect = ffi.new("SDL_Rect", {x = x, y = y, w = sprite.w * 2, h = sprite.h * 2})
+    local sprite_rect = ffi.new("SDL_Rect", sprite)
+    sdl.SDL_RenderCopy(renderer, sheet.texture, sprite_rect, screen_rect)
+end
+local settings = {controls = {left = SDL.SDL_SCANCODE_LEFT, right = SDL.SDL_SCANCODE_RIGHT, fire = SDL.SDL_SCANCODE_SPACE}}
+local player_stats = {speed = 0.25}
+local player = {input = {left = 0, right = 0, fire = 0}, position = {x = 400, y = 300}, last_fire_time = 0, jump_velocity = nil}
+local count = 5
+local positions = {}
+do
+    local i = 0
+    while i < count do
+        positions[i + 1] = {
+            x = math.random() * 800,
+            y = math.random() * 600
+        }
+        i = i + 1
+    end
+end
+local event = ffi.new("SDL_Event")
+local time = sdl.SDL_GetTicks()
+local start_time = time
+local mouse_position = {x = 0, y = 0}
+while true do
+    local next_time = sdl.SDL_GetTicks()
+    local delta_time = next_time - time
+    time = sdl.SDL_GetTicks()
+    while sdl.SDL_PollEvent(event) > 0 do
+        local ____switch9 = event.type
+        if ____switch9 == SDL.SDL_KEYDOWN then
+            goto ____switch9_case_0
+        elseif ____switch9 == SDL.SDL_KEYUP then
+            goto ____switch9_case_1
+        elseif ____switch9 == SDL.SDL_MOUSEMOTION then
+            goto ____switch9_case_2
+        end
+        goto ____switch9_case_default
+        ::____switch9_case_0::
+        do
+            do
+                __TS__ArrayForEach(
+                    Scripting.get_keys(settings.controls),
+                    function(____, key)
+                        if event.key.keysym.mod ~= settings.controls[key] then
+                            return
+                        end
+                        player.input[key] = time
+                    end
+                )
+                goto ____switch9_end
+            end
+        end
+        ::____switch9_case_1::
+        do
+            __TS__ArrayForEach(
+                Scripting.get_keys(settings.controls),
+                function(____, key)
+                    if event.key.keysym.mod ~= settings.controls[key] then
+                        return
+                    end
+                    player.input[key] = 0
+                end
+            )
+            goto ____switch9_end
+        end
+        ::____switch9_case_2::
+        do
+            do
+                local refs = Refs.create({x = "int", y = "int"})
+                local button_state = SDL.SDL_GetMouseState(refs)
+                mouse_position = Refs.result(refs)
+                goto ____switch9_end
+            end
+        end
+        ::____switch9_case_default::
+        do
+            goto ____switch9_end
+        end
+        ::____switch9_end::
+    end
+    sdl.SDL_RenderClear(renderer)
+    sdl.SDL_RenderCopy(renderer, sheets["background.bmp"].texture, nil, nil)
+    do
+        local function sign(value)
+            if value == 0 then
+                return 0
+            end
+            return value / math.abs(value)
+        end
+        local direction = sign(player.input.right - player.input.left)
+        local ____obj, ____index = player.position, "x"
+        ____obj[____index] = ____obj[____index] + ((direction * delta_time) * player_stats.speed)
+    end
+    do
+        local i = 0
+        while i < count do
+            draw_item({sheet = "seagull.bmp", sprite = 0, position = positions[i + 1]})
+            i = i + 1
+        end
+    end
+    draw_item({sheet = "feather.bmp", sprite = 0, position = mouse_position})
+    draw_item({sheet = "player.bmp", sprite = 0, position = player.position})
+    sdl.SDL_RenderPresent(renderer)
+    frames = frames + 1
+end
+return ____exports
+end,
+["Util.Promise"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+end,
+["Util.SmoothCurve"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+local ____exports = {}
+____exports.SmoothCurve = {}
+local SmoothCurve = ____exports.SmoothCurve
+do
+    function SmoothCurve.sample(curve, time)
+        local smooth_index = ((time - curve.x_range[1]) / (curve.x_range[2] - curve.x_range[1])) * (#curve.y_values - 1)
+        local index = math.floor(smooth_index)
+        local current = math.min(
+            math.max(index, 0),
+            #curve.y_values - 1
+        )
+        local next = math.min(
+            math.max(index + 1, 0),
+            #curve.y_values - 1
+        )
+        local lerp = smooth_index - index
+        return (curve.y_values[current + 1] * (1 - lerp)) + (curve.y_values[next + 1] * lerp)
     end
 end
 return ____exports
