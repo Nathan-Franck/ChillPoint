@@ -6,7 +6,7 @@ import { Scripting } from "./Util.Scripting";
 import { Vec2 } from "./Util.VecMath";
 
 let frames = 0;
-const sheets = Graphics2D.load_sheets(<const>{
+const sheets = Graphics2D.load_sheets(renderer, <const>{
     "seagull.bmp": {
         sprites: [
             { x: 0, y: 0, w: 24, h: 24 },
@@ -117,16 +117,16 @@ while (true) {
 
 
     for (let i = 0; i < count; i++) {
-        Graphics2D.draw_sprite({
-            ...Graphics2D.loop_animation({ sheet: sheets["seagull.bmp"], animation: "fly" }),
+        Graphics2D.draw_sprite(renderer, {
+            ...Graphics2D.loop_animation({ time, sheet: sheets["seagull.bmp"], animation: "fly" }),
             position: positions[i]
         });
     }
-    Graphics2D.draw_sprite({
-        ...Graphics2D.loop_animation({ sheet: sheets["feather.bmp"], animation: "float" }),
+    Graphics2D.draw_sprite(renderer, {
+        ...Graphics2D.loop_animation({ time, sheet: sheets["feather.bmp"], animation: "float" }),
         position: mouse_position
     });
-    Graphics2D.draw_sprite({
+    Graphics2D.draw_sprite(renderer, {
         sheet: sheets["player.bmp"],
         sprite: 0,
         position: player.position
