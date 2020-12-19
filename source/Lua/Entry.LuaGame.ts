@@ -1,38 +1,12 @@
-import { renderer, window } from "./Game.Init";
+import { renderer } from "./Game.Init";
 import { sdl, SDL } from "./Lib.SDL";
-import { sdl_img } from "./Lib.SDL.Img";
-import { External, FFI, ffi, Refs } from "./Util.FFI";
+import { ffi, Refs } from "./Util.FFI";
+import { Graphics2D } from "./Util.Graphics2D";
 import { Scripting } from "./Util.Scripting";
 import { Vec2 } from "./Util.VecMath";
 
-function load_texture(path: string) {
-    const full_path = ffi.string(sdl.SDL_GetBasePath()) + path;
-    const loaded_surface = sdl_img.IMG_Load(full_path)!;
-    sdl.SDL_SetColorKey(loaded_surface, 1, sdl.SDL_MapRGB(loaded_surface.format, 255, 0, 255));
-    const new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface);
-    return new_texture;
-}
-function load_sheets<T extends { [key: string]:  Pick<Sheet, "animations" | "sprites"> }>(sheet_inputs: T) {
-    return Scripting.reduce_keys<T, {
-        [key in keyof T]: T[key] & { texture: ReturnType<typeof load_texture> }
-    }>(sheet_inputs, (sheets, image_path) => ({
-        ...sheets,
-        [image_path]: {
-            texture: load_texture(image_path as string),
-            sprites: sheet_inputs[image_path].sprites,
-            animations: sheet_inputs[image_path].animations,
-        },
-    }));
-}
-type Sprite = { x: number, y: number, w: number, h: number };
-type Sheet = {
-    readonly sprites: readonly Sprite[],
-    readonly texture: External<"SDL_Texture*"> | null,
-    readonly animations?: { readonly [key: string]: readonly number[] }
-};
-
 let frames = 0;
-const sheets = load_sheets(<const>{
+const sheets = Graphics2D.load_sheets(<const>{
     "seagull.bmp": {
         sprites: [
             { x: 0, y: 0, w: 24, h: 24 },
@@ -69,15 +43,6 @@ const sheets = load_sheets(<const>{
         sprites: [{ x: 0, y: 0, w: 800, h: 600 }],
     }
 });
-function draw_item(item: { sheet: Sheet, sprite: number, position: { x: number, y: number } }) {
-    const sheet = item.sheet;
-    const sprite = sheet.sprites[item.sprite];
-    const { x, y } = item.position;
-    const screen_rect = ffi.new("SDL_Rect", { x, y, w: sprite.w * 2, h: sprite.h * 2 });
-    const sprite_rect = ffi.new("SDL_Rect", sprite);
-    sdl.SDL_RenderCopy(renderer, sheet.texture, sprite_rect, screen_rect);
-}
-
 // ⚙ Aspects of the game tweakable for design or player comfort
 const settings = {
     controls: { left: SDL.SDL_SCANCODE_LEFT, right: SDL.SDL_SCANCODE_RIGHT, fire: SDL.SDL_SCANCODE_SPACE },
@@ -150,29 +115,18 @@ while (true) {
         player.position.x += direction * delta_time * player_stats.speed;
     }
 
-    function loop_animation<T extends Required<Pick<Sheet, "animations">>>(params: { sheet: T, animation: keyof T["animations"] }) {
-        const sheet = params.sheet;
-        const { animations } = sheet;
-        type Anim = typeof animations;
-        const animation = animations?.[params.animation as keyof Anim];
-        const animation_index = Math.floor(time / 100) % animation.length;
-        return {
-            ...params,
-            sprite: animation[animation_index],
-        }
-    }
 
     for (let i = 0; i < count; i++) {
-        draw_item({
-            ...loop_animation({ sheet: sheets["seagull.bmp"], animation: "fly" }),
+        Graphics2D.draw_sprite({
+            ...Graphics2D.loop_animation({ sheet: sheets["seagull.bmp"], animation: "fly" }),
             position: positions[i]
         });
     }
-    draw_item({
-        ...loop_animation({ sheet: sheets["feather.bmp"], animation: "float" }),
+    Graphics2D.draw_sprite({
+        ...Graphics2D.loop_animation({ sheet: sheets["feather.bmp"], animation: "float" }),
         position: mouse_position
     });
-    draw_item({
+    Graphics2D.draw_sprite({
         sheet: sheets["player.bmp"],
         sprite: 0,
         position: player.position
