@@ -12,7 +12,7 @@ function load_texture(path: string) {
     const new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface);
     return new_texture;
 }
-function load_sheets<T extends { [key: string]: { sprites: any, animations?: any } }>(sheet_inputs: T) {
+function load_sheets<T extends { [key: string]:  Pick<Sheet, "animations" | "sprites"> }>(sheet_inputs: T) {
     return Scripting.reduce_keys<T, {
         [key in keyof T]: T[key] & { texture: ReturnType<typeof load_texture> }
     }>(sheet_inputs, (sheets, image_path) => ({
@@ -24,9 +24,15 @@ function load_sheets<T extends { [key: string]: { sprites: any, animations?: any
         },
     }));
 }
+type Sprite = { x: number, y: number, w: number, h: number };
+type Sheet = {
+    readonly sprites: readonly Sprite[],
+    readonly texture: External<"SDL_Texture*"> | null,
+    readonly animations?: { readonly [key: string]: readonly number[] }
+};
 
 let frames = 0;
-const sheet_inputs = <const>{
+const sheets = load_sheets(<const>{
     "seagull.bmp": {
         sprites: [
             { x: 0, y: 0, w: 24, h: 24 },
@@ -47,7 +53,7 @@ const sheet_inputs = <const>{
         sprites: [
             { x: 0, y: 0, w: 8, h: 4 },
             { x: 8, y: 0, w: 8, h: 4 },
-            { x: 16, y: 0, w: 8, h: 4 }
+            { x: 16, y: 0, w: 8, h: 4 },
         ],
         animations: {
             float: [0, 0, 0, 1, 2, 2, 2, 1],
@@ -61,15 +67,8 @@ const sheet_inputs = <const>{
     },
     "background.bmp": {
         sprites: [{ x: 0, y: 0, w: 800, h: 600 }],
-    },
-};
-const sheets = load_sheets(sheet_inputs);
-type Sprite = { x: number, y: number, w: number, h: number };
-type Sheet = {
-    readonly sprites: readonly Sprite[],
-    readonly texture: External<"SDL_Texture*"> | null,
-    readonly animations?: { readonly [key: string]: readonly number[] }
-};
+    }
+});
 function draw_item(item: { sheet: Sheet, sprite: number, position: { x: number, y: number } }) {
     const sheet = item.sheet;
     const sprite = sheet.sprites[item.sprite];
