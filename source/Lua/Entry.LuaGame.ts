@@ -1,7 +1,7 @@
 import { renderer, window } from "./Game.Init";
 import { sdl, SDL } from "./Lib.SDL";
 import { sdl_img } from "./Lib.SDL.Img";
-import { FFI, ffi, Refs } from "./Util.FFI";
+import { External, FFI, ffi, Refs } from "./Util.FFI";
 import { Scripting } from "./Util.Scripting";
 import { Vec2 } from "./Util.VecMath";
 
@@ -12,7 +12,7 @@ function load_texture(path: string) {
     const new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface);
     return new_texture;
 }
-function load_sheets<T extends { [key: string]: { sprites: any, animations: any } }>(sheet_inputs: T) {
+function load_sheets<T extends { [key: string]: { sprites: any, animations?: any } }>(sheet_inputs: T) {
     return Scripting.reduce_keys<T, {
         [key in keyof T]: T[key] & { texture: ReturnType<typeof load_texture> }
     }>(sheet_inputs, (sheets, image_path) => ({
@@ -42,33 +42,36 @@ const sheet_inputs = <const>{
         sprites: [
             { x: 0, y: 0, w: 27, h: 48 },
         ],
-        animations: {},
     },
     "feather.bmp": {
         sprites: [
-            { x: 0, y: 0, w: 4, h: 8 },
-            { x: 8, y: 0, w: 4, h: 8 },
-            { x: 16, y: 0, w: 4, h: 8 }
+            { x: 0, y: 0, w: 8, h: 4 },
+            { x: 8, y: 0, w: 8, h: 4 },
+            { x: 16, y: 0, w: 8, h: 4 }
         ],
-        animations: {}
+        animations: {
+            float: [0, 0, 0, 1, 2, 2, 2, 1],
+        }
     },
     "snowball.bmp": {
         sprites: [{ x: 0, y: 0, w: 16, h: 16 }],
-        animations: {}
     },
     "snow_particle.bmp": {
         sprites: [{ x: 0, y: 0, w: 5, h: 5 }],
-        animations: {}
     },
     "background.bmp": {
         sprites: [{ x: 0, y: 0, w: 800, h: 600 }],
-        animations: {}
     },
 };
 const sheets = load_sheets(sheet_inputs);
-
-function draw_item<Sheet extends keyof typeof sheets>(item: { sheet: Sheet, sprite: number, position: { x: number, y: number }}) {
-    const sheet = sheets[item.sheet];
+type Sprite = { x: number, y: number, w: number, h: number };
+type Sheet = {
+    readonly sprites: readonly Sprite[],
+    readonly texture: External<"SDL_Texture*"> | null,
+    readonly animations?: { readonly [key: string]: readonly number[] }
+};
+function draw_item(item: { sheet: Sheet, sprite: number, position: { x: number, y: number } }) {
+    const sheet = item.sheet;
     const sprite = sheet.sprites[item.sprite];
     const { x, y } = item.position;
     const screen_rect = ffi.new("SDL_Rect", { x, y, w: sprite.w * 2, h: sprite.h * 2 });
@@ -148,9 +151,33 @@ while (true) {
         player.position.x += direction * delta_time * player_stats.speed;
     }
 
-    for (let i = 0; i < count; i++) { draw_item({ sheet: "seagull.bmp", sprite: 0, position: positions[i] }); }
-    draw_item({ sheet: "feather.bmp", sprite: 0, position: mouse_position });
-    draw_item({ sheet: "player.bmp", sprite: 0, position: player.position });
+    function loop_animation<T extends Required<Pick<Sheet, "animations">>>(params: { sheet: T, animation: keyof T["animations"] }) {
+        const sheet = params.sheet;
+        const { animations } = sheet;
+        type Anim = typeof animations;
+        const animation = animations?.[params.animation as keyof Anim];
+        const animation_index = Math.floor(time / 100) % animation.length;
+        return {
+            ...params,
+            sprite: animation[animation_index],
+        }
+    }
+
+    for (let i = 0; i < count; i++) {
+        draw_item({
+            ...loop_animation({ sheet: sheets["seagull.bmp"], animation: "fly" }),
+            position: positions[i]
+        });
+    }
+    draw_item({
+        ...loop_animation({ sheet: sheets["feather.bmp"], animation: "float" }),
+        position: mouse_position
+    });
+    draw_item({
+        sheet: sheets["player.bmp"],
+        sprite: 0,
+        position: player.position
+    });
 
     sdl.SDL_RenderPresent(renderer);
 

@@ -4193,10 +4193,10 @@ local function load_sheets(sheet_inputs)
     )
 end
 local frames = 0
-local sheet_inputs = {["seagull.bmp"] = {sprites = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 2, 1, 2}}}, ["player.bmp"] = {sprites = {{x = 0, y = 0, w = 27, h = 48}}, animations = {}}, ["feather.bmp"] = {sprites = {{x = 0, y = 0, w = 4, h = 8}, {x = 8, y = 0, w = 4, h = 8}, {x = 16, y = 0, w = 4, h = 8}}, animations = {}}, ["snowball.bmp"] = {sprites = {{x = 0, y = 0, w = 16, h = 16}}, animations = {}}, ["snow_particle.bmp"] = {sprites = {{x = 0, y = 0, w = 5, h = 5}}, animations = {}}, ["background.bmp"] = {sprites = {{x = 0, y = 0, w = 800, h = 600}}, animations = {}}}
+local sheet_inputs = {["seagull.bmp"] = {sprites = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 2, 1, 2}}}, ["player.bmp"] = {sprites = {{x = 0, y = 0, w = 27, h = 48}}}, ["feather.bmp"] = {sprites = {{x = 0, y = 0, w = 8, h = 4}, {x = 8, y = 0, w = 8, h = 4}, {x = 16, y = 0, w = 8, h = 4}}, animations = {float = {0, 0, 0, 1, 2, 2, 2, 1}}}, ["snowball.bmp"] = {sprites = {{x = 0, y = 0, w = 16, h = 16}}}, ["snow_particle.bmp"] = {sprites = {{x = 0, y = 0, w = 5, h = 5}}}, ["background.bmp"] = {sprites = {{x = 0, y = 0, w = 800, h = 600}}}}
 local sheets = load_sheets(sheet_inputs)
 local function draw_item(item)
-    local sheet = sheets[item.sheet]
+    local sheet = item.sheet
     local sprite = sheet.sprites[item.sprite + 1]
     local ____ = item.position
     local x = ____.x
@@ -4294,15 +4294,34 @@ while true do
         local ____obj, ____index = player.position, "x"
         ____obj[____index] = ____obj[____index] + ((direction * delta_time) * player_stats.speed)
     end
+    local function loop_animation(params)
+        local sheet = params.sheet
+        local animations = sheet.animations
+        local animation = animations[params.animation]
+        local animation_index = math.floor(time / 100) % #animation
+        return __TS__ObjectAssign({}, params, {sprite = animation[animation_index + 1]})
+    end
     do
         local i = 0
         while i < count do
-            draw_item({sheet = "seagull.bmp", sprite = 0, position = positions[i + 1]})
+            draw_item(
+                __TS__ObjectAssign(
+                    {},
+                    loop_animation({sheet = sheets["seagull.bmp"], animation = "fly"}),
+                    {position = positions[i + 1]}
+                )
+            )
             i = i + 1
         end
     end
-    draw_item({sheet = "feather.bmp", sprite = 0, position = mouse_position})
-    draw_item({sheet = "player.bmp", sprite = 0, position = player.position})
+    draw_item(
+        __TS__ObjectAssign(
+            {},
+            loop_animation({sheet = sheets["feather.bmp"], animation = "float"}),
+            {position = mouse_position}
+        )
+    )
+    draw_item({sheet = sheets["player.bmp"], sprite = 0, position = player.position})
     sdl.SDL_RenderPresent(renderer)
     frames = frames + 1
 end
