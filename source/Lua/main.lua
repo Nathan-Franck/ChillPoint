@@ -2335,6 +2335,71 @@ ____exports.sdl_img = ____.types
 ____exports.SDL_IMG = ____.values
 return ____exports
 end,
+["Util.Graphics2D"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+require("lualib_bundle");
+local ____exports = {}
+local ____Lib_2ESDL = require("Lib.SDL")
+local sdl = ____Lib_2ESDL.sdl
+local ____Lib_2ESDL_2EImg = require("Lib.SDL.Img")
+local sdl_img = ____Lib_2ESDL_2EImg.sdl_img
+local ____Util_2EFFI = require("Util.FFI")
+local ffi = ____Util_2EFFI.ffi
+local ____Util_2EScripting = require("Util.Scripting")
+local Scripting = ____Util_2EScripting.Scripting
+____exports.Graphics2D = {}
+local Graphics2D = ____exports.Graphics2D
+do
+    local function load_texture(renderer, path)
+        local full_path = tostring(
+            ffi.string(
+                sdl.SDL_GetBasePath()
+            )
+        ) .. tostring(path)
+        local loaded_surface = sdl_img.IMG_Load(full_path)
+        sdl.SDL_SetColorKey(
+            loaded_surface,
+            1,
+            sdl.SDL_MapRGB(loaded_surface.format, 255, 0, 255)
+        )
+        local new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface)
+        return new_texture
+    end
+    function Graphics2D.load_sheets(renderer, sheet_inputs)
+        return Scripting.reduce_keys(
+            sheet_inputs,
+            function(____, sheets, image_path) return __TS__ObjectAssign(
+                {},
+                sheets,
+                {
+                    [image_path] = {
+                        texture = load_texture(renderer, image_path),
+                        sprites = sheet_inputs[image_path].sprites,
+                        animations = sheet_inputs[image_path].animations
+                    }
+                }
+            ) end
+        )
+    end
+    function Graphics2D.draw_sprite(renderer, params)
+        local sheet = params.sheet
+        local sprite = sheet.sprites[params.sprite + 1]
+        local ____ = params.position
+        local x = ____.x
+        local y = ____.y
+        local screen_rect = ffi.new("SDL_Rect", {x = x, y = y, w = sprite.w * 2, h = sprite.h * 2})
+        local sprite_rect = ffi.new("SDL_Rect", sprite)
+        sdl.SDL_RenderCopy(renderer, sheet.texture, sprite_rect, screen_rect)
+    end
+    function Graphics2D.loop_animation(params)
+        local sheet = params.sheet
+        local animations = sheet.animations
+        local animation = animations[params.animation]
+        local animation_index = math.floor(params.time / 100) % #animation
+        return __TS__ObjectAssign({}, params, {sprite = animation[animation_index + 1]})
+    end
+end
+return ____exports
+end,
 ["Util.VecMath"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 require("lualib_bundle");
 local ____exports = {}
@@ -4154,57 +4219,15 @@ local renderer = ____Game_2EInit.renderer
 local ____Lib_2ESDL = require("Lib.SDL")
 local sdl = ____Lib_2ESDL.sdl
 local SDL = ____Lib_2ESDL.SDL
-local ____Lib_2ESDL_2EImg = require("Lib.SDL.Img")
-local sdl_img = ____Lib_2ESDL_2EImg.sdl_img
 local ____Util_2EFFI = require("Util.FFI")
 local ffi = ____Util_2EFFI.ffi
 local Refs = ____Util_2EFFI.Refs
+local ____Util_2EGraphics2D = require("Util.Graphics2D")
+local Graphics2D = ____Util_2EGraphics2D.Graphics2D
 local ____Util_2EScripting = require("Util.Scripting")
 local Scripting = ____Util_2EScripting.Scripting
-local function load_texture(path)
-    local full_path = tostring(
-        ffi.string(
-            sdl.SDL_GetBasePath()
-        )
-    ) .. tostring(path)
-    local loaded_surface = sdl_img.IMG_Load(full_path)
-    sdl.SDL_SetColorKey(
-        loaded_surface,
-        1,
-        sdl.SDL_MapRGB(loaded_surface.format, 255, 0, 255)
-    )
-    local new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface)
-    return new_texture
-end
-local function load_sheets(sheet_inputs)
-    return Scripting.reduce_keys(
-        sheet_inputs,
-        function(____, sheets, image_path) return __TS__ObjectAssign(
-            {},
-            sheets,
-            {
-                [image_path] = {
-                    texture = load_texture(image_path),
-                    sprites = sheet_inputs[image_path].sprites,
-                    animations = sheet_inputs[image_path].animations
-                }
-            }
-        ) end
-    )
-end
 local frames = 0
-local sheet_inputs = {["seagull.bmp"] = {sprites = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 2, 1, 2}}}, ["player.bmp"] = {sprites = {{x = 0, y = 0, w = 27, h = 48}}}, ["feather.bmp"] = {sprites = {{x = 0, y = 0, w = 8, h = 4}, {x = 8, y = 0, w = 8, h = 4}, {x = 16, y = 0, w = 8, h = 4}}, animations = {float = {0, 0, 0, 1, 2, 2, 2, 1}}}, ["snowball.bmp"] = {sprites = {{x = 0, y = 0, w = 16, h = 16}}}, ["snow_particle.bmp"] = {sprites = {{x = 0, y = 0, w = 5, h = 5}}}, ["background.bmp"] = {sprites = {{x = 0, y = 0, w = 800, h = 600}}}}
-local sheets = load_sheets(sheet_inputs)
-local function draw_item(item)
-    local sheet = item.sheet
-    local sprite = sheet.sprites[item.sprite + 1]
-    local ____ = item.position
-    local x = ____.x
-    local y = ____.y
-    local screen_rect = ffi.new("SDL_Rect", {x = x, y = y, w = sprite.w * 2, h = sprite.h * 2})
-    local sprite_rect = ffi.new("SDL_Rect", sprite)
-    sdl.SDL_RenderCopy(renderer, sheet.texture, sprite_rect, screen_rect)
-end
+local sheets = Graphics2D.load_sheets(renderer, {["seagull.bmp"] = {sprites = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 2, 1, 2}}}, ["player.bmp"] = {sprites = {{x = 0, y = 0, w = 27, h = 48}}}, ["feather.bmp"] = {sprites = {{x = 0, y = 0, w = 8, h = 4}, {x = 8, y = 0, w = 8, h = 4}, {x = 16, y = 0, w = 8, h = 4}}, animations = {float = {0, 0, 0, 1, 2, 2, 2, 1}}}, ["snowball.bmp"] = {sprites = {{x = 0, y = 0, w = 16, h = 16}}}, ["snow_particle.bmp"] = {sprites = {{x = 0, y = 0, w = 5, h = 5}}}, ["background.bmp"] = {sprites = {{x = 0, y = 0, w = 800, h = 600}}}})
 local settings = {controls = {left = SDL.SDL_SCANCODE_LEFT, right = SDL.SDL_SCANCODE_RIGHT, fire = SDL.SDL_SCANCODE_SPACE}}
 local player_stats = {speed = 0.25}
 local player = {input = {left = 0, right = 0, fire = 0}, position = {x = 400, y = 300}, last_fire_time = 0, jump_velocity = nil}
@@ -4229,16 +4252,16 @@ while true do
     local delta_time = next_time - time
     time = sdl.SDL_GetTicks()
     while sdl.SDL_PollEvent(event) > 0 do
-        local ____switch9 = event.type
-        if ____switch9 == SDL.SDL_KEYDOWN then
-            goto ____switch9_case_0
-        elseif ____switch9 == SDL.SDL_KEYUP then
-            goto ____switch9_case_1
-        elseif ____switch9 == SDL.SDL_MOUSEMOTION then
-            goto ____switch9_case_2
+        local ____switch5 = event.type
+        if ____switch5 == SDL.SDL_KEYDOWN then
+            goto ____switch5_case_0
+        elseif ____switch5 == SDL.SDL_KEYUP then
+            goto ____switch5_case_1
+        elseif ____switch5 == SDL.SDL_MOUSEMOTION then
+            goto ____switch5_case_2
         end
-        goto ____switch9_case_default
-        ::____switch9_case_0::
+        goto ____switch5_case_default
+        ::____switch5_case_0::
         do
             do
                 __TS__ArrayForEach(
@@ -4250,10 +4273,10 @@ while true do
                         player.input[key] = time
                     end
                 )
-                goto ____switch9_end
+                goto ____switch5_end
             end
         end
-        ::____switch9_case_1::
+        ::____switch5_case_1::
         do
             __TS__ArrayForEach(
                 Scripting.get_keys(settings.controls),
@@ -4264,22 +4287,22 @@ while true do
                     player.input[key] = 0
                 end
             )
-            goto ____switch9_end
+            goto ____switch5_end
         end
-        ::____switch9_case_2::
+        ::____switch5_case_2::
         do
             do
                 local refs = Refs.create({x = "int", y = "int"})
                 local button_state = SDL.SDL_GetMouseState(refs)
                 mouse_position = Refs.result(refs)
-                goto ____switch9_end
+                goto ____switch5_end
             end
         end
-        ::____switch9_case_default::
+        ::____switch5_case_default::
         do
-            goto ____switch9_end
+            goto ____switch5_end
         end
-        ::____switch9_end::
+        ::____switch5_end::
     end
     sdl.SDL_RenderClear(renderer)
     sdl.SDL_RenderCopy(renderer, sheets["background.bmp"].texture, nil, nil)
@@ -4294,36 +4317,95 @@ while true do
         local ____obj, ____index = player.position, "x"
         ____obj[____index] = ____obj[____index] + ((direction * delta_time) * player_stats.speed)
     end
-    local function loop_animation(params)
-        local sheet = params.sheet
-        local animations = sheet.animations
-        local animation = animations[params.animation]
-        local animation_index = math.floor(time / 100) % #animation
-        return __TS__ObjectAssign({}, params, {sprite = animation[animation_index + 1]})
-    end
     do
         local i = 0
         while i < count do
-            draw_item(
+            Graphics2D.draw_sprite(
+                renderer,
                 __TS__ObjectAssign(
                     {},
-                    loop_animation({sheet = sheets["seagull.bmp"], animation = "fly"}),
+                    Graphics2D.loop_animation({time = time, sheet = sheets["seagull.bmp"], animation = "fly"}),
                     {position = positions[i + 1]}
                 )
             )
             i = i + 1
         end
     end
-    draw_item(
+    Graphics2D.draw_sprite(
+        renderer,
         __TS__ObjectAssign(
             {},
-            loop_animation({sheet = sheets["feather.bmp"], animation = "float"}),
+            Graphics2D.loop_animation({time = time, sheet = sheets["feather.bmp"], animation = "float"}),
             {position = mouse_position}
         )
     )
-    draw_item({sheet = sheets["player.bmp"], sprite = 0, position = player.position})
+    Graphics2D.draw_sprite(renderer, {sheet = sheets["player.bmp"], sprite = 0, position = player.position})
     sdl.SDL_RenderPresent(renderer)
     frames = frames + 1
+end
+return ____exports
+end,
+["Entry.NeuralTraining"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+local ____exports = {}
+local ____Lib_2ESDL = require("Lib.SDL")
+local sdl = ____Lib_2ESDL.sdl
+local ____Game_2EInit = require("Game.Init")
+local renderer = ____Game_2EInit.renderer
+function ____exports.set_pixel_easy(renderer, x, y, r, g, b)
+    sdl.SDL_SetRenderDrawColor(renderer, r, g, b, 255)
+    sdl.SDL_RenderDrawPoint(renderer, x, y)
+end
+local dimension = 16
+local colors = 3
+local pixels = {}
+do
+    local y = 0
+    while y < dimension do
+        do
+            local x = 0
+            while x < dimension do
+                local index = (x + (y * dimension)) * colors
+                local distance_from_centre = math.sqrt(
+                    math.pow(x - (dimension / 2), 2) + math.pow(y - (dimension / 2), 2)
+                )
+                if distance_from_centre > (dimension / 2) then
+                    pixels[(index + 0) + 1] = 0
+                    pixels[(index + 1) + 1] = 0
+                    pixels[(index + 2) + 1] = 0
+                else
+                    pixels[(index + 0) + 1] = 255
+                    pixels[(index + 1) + 1] = 255
+                    pixels[(index + 2) + 1] = 255
+                end
+                x = x + 1
+            end
+        end
+        y = y + 1
+    end
+end
+sdl.SDL_RenderClear(renderer)
+do
+    local y = 0
+    while y < dimension do
+        do
+            local x = 0
+            while x < dimension do
+                local index = (x + (y * dimension)) * colors
+                ____exports.set_pixel_easy(renderer, x, y, pixels[(index + 0) + 1], pixels[(index + 1) + 1], pixels[(index + 2) + 1])
+                x = x + 1
+            end
+        end
+        y = y + 1
+    end
+end
+sdl.SDL_RenderPresent(renderer)
+sdl.SDL_Delay(3000)
+return ____exports
+end,
+["Util.Neural"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+local ____exports = {}
+local example = {{input_weights = {{offset = 0, weight = 1}}, child_weights = {{x = 0, y = 0, weight = 1}, {x = 0, y = 1, weight = 0}, {x = 1, y = 0, weight = 0}, {x = 1, y = 1, weight = 1}}}}
+function ____exports.generate(network)
 end
 return ____exports
 end,
@@ -4352,4 +4434,4 @@ end
 return ____exports
 end,
 }
-return require("Entry.LuaGame")
+return require("Entry.NeuralTraining")

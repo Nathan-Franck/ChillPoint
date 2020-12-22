@@ -17,7 +17,7 @@
     "preserveConstEnums": true,
   },
   "tstl": {
-    "luaBundleEntry": "Entry.LuaGame.ts",
+    "luaBundleEntry": "Entry.NeuralTraining.ts",
     "luaBundle": "main.lua",
     "luaTarget": "JIT",
     "noImplicitSelf": true,
