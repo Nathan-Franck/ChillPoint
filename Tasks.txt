@@ -1,0 +1,4 @@
+⬜ Resolve #ifndef / #define / #ifdef
+⬜ Resolve #include
+⬜ Parse enums
+⬜ Parse structs

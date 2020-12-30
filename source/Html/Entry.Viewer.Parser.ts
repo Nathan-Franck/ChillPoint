@@ -37,7 +37,7 @@ async function display_parser() {
         }
     });
 
-    const file = await fetch("SDL_keyboard.h");
+    const file = await fetch("SDL.h");
     const text = await file.text();
     const style: Style = {
         backgroundColor: "black",
@@ -66,12 +66,58 @@ async function display_parser() {
 
     // 🚧 Actual parsing work
     const processed = (() => {
-        const split_by_externs = text.split("extern");
-        const externs = split_by_externs.slice(1, split_by_externs.length);
-        const statements = externs.
+        function split(text: string, by: string | RegExp) {
+            const intermediate = text.split(by);
+            return intermediate.slice(1, intermediate.length);
+        }
+
+        const defines = {} as Record<string, string>;
+        {
+            const macro_statements = split(text, /(?=#ifdef|#ifndef|#else|#endif|#define)/);
+            while (macro_statements.length > 0) {
+                const statement = macro_statements.shift()!;
+                const type = statement.match(/#ifdef|#ifndef|#else|#endif|#define/)![0];
+                const space_split = statement.split(" ");
+                const define_key = space_split[1];
+                const define_value = space_split[2];
+                switch (type) {
+                    case "#ifdef":
+                        // 🤚 Skip all statements inside of invalid #ifdef statements
+                        if (defines[define_key] == null) {
+                            let end_statement = macro_statements.shift()!;
+                            while (end_statement.match(/#endif|#else/)?.[0] == null) {
+                                end_statement = macro_statements.shift()!;
+                            }
+                        }
+                        break;
+                    case "#ifndef":
+                        // 🤚 Skip all statements inside of invalid #ifjdef statements
+                        if (defines[define_key] != null) {
+                            let end_statement = macro_statements.shift()!;
+                            while (end_statement.match(/#endif|#else/)?.[0] == null) {
+                                end_statement = macro_statements.shift()!;
+                            }
+                        }
+                        break;
+                    case "#else":
+                        // 🤚 Skip all statements inside of invalid #else statements (any that aren't parsed as part of #ifdef/#ifndef handling)
+                        let end_statement = macro_statements.shift()!;
+                        while (end_statement.match(/#endif/)?.[0] == null) {
+                            end_statement = macro_statements.shift()!;
+                        }
+                        break;
+                    case "#define":
+                        defines[define_key] = define_value;
+                        break;
+                }
+            }
+        }
+
+        const split_by_externs = split(text, "extern");
+        const statements = split_by_externs.
             map((extern, index) => {
                 try {
-                    const previous = index > 0 ? externs[index - 1] : "";
+                    const previous = index > 0 ? split_by_externs[index - 1] : "";
                     const statement = extern.split(";")[0];
                     const flattened = statement.split(`\r\n`).map(elem => elem.trim()).join('');
                     const ignored = flattened.split(/DECLSPEC|SDLCALL|const/).
