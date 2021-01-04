@@ -71,18 +71,31 @@ async function display_parser() {
             return intermediate.slice(1, intermediate.length);
         }
 
-        const defines = {} as Record<string, string>;
+        const defines = {} as Record<string, { args: string[], contents: string }>;
         {
             const macro_statements = split(text, /(?=#ifdef|#ifndef|#else|#endif|#define)/);
             while (macro_statements.length > 0) {
                 const statement = macro_statements.shift()!;
                 const type = statement.match(/#ifdef|#ifndef|#else|#endif|#define/)![0];
-                const space_split = statement.split(" ");
+                const space_split = statement.split(/\s+|\(/);
                 const define_key = space_split[1];
-                const define_value = space_split[2];
+                const [_, define_args_content] = statement.split(/\(|\)/);
+                const define_args = define_args_content?.split(",").map(arg => arg.trim()) || [];
+
+                // If there's a newline before finding a backslash, then it's the end of the #define value
+                const define_value = (() => {
+                    const define_value_components = statement.slice(
+                        statement.indexOf(define_key) + 
+                        define_key.length +
+                        (define_args_content == null ? 0 : define_args_content.length + 2),
+                        statement.length).split(`\r\n`);
+                    const value_end = define_value_components.findIndex(comp => comp[comp.length - 1] != "\\");
+                    return define_value_components.slice(0, value_end + 1).join("\n");
+                })();
+
                 switch (type) {
                     case "#ifdef":
-                        // 🤚 Skip all statements inside of invalid #ifdef statements
+                        // 🤚 Skip all statements inside of invalid #ifdef statementsd
                         if (defines[define_key] == null) {
                             let end_statement = macro_statements.shift()!;
                             while (end_statement.match(/#endif|#else/)?.[0] == null) {
@@ -91,7 +104,7 @@ async function display_parser() {
                         }
                         break;
                     case "#ifndef":
-                        // 🤚 Skip all statements inside of invalid #ifjdef statements
+                        // 🤚 Skip all statements inside of invalid #ifndef statements
                         if (defines[define_key] != null) {
                             let end_statement = macro_statements.shift()!;
                             while (end_statement.match(/#endif|#else/)?.[0] == null) {
@@ -107,7 +120,7 @@ async function display_parser() {
                         }
                         break;
                     case "#define":
-                        defines[define_key] = define_value;
+                        defines[define_key] = { args: define_args, contents: define_value };
                         break;
                 }
             }
@@ -138,7 +151,7 @@ async function display_parser() {
                     }
                     const { type: output, name: function_name } = type_name(outer)!;
 
-                    const params = inner.split(",").
+                    const params = inner?.split(",").
                         map(param => type_name(param)).
                         reduce((params, param, index) => {
                             if (param == null) return params;
@@ -149,7 +162,7 @@ async function display_parser() {
                                     index,
                                 },
                             }
-                        }, {} as { [key: string]: { type: string, index: number } });
+                        }, {} as { [key: string]: { type: string, index: number } }) || [];
 
                     const comments = previous?.match(/\/\*(\*(?!\/)|[^*])*\*\//g);
                     const comment = comments == null ? undefined : comments[comments.length - 1];
