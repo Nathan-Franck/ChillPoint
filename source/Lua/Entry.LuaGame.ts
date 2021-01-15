@@ -3,7 +3,6 @@ import { sdl, SDL } from "./Lib.SDL";
 import { ffi, Refs } from "./Util.FFI";
 import { Graphics2D } from "./Util.Graphics2D";
 import { Scripting } from "./Util.Scripting";
-import { Vec2 } from "./Util.VecMath";
 
 let frames = 0;
 const sheets = Graphics2D.load_sheets(renderer, <const>{
@@ -77,6 +76,25 @@ for (let i = 0; i < count; i++) {
     positions[i] = { x: Math.random() * 800, y: Math.random() * 600 };
 }
 
+
+const face_position = { x: 400, y: 340 };
+type Vec2 = { x: number, y: number };
+const add = (a: Vec2, b: Vec2) => ({ x: a.x + b.x, y: a.y + b.y });
+const face = <const>[
+    {
+        sprite: "eye.bmp",
+        position: { x: -10, y: -5 },
+    },
+    {
+        sprite: "eye.bmp",
+        position: { x: 9, y: -5 },
+    },
+    {
+        sprite: "mouth.bmp",
+        position: { x: -4, y: 5 },
+    }
+];
+
 const event = ffi.new("SDL_Event");
 let time = sdl.SDL_GetTicks();
 const start_time = time;
@@ -139,24 +157,6 @@ while (true) {
         position: player.position
     });
 
-    const face_position = { x: 400, y: 340 };
-
-    type Vec2 = { x: number, y: number };
-    const add = (a: Vec2, b: Vec2) => ({ x: a.x + b.x, y: a.y + b.y });
-    const face = <const>[
-        {
-            sprite: "eye.bmp",
-            position: { x: -10, y: -5 },
-        },
-        {
-            sprite: "eye.bmp",
-            position: { x: 9, y: -5 },
-        },
-        {
-            sprite: "mouth.bmp",
-            position: { x: -4, y: 5 },
-        }
-    ];
     face.forEach(item => Graphics2D.draw_sprite(renderer, {
         sheet: sheets[item.sprite],
         sprite: 0,

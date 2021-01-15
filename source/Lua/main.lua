@@ -2400,6 +2400,252 @@ do
 end
 return ____exports
 end,
+["Entry.LuaGame"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+require("lualib_bundle");
+local ____exports = {}
+local ____Game_2EInit = require("Game.Init")
+local renderer = ____Game_2EInit.renderer
+local ____Lib_2ESDL = require("Lib.SDL")
+local sdl = ____Lib_2ESDL.sdl
+local SDL = ____Lib_2ESDL.SDL
+local ____Util_2EFFI = require("Util.FFI")
+local ffi = ____Util_2EFFI.ffi
+local Refs = ____Util_2EFFI.Refs
+local ____Util_2EGraphics2D = require("Util.Graphics2D")
+local Graphics2D = ____Util_2EGraphics2D.Graphics2D
+local ____Util_2EScripting = require("Util.Scripting")
+local Scripting = ____Util_2EScripting.Scripting
+local frames = 0
+local sheets = Graphics2D.load_sheets(renderer, {["seagull.bmp"] = {sprites = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 2, 1, 2}}}, ["player.bmp"] = {sprites = {{x = 0, y = 0, w = 27, h = 48}}}, ["feather.bmp"] = {sprites = {{x = 0, y = 0, w = 8, h = 4}, {x = 8, y = 0, w = 8, h = 4}, {x = 16, y = 0, w = 8, h = 4}}, animations = {float = {0, 0, 0, 1, 2, 2, 2, 1}}}, ["snowball.bmp"] = {sprites = {{x = 0, y = 0, w = 16, h = 16}}}, ["snow_particle.bmp"] = {sprites = {{x = 0, y = 0, w = 5, h = 5}}}, ["background.bmp"] = {sprites = {{x = 0, y = 0, w = 800, h = 600}}}, ["eye.bmp"] = {sprites = {{x = 0, y = 0, w = 4, h = 4}}}, ["mouth.bmp"] = {sprites = {{x = 0, y = 0, w = 9, h = 4}}}})
+local settings = {controls = {left = SDL.SDL_SCANCODE_LEFT, right = SDL.SDL_SCANCODE_RIGHT, fire = SDL.SDL_SCANCODE_SPACE}}
+local player_stats = {speed = 0.25}
+local player = {input = {left = 0, right = 0, fire = 0}, position = {x = 400, y = 300}, last_fire_time = 0, jump_velocity = nil}
+local count = 5
+local positions = {}
+do
+    local i = 0
+    while i < count do
+        positions[i + 1] = {
+            x = math.random() * 800,
+            y = math.random() * 600
+        }
+        i = i + 1
+    end
+end
+local face_position = {x = 400, y = 340}
+local function add(a, b)
+    return {x = a.x + b.x, y = a.y + b.y}
+end
+local face = {{sprite = "eye.bmp", position = {x = -10, y = -5}}, {sprite = "eye.bmp", position = {x = 9, y = -5}}, {sprite = "mouth.bmp", position = {x = -4, y = 5}}}
+local event = ffi.new("SDL_Event")
+local time = sdl.SDL_GetTicks()
+local start_time = time
+local mouse_position = {x = 0, y = 0}
+while true do
+    local next_time = sdl.SDL_GetTicks()
+    local delta_time = next_time - time
+    time = sdl.SDL_GetTicks()
+    while sdl.SDL_PollEvent(event) > 0 do
+        local ____switch6 = event.type
+        if ____switch6 == SDL.SDL_KEYDOWN then
+            goto ____switch6_case_0
+        elseif ____switch6 == SDL.SDL_KEYUP then
+            goto ____switch6_case_1
+        elseif ____switch6 == SDL.SDL_MOUSEMOTION then
+            goto ____switch6_case_2
+        end
+        goto ____switch6_case_default
+        ::____switch6_case_0::
+        do
+            do
+                __TS__ArrayForEach(
+                    Scripting.get_keys(settings.controls),
+                    function(____, key)
+                        if event.key.keysym.mod ~= settings.controls[key] then
+                            return
+                        end
+                        player.input[key] = time
+                    end
+                )
+                goto ____switch6_end
+            end
+        end
+        ::____switch6_case_1::
+        do
+            __TS__ArrayForEach(
+                Scripting.get_keys(settings.controls),
+                function(____, key)
+                    if event.key.keysym.mod ~= settings.controls[key] then
+                        return
+                    end
+                    player.input[key] = 0
+                end
+            )
+            goto ____switch6_end
+        end
+        ::____switch6_case_2::
+        do
+            do
+                local refs = Refs.create({x = "int", y = "int"})
+                local button_state = SDL.SDL_GetMouseState(refs)
+                mouse_position = Refs.result(refs)
+                goto ____switch6_end
+            end
+        end
+        ::____switch6_case_default::
+        do
+            goto ____switch6_end
+        end
+        ::____switch6_end::
+    end
+    sdl.SDL_RenderClear(renderer)
+    sdl.SDL_RenderCopy(renderer, sheets["background.bmp"].texture, nil, nil)
+    do
+        local function sign(value)
+            if value == 0 then
+                return 0
+            end
+            return value / math.abs(value)
+        end
+        local direction = sign(player.input.right - player.input.left)
+        local ____obj, ____index = player.position, "x"
+        ____obj[____index] = ____obj[____index] + ((direction * delta_time) * player_stats.speed)
+    end
+    do
+        local i = 0
+        while i < count do
+            Graphics2D.draw_sprite(
+                renderer,
+                __TS__ObjectAssign(
+                    {},
+                    Graphics2D.loop_animation({time = time, sheet = sheets["seagull.bmp"], animation = "fly"}),
+                    {position = positions[i + 1]}
+                )
+            )
+            i = i + 1
+        end
+    end
+    Graphics2D.draw_sprite(
+        renderer,
+        __TS__ObjectAssign(
+            {},
+            Graphics2D.loop_animation({time = time, sheet = sheets["feather.bmp"], animation = "float"}),
+            {position = mouse_position}
+        )
+    )
+    Graphics2D.draw_sprite(renderer, {sheet = sheets["player.bmp"], sprite = 0, position = player.position})
+    __TS__ArrayForEach(
+        face,
+        function(____, item) return Graphics2D.draw_sprite(
+            renderer,
+            {
+                sheet = sheets[item.sprite],
+                sprite = 0,
+                position = add(face_position, item.position)
+            }
+        ) end
+    )
+    sdl.SDL_RenderPresent(renderer)
+    frames = frames + 1
+    if (frames % 500) == 0 then
+        print(
+            (tostring(mouse_position.x) .. " ") .. tostring(mouse_position.y)
+        )
+    end
+end
+return ____exports
+end,
+["Entry.NeuralTraining"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+local ____exports = {}
+local ____Lib_2ESDL = require("Lib.SDL")
+local sdl = ____Lib_2ESDL.sdl
+local ____Game_2EInit = require("Game.Init")
+local renderer = ____Game_2EInit.renderer
+local ____Util_2EFFI = require("Util.FFI")
+local ffi = ____Util_2EFFI.ffi
+function ____exports.set_pixel_easy(renderer, x, y, r, g, b)
+    sdl.SDL_SetRenderDrawColor(renderer, r, g, b, 255)
+    sdl.SDL_RenderDrawPoint(renderer, x, y)
+end
+ffi.load("tensorflow")
+local dimension = 16
+local colors = 3
+local pixels = {}
+do
+    local y = 0
+    while y < dimension do
+        do
+            local x = 0
+            while x < dimension do
+                local index = (x + (y * dimension)) * colors
+                local distance_from_centre = math.sqrt(
+                    math.pow(x - (dimension / 2), 2) + math.pow(y - (dimension / 2), 2)
+                )
+                if distance_from_centre > (dimension / 2) then
+                    pixels[(index + 0) + 1] = 0
+                    pixels[(index + 1) + 1] = 0
+                    pixels[(index + 2) + 1] = 0
+                else
+                    pixels[(index + 0) + 1] = 255
+                    pixels[(index + 1) + 1] = 255
+                    pixels[(index + 2) + 1] = 255
+                end
+                x = x + 1
+            end
+        end
+        y = y + 1
+    end
+end
+sdl.SDL_RenderClear(renderer)
+do
+    local y = 0
+    while y < dimension do
+        do
+            local x = 0
+            while x < dimension do
+                local index = (x + (y * dimension)) * colors
+                ____exports.set_pixel_easy(renderer, x, y, pixels[(index + 0) + 1], pixels[(index + 1) + 1], pixels[(index + 2) + 1])
+                x = x + 1
+            end
+        end
+        y = y + 1
+    end
+end
+sdl.SDL_RenderPresent(renderer)
+sdl.SDL_Delay(3000)
+return ____exports
+end,
+["Util.Neural"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+local ____exports = {}
+local example = {{input_weights = {{offset = 0, weight = 1}}, child_weights = {{x = 0, y = 0, weight = 1}, {x = 0, y = 1, weight = 1}, {x = 1, y = 0, weight = 1}, {x = 1, y = 1, weight = 1}}}, {parent_weights = {{x = 0, y = 0, weight = 1}}, input_weights = {{offset = 0, weight = 1}}, child_weights = {{x = 0, y = 0, weight = 1}, {x = 0, y = 1, weight = -1}, {x = 1, y = 0, weight = -1}, {x = 1, y = 1, weight = 1}}}}
+function ____exports.generate(network)
+end
+return ____exports
+end,
+["Util.Promise"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+end,
+["Util.SmoothCurve"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+local ____exports = {}
+____exports.SmoothCurve = {}
+local SmoothCurve = ____exports.SmoothCurve
+do
+    function SmoothCurve.sample(curve, time)
+        local smooth_index = ((time - curve.x_range[1]) / (curve.x_range[2] - curve.x_range[1])) * (#curve.y_values - 1)
+        local index = math.floor(smooth_index)
+        local current = math.min(
+            math.max(index, 0),
+            #curve.y_values - 1
+        )
+        local next = math.min(
+            math.max(index + 1, 0),
+            #curve.y_values - 1
+        )
+        local lerp = smooth_index - index
+        return (curve.y_values[current + 1] * (1 - lerp)) + (curve.y_values[next + 1] * lerp)
+    end
+end
+return ____exports
+end,
 ["Util.VecMath"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 require("lualib_bundle");
 local ____exports = {}
@@ -4207,252 +4453,6 @@ do
             out[16] = a[16]
         end
         return out
-    end
-end
-return ____exports
-end,
-["Entry.LuaGame"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
-require("lualib_bundle");
-local ____exports = {}
-local ____Game_2EInit = require("Game.Init")
-local renderer = ____Game_2EInit.renderer
-local ____Lib_2ESDL = require("Lib.SDL")
-local sdl = ____Lib_2ESDL.sdl
-local SDL = ____Lib_2ESDL.SDL
-local ____Util_2EFFI = require("Util.FFI")
-local ffi = ____Util_2EFFI.ffi
-local Refs = ____Util_2EFFI.Refs
-local ____Util_2EGraphics2D = require("Util.Graphics2D")
-local Graphics2D = ____Util_2EGraphics2D.Graphics2D
-local ____Util_2EScripting = require("Util.Scripting")
-local Scripting = ____Util_2EScripting.Scripting
-local frames = 0
-local sheets = Graphics2D.load_sheets(renderer, {["seagull.bmp"] = {sprites = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 2, 1, 2}}}, ["player.bmp"] = {sprites = {{x = 0, y = 0, w = 27, h = 48}}}, ["feather.bmp"] = {sprites = {{x = 0, y = 0, w = 8, h = 4}, {x = 8, y = 0, w = 8, h = 4}, {x = 16, y = 0, w = 8, h = 4}}, animations = {float = {0, 0, 0, 1, 2, 2, 2, 1}}}, ["snowball.bmp"] = {sprites = {{x = 0, y = 0, w = 16, h = 16}}}, ["snow_particle.bmp"] = {sprites = {{x = 0, y = 0, w = 5, h = 5}}}, ["background.bmp"] = {sprites = {{x = 0, y = 0, w = 800, h = 600}}}, ["eye.bmp"] = {sprites = {{x = 0, y = 0, w = 4, h = 4}}}, ["mouth.bmp"] = {sprites = {{x = 0, y = 0, w = 9, h = 4}}}})
-local settings = {controls = {left = SDL.SDL_SCANCODE_LEFT, right = SDL.SDL_SCANCODE_RIGHT, fire = SDL.SDL_SCANCODE_SPACE}}
-local player_stats = {speed = 0.25}
-local player = {input = {left = 0, right = 0, fire = 0}, position = {x = 400, y = 300}, last_fire_time = 0, jump_velocity = nil}
-local count = 5
-local positions = {}
-do
-    local i = 0
-    while i < count do
-        positions[i + 1] = {
-            x = math.random() * 800,
-            y = math.random() * 600
-        }
-        i = i + 1
-    end
-end
-local event = ffi.new("SDL_Event")
-local time = sdl.SDL_GetTicks()
-local start_time = time
-local mouse_position = {x = 0, y = 0}
-while true do
-    local next_time = sdl.SDL_GetTicks()
-    local delta_time = next_time - time
-    time = sdl.SDL_GetTicks()
-    while sdl.SDL_PollEvent(event) > 0 do
-        local ____switch5 = event.type
-        if ____switch5 == SDL.SDL_KEYDOWN then
-            goto ____switch5_case_0
-        elseif ____switch5 == SDL.SDL_KEYUP then
-            goto ____switch5_case_1
-        elseif ____switch5 == SDL.SDL_MOUSEMOTION then
-            goto ____switch5_case_2
-        end
-        goto ____switch5_case_default
-        ::____switch5_case_0::
-        do
-            do
-                __TS__ArrayForEach(
-                    Scripting.get_keys(settings.controls),
-                    function(____, key)
-                        if event.key.keysym.mod ~= settings.controls[key] then
-                            return
-                        end
-                        player.input[key] = time
-                    end
-                )
-                goto ____switch5_end
-            end
-        end
-        ::____switch5_case_1::
-        do
-            __TS__ArrayForEach(
-                Scripting.get_keys(settings.controls),
-                function(____, key)
-                    if event.key.keysym.mod ~= settings.controls[key] then
-                        return
-                    end
-                    player.input[key] = 0
-                end
-            )
-            goto ____switch5_end
-        end
-        ::____switch5_case_2::
-        do
-            do
-                local refs = Refs.create({x = "int", y = "int"})
-                local button_state = SDL.SDL_GetMouseState(refs)
-                mouse_position = Refs.result(refs)
-                goto ____switch5_end
-            end
-        end
-        ::____switch5_case_default::
-        do
-            goto ____switch5_end
-        end
-        ::____switch5_end::
-    end
-    sdl.SDL_RenderClear(renderer)
-    sdl.SDL_RenderCopy(renderer, sheets["background.bmp"].texture, nil, nil)
-    do
-        local function sign(value)
-            if value == 0 then
-                return 0
-            end
-            return value / math.abs(value)
-        end
-        local direction = sign(player.input.right - player.input.left)
-        local ____obj, ____index = player.position, "x"
-        ____obj[____index] = ____obj[____index] + ((direction * delta_time) * player_stats.speed)
-    end
-    do
-        local i = 0
-        while i < count do
-            Graphics2D.draw_sprite(
-                renderer,
-                __TS__ObjectAssign(
-                    {},
-                    Graphics2D.loop_animation({time = time, sheet = sheets["seagull.bmp"], animation = "fly"}),
-                    {position = positions[i + 1]}
-                )
-            )
-            i = i + 1
-        end
-    end
-    Graphics2D.draw_sprite(
-        renderer,
-        __TS__ObjectAssign(
-            {},
-            Graphics2D.loop_animation({time = time, sheet = sheets["feather.bmp"], animation = "float"}),
-            {position = mouse_position}
-        )
-    )
-    Graphics2D.draw_sprite(renderer, {sheet = sheets["player.bmp"], sprite = 0, position = player.position})
-    local face_position = {x = 400, y = 340}
-    local function add(a, b)
-        return {x = a.x + b.x, y = a.y + b.y}
-    end
-    local face = {{sprite = "eye.bmp", position = {x = -10, y = -5}}, {sprite = "eye.bmp", position = {x = 9, y = -5}}, {sprite = "mouth.bmp", position = {x = -4, y = 5}}}
-    __TS__ArrayForEach(
-        face,
-        function(____, item) return Graphics2D.draw_sprite(
-            renderer,
-            {
-                sheet = sheets[item.sprite],
-                sprite = 0,
-                position = add(face_position, item.position)
-            }
-        ) end
-    )
-    sdl.SDL_RenderPresent(renderer)
-    frames = frames + 1
-    if (frames % 500) == 0 then
-        print(
-            (tostring(mouse_position.x) .. " ") .. tostring(mouse_position.y)
-        )
-    end
-end
-return ____exports
-end,
-["Entry.NeuralTraining"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
-local ____exports = {}
-local ____Lib_2ESDL = require("Lib.SDL")
-local sdl = ____Lib_2ESDL.sdl
-local ____Game_2EInit = require("Game.Init")
-local renderer = ____Game_2EInit.renderer
-local ____Util_2EFFI = require("Util.FFI")
-local ffi = ____Util_2EFFI.ffi
-function ____exports.set_pixel_easy(renderer, x, y, r, g, b)
-    sdl.SDL_SetRenderDrawColor(renderer, r, g, b, 255)
-    sdl.SDL_RenderDrawPoint(renderer, x, y)
-end
-ffi.load("tensorflow")
-local dimension = 16
-local colors = 3
-local pixels = {}
-do
-    local y = 0
-    while y < dimension do
-        do
-            local x = 0
-            while x < dimension do
-                local index = (x + (y * dimension)) * colors
-                local distance_from_centre = math.sqrt(
-                    math.pow(x - (dimension / 2), 2) + math.pow(y - (dimension / 2), 2)
-                )
-                if distance_from_centre > (dimension / 2) then
-                    pixels[(index + 0) + 1] = 0
-                    pixels[(index + 1) + 1] = 0
-                    pixels[(index + 2) + 1] = 0
-                else
-                    pixels[(index + 0) + 1] = 255
-                    pixels[(index + 1) + 1] = 255
-                    pixels[(index + 2) + 1] = 255
-                end
-                x = x + 1
-            end
-        end
-        y = y + 1
-    end
-end
-sdl.SDL_RenderClear(renderer)
-do
-    local y = 0
-    while y < dimension do
-        do
-            local x = 0
-            while x < dimension do
-                local index = (x + (y * dimension)) * colors
-                ____exports.set_pixel_easy(renderer, x, y, pixels[(index + 0) + 1], pixels[(index + 1) + 1], pixels[(index + 2) + 1])
-                x = x + 1
-            end
-        end
-        y = y + 1
-    end
-end
-sdl.SDL_RenderPresent(renderer)
-sdl.SDL_Delay(3000)
-return ____exports
-end,
-["Util.Neural"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
-local ____exports = {}
-local example = {{input_weights = {{offset = 0, weight = 1}}, child_weights = {{x = 0, y = 0, weight = 1}, {x = 0, y = 1, weight = 1}, {x = 1, y = 0, weight = 1}, {x = 1, y = 1, weight = 1}}}, {parent_weights = {{x = 0, y = 0, weight = 1}}, input_weights = {{offset = 0, weight = 1}}, child_weights = {{x = 0, y = 0, weight = 1}, {x = 0, y = 1, weight = -1}, {x = 1, y = 0, weight = -1}, {x = 1, y = 1, weight = 1}}}}
-function ____exports.generate(network)
-end
-return ____exports
-end,
-["Util.Promise"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
-end,
-["Util.SmoothCurve"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
-local ____exports = {}
-____exports.SmoothCurve = {}
-local SmoothCurve = ____exports.SmoothCurve
-do
-    function SmoothCurve.sample(curve, time)
-        local smooth_index = ((time - curve.x_range[1]) / (curve.x_range[2] - curve.x_range[1])) * (#curve.y_values - 1)
-        local index = math.floor(smooth_index)
-        local current = math.min(
-            math.max(index, 0),
-            #curve.y_values - 1
-        )
-        local next = math.min(
-            math.max(index + 1, 0),
-            #curve.y_values - 1
-        )
-        local lerp = smooth_index - index
-        return (curve.y_values[current + 1] * (1 - lerp)) + (curve.y_values[next + 1] * lerp)
     end
 end
 return ____exports
