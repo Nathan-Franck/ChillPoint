@@ -41,8 +41,15 @@ const sheets = Graphics2D.load_sheets(renderer, <const>{
     },
     "background.bmp": {
         sprites: [{ x: 0, y: 0, w: 800, h: 600 }],
-    }
+    },
+    "eye.bmp": {
+        sprites: [{ x: 0, y: 0, w: 4, h: 4 }],
+    },
+    "mouth.bmp": {
+        sprites: [{ x: 0, y: 0, w: 9, h: 4 }],
+    },
 });
+
 // ⚙ Aspects of the game tweakable for design or player comfort
 const settings = {
     controls: { left: SDL.SDL_SCANCODE_LEFT, right: SDL.SDL_SCANCODE_RIGHT, fire: SDL.SDL_SCANCODE_SPACE },
@@ -132,8 +139,32 @@ while (true) {
         position: player.position
     });
 
+    const face_position = { x: 400, y: 340 };
+
+    type Vec2 = { x: number, y: number };
+    const add = (a: Vec2, b: Vec2) => ({ x: a.x + b.x, y: a.y + b.y });
+    const face = <const>[
+        {
+            sprite: "eye.bmp",
+            position: { x: -10, y: -5 },
+        },
+        {
+            sprite: "eye.bmp",
+            position: { x: 9, y: -5 },
+        },
+        {
+            sprite: "mouth.bmp",
+            position: { x: -4, y: 5 },
+        }
+    ];
+    face.forEach(item => Graphics2D.draw_sprite(renderer, {
+        sheet: sheets[item.sprite],
+        sprite: 0,
+        position: add(face_position, item.position),
+    }));
+
     sdl.SDL_RenderPresent(renderer);
 
     frames++;
-    //if (frames % 500 == 0) { print((time - start_time) / frames); }
+    if (frames % 500 == 0) { print(`${mouse_position.x} ${mouse_position.y}`); }
 }

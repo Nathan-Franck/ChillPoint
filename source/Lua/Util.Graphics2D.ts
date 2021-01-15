@@ -4,6 +4,7 @@ import { External, ffi } from "./Util.FFI";
 import { Scripting } from "./Util.Scripting";
 
 export namespace Graphics2D {
+
     function load_texture(renderer: External<"SDL_Renderer*">, path: string ) {
         const full_path = ffi.string(sdl.SDL_GetBasePath()) + path;
         const loaded_surface = sdl_img.IMG_Load(full_path)!;
@@ -11,7 +12,9 @@ export namespace Graphics2D {
         const new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface);
         return new_texture;
     }
+    
     type Sprite = { x: number, y: number, w: number, h: number };
+
     type Sheet = {
         readonly sprites: readonly Sprite[],
         readonly texture: External<"SDL_Texture*"> | null,
