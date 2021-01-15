@@ -14,7 +14,7 @@ const sheets = Graphics2D.load_sheets(renderer, <const>{
             { x: 72, y: 0, w: 24, h: 24 }
         ],
         animations: {
-            fly: [0, 2, 1, 2],
+            fly: [0, 2, 1, 1, 2],
         }
     },
     "player.bmp": {
@@ -83,11 +83,11 @@ const add = (a: Vec2, b: Vec2) => ({ x: a.x + b.x, y: a.y + b.y });
 const face = <const>[
     {
         sprite: "eye.bmp",
-        position: { x: -10, y: -5 },
+        position: { x: -10, y: -8 },
     },
     {
         sprite: "eye.bmp",
-        position: { x: 9, y: -5 },
+        position: { x: 9, y: -4 },
     },
     {
         sprite: "mouth.bmp",

@@ -2416,7 +2416,7 @@ local Graphics2D = ____Util_2EGraphics2D.Graphics2D
 local ____Util_2EScripting = require("Util.Scripting")
 local Scripting = ____Util_2EScripting.Scripting
 local frames = 0
-local sheets = Graphics2D.load_sheets(renderer, {["seagull.bmp"] = {sprites = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 2, 1, 2}}}, ["player.bmp"] = {sprites = {{x = 0, y = 0, w = 27, h = 48}}}, ["feather.bmp"] = {sprites = {{x = 0, y = 0, w = 8, h = 4}, {x = 8, y = 0, w = 8, h = 4}, {x = 16, y = 0, w = 8, h = 4}}, animations = {float = {0, 0, 0, 1, 2, 2, 2, 1}}}, ["snowball.bmp"] = {sprites = {{x = 0, y = 0, w = 16, h = 16}}}, ["snow_particle.bmp"] = {sprites = {{x = 0, y = 0, w = 5, h = 5}}}, ["background.bmp"] = {sprites = {{x = 0, y = 0, w = 800, h = 600}}}, ["eye.bmp"] = {sprites = {{x = 0, y = 0, w = 4, h = 4}}}, ["mouth.bmp"] = {sprites = {{x = 0, y = 0, w = 9, h = 4}}}})
+local sheets = Graphics2D.load_sheets(renderer, {["seagull.bmp"] = {sprites = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 2, 1, 1, 2}}}, ["player.bmp"] = {sprites = {{x = 0, y = 0, w = 27, h = 48}}}, ["feather.bmp"] = {sprites = {{x = 0, y = 0, w = 8, h = 4}, {x = 8, y = 0, w = 8, h = 4}, {x = 16, y = 0, w = 8, h = 4}}, animations = {float = {0, 0, 0, 1, 2, 2, 2, 1}}}, ["snowball.bmp"] = {sprites = {{x = 0, y = 0, w = 16, h = 16}}}, ["snow_particle.bmp"] = {sprites = {{x = 0, y = 0, w = 5, h = 5}}}, ["background.bmp"] = {sprites = {{x = 0, y = 0, w = 800, h = 600}}}, ["eye.bmp"] = {sprites = {{x = 0, y = 0, w = 4, h = 4}}}, ["mouth.bmp"] = {sprites = {{x = 0, y = 0, w = 9, h = 4}}}})
 local settings = {controls = {left = SDL.SDL_SCANCODE_LEFT, right = SDL.SDL_SCANCODE_RIGHT, fire = SDL.SDL_SCANCODE_SPACE}}
 local player_stats = {speed = 0.25}
 local player = {input = {left = 0, right = 0, fire = 0}, position = {x = 400, y = 300}, last_fire_time = 0, jump_velocity = nil}
@@ -2436,7 +2436,7 @@ local face_position = {x = 400, y = 340}
 local function add(a, b)
     return {x = a.x + b.x, y = a.y + b.y}
 end
-local face = {{sprite = "eye.bmp", position = {x = -10, y = -5}}, {sprite = "eye.bmp", position = {x = 9, y = -5}}, {sprite = "mouth.bmp", position = {x = -4, y = 5}}}
+local face = {{sprite = "eye.bmp", position = {x = -10, y = -8}}, {sprite = "eye.bmp", position = {x = 9, y = -4}}, {sprite = "mouth.bmp", position = {x = -4, y = 5}}}
 local event = ffi.new("SDL_Event")
 local time = sdl.SDL_GetTicks()
 local start_time = time
