@@ -4,48 +4,50 @@ import { ffi, Refs } from "./Util.FFI";
 import { Graphics2D } from "./Util.Graphics2D";
 import { Scripting } from "./Util.Scripting";
 
+print("Hey there!");
+
 let frames = 0;
+
 const sheets = Graphics2D.load_sheets(renderer, <const>{
-    "seagull.bmp": {
-        sprites: [
-            { x: 0, y: 0, w: 24, h: 24 },
-            { x: 24, y: 0, w: 24, h: 24 },
-            { x: 48, y: 0, w: 24, h: 24 },
-            { x: 72, y: 0, w: 24, h: 24 }
-        ],
+    "seagull.bmp": Graphics2D.validate_sheet({
+        sprites: {
+            0: { x: 0, y: 0, w: 24, h: 24 },
+            1: { x: 24, y: 0, w: 24, h: 24 },
+            2: { x: 48, y: 0, w: 24, h: 24 },
+            3: { x: 72, y: 0, w: 24, h: 24 }
+        },
         animations: {
-            fly: [0, 2, 1, 1, 2],
-        }
-    },
+            fly: [0, 0, 2, 1, 1, 2],
+            die: [3],
+        },
+    }),
     "player.bmp": {
-        sprites: [
-            { x: 0, y: 0, w: 27, h: 48 },
-        ],
+        sprites: {
+            0: { x: 0, y: 0, w: 27, h: 48 },
+        },
     },
-    "feather.bmp": {
-        sprites: [
-            { x: 0, y: 0, w: 8, h: 4 },
-            { x: 8, y: 0, w: 8, h: 4 },
-            { x: 16, y: 0, w: 8, h: 4 },
-        ],
-        animations: {
-            float: [0, 0, 0, 1, 2, 2, 2, 1],
-        }
-    },
+    "feather.bmp": Graphics2D.validate_sheet({
+        sprites: {
+            0: { x: 0, y: 0, w: 8, h: 4 },
+            1: { x: 8, y: 0, w: 8, h: 4 },
+            2: { x: 16, y: 0, w: 8, h: 4 },
+        },
+        animations: { float: [0, 1, 2, 2, 1, 1] }
+    }),
     "snowball.bmp": {
-        sprites: [{ x: 0, y: 0, w: 16, h: 16 }],
+        sprites: { 0: { x: 0, y: 0, w: 16, h: 16 } },
     },
     "snow_particle.bmp": {
-        sprites: [{ x: 0, y: 0, w: 5, h: 5 }],
+        sprites: { 0: { x: 0, y: 0, w: 5, h: 5 } },
     },
     "background.bmp": {
-        sprites: [{ x: 0, y: 0, w: 800, h: 600 }],
+        sprites: { 0: { x: 0, y: 0, w: 800, h: 600 } },
     },
     "eye.bmp": {
-        sprites: [{ x: 0, y: 0, w: 4, h: 4 }],
+        sprites: { 0: { x: 0, y: 0, w: 4, h: 4 } },
     },
     "mouth.bmp": {
-        sprites: [{ x: 0, y: 0, w: 9, h: 4 }],
+        sprites: { 0: { x: 0, y: 0, w: 9, h: 4 } },
     },
 });
 
@@ -139,7 +141,6 @@ while (true) {
         const direction = sign(player.input.right - player.input.left);
         player.position.x += direction * delta_time * player_stats.speed;
     }
-
 
     for (let i = 0; i < count; i++) {
         Graphics2D.draw_sprite(renderer, {

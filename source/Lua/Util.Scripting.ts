@@ -16,7 +16,27 @@ export type TupleFromOrdered<
     //@ts-ignore
     > = {} extends T ? R : TupleFromOrdered<Pick<T, Exclude<keyof T, Key>>, SubKey, [...R, T[Key][SubKey]]>;
 
+export type TupleKeys<T extends readonly any[]> = keyof { [key in keyof T as key extends `${number}` ? number : never]: any }
+type test_TupleKeys = TupleKeys<[number, number]>
+
+namespace RandomTesting {
+    type NumberExtractTest<T> = T extends `${infer K} and that` ? K : never;
+
+    type FunctionExtract<T> = T extends `${infer ReturnType} ${infer Name}(${infer Arguments});` ? {
+        return_type: ReturnType,
+        name: Name,
+        arguments: Arguments,
+    } : "Error: Required form <return_type> <name>(<arguments>)";
+
+    type test = FunctionExtract<"void main(char* args);">;
+
+    type that = NumberExtractTest<"2 and this" | "123 and that">;
+}
+
 export namespace Scripting {
+    export function length<T>(obj: T) {
+        return Object.keys(obj).length;
+    }
     export function get_keys<T>(obj: T): (keyof T)[] {
         return Object.keys(obj) as (keyof T)[];
     }

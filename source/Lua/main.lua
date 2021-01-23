@@ -1819,9 +1819,13 @@ end,
 ["Util.Scripting"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 require("lualib_bundle");
 local ____exports = {}
+local RandomTesting = {}
 ____exports.Scripting = {}
 local Scripting = ____exports.Scripting
 do
+    function Scripting.length(obj)
+        return #__TS__ObjectKeys(obj)
+    end
     function Scripting.get_keys(obj)
         return __TS__ObjectKeys(obj)
     end
@@ -2364,6 +2368,9 @@ do
         local new_texture = sdl.SDL_CreateTextureFromSurface(renderer, loaded_surface)
         return new_texture
     end
+    function Graphics2D.validate_sheet(sheet)
+        return sheet
+    end
     function Graphics2D.load_sheets(renderer, sheet_inputs)
         return Scripting.reduce_keys(
             sheet_inputs,
@@ -2382,7 +2389,7 @@ do
     end
     function Graphics2D.draw_sprite(renderer, params)
         local sheet = params.sheet
-        local sprite = sheet.sprites[params.sprite + 1]
+        local sprite = sheet.sprites[params.sprite]
         local ____ = params.position
         local x = ____.x
         local y = ____.y
@@ -2415,8 +2422,21 @@ local ____Util_2EGraphics2D = require("Util.Graphics2D")
 local Graphics2D = ____Util_2EGraphics2D.Graphics2D
 local ____Util_2EScripting = require("Util.Scripting")
 local Scripting = ____Util_2EScripting.Scripting
+print("Hey there!")
 local frames = 0
-local sheets = Graphics2D.load_sheets(renderer, {["seagull.bmp"] = {sprites = {{x = 0, y = 0, w = 24, h = 24}, {x = 24, y = 0, w = 24, h = 24}, {x = 48, y = 0, w = 24, h = 24}, {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 2, 1, 1, 2}}}, ["player.bmp"] = {sprites = {{x = 0, y = 0, w = 27, h = 48}}}, ["feather.bmp"] = {sprites = {{x = 0, y = 0, w = 8, h = 4}, {x = 8, y = 0, w = 8, h = 4}, {x = 16, y = 0, w = 8, h = 4}}, animations = {float = {0, 0, 0, 1, 2, 2, 2, 1}}}, ["snowball.bmp"] = {sprites = {{x = 0, y = 0, w = 16, h = 16}}}, ["snow_particle.bmp"] = {sprites = {{x = 0, y = 0, w = 5, h = 5}}}, ["background.bmp"] = {sprites = {{x = 0, y = 0, w = 800, h = 600}}}, ["eye.bmp"] = {sprites = {{x = 0, y = 0, w = 4, h = 4}}}, ["mouth.bmp"] = {sprites = {{x = 0, y = 0, w = 9, h = 4}}}})
+local sheets = Graphics2D.load_sheets(
+    renderer,
+    {
+        ["seagull.bmp"] = Graphics2D.validate_sheet({sprites = {[0] = {x = 0, y = 0, w = 24, h = 24}, [1] = {x = 24, y = 0, w = 24, h = 24}, [2] = {x = 48, y = 0, w = 24, h = 24}, [3] = {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 0, 2, 1, 1, 2}, die = {3}}}),
+        ["player.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 27, h = 48}}},
+        ["feather.bmp"] = Graphics2D.validate_sheet({sprites = {[0] = {x = 0, y = 0, w = 8, h = 4}, [1] = {x = 8, y = 0, w = 8, h = 4}, [2] = {x = 16, y = 0, w = 8, h = 4}}, animations = {float = {0, 1, 2, 2, 1, 1}}}),
+        ["snowball.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 16, h = 16}}},
+        ["snow_particle.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 5, h = 5}}},
+        ["background.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 800, h = 600}}},
+        ["eye.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 4, h = 4}}},
+        ["mouth.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 9, h = 4}}}
+    }
+)
 local settings = {controls = {left = SDL.SDL_SCANCODE_LEFT, right = SDL.SDL_SCANCODE_RIGHT, fire = SDL.SDL_SCANCODE_SPACE}}
 local player_stats = {speed = 0.25}
 local player = {input = {left = 0, right = 0, fire = 0}, position = {x = 400, y = 300}, last_fire_time = 0, jump_velocity = nil}
