@@ -2321,7 +2321,7 @@ local ____Lib_2ESDL = require("Lib.SDL")
 local SDL = ____Lib_2ESDL.SDL
 local sdl = ____Lib_2ESDL.sdl
 sdl.SDL_Init(SDL.SDL_INIT_VIDEO)
-____exports.window = sdl.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, 800, 600, 0)
+____exports.window = sdl.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL.SDL_WINDOW_FULLSCREEN)
 ____exports.renderer = sdl.SDL_CreateRenderer(
     ____exports.window,
     -1,
@@ -2400,9 +2400,9 @@ do
     function Graphics2D.loop_animation(params)
         local sheet = params.sheet
         local animations = sheet.animations
-        local animation = animations[params.animation]
-        local animation_index = math.floor(params.time / 100) % #animation
-        return __TS__ObjectAssign({}, params, {sprite = animation[animation_index + 1]})
+        local selected_animation = animations[params.animation]
+        local animation_index = math.floor(params.time / 100) % #selected_animation
+        return {sheet = sheet, sprite = selected_animation[animation_index + 1]}
     end
 end
 return ____exports
@@ -2424,23 +2424,11 @@ local ____Util_2EScripting = require("Util.Scripting")
 local Scripting = ____Util_2EScripting.Scripting
 print("Hey there!")
 local frames = 0
-local sheets = Graphics2D.load_sheets(
-    renderer,
-    {
-        ["seagull.bmp"] = Graphics2D.validate_sheet({sprites = {[0] = {x = 0, y = 0, w = 24, h = 24}, [1] = {x = 24, y = 0, w = 24, h = 24}, [2] = {x = 48, y = 0, w = 24, h = 24}, [3] = {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 0, 2, 1, 1, 2}, die = {3}}}),
-        ["player.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 27, h = 48}}},
-        ["feather.bmp"] = Graphics2D.validate_sheet({sprites = {[0] = {x = 0, y = 0, w = 8, h = 4}, [1] = {x = 8, y = 0, w = 8, h = 4}, [2] = {x = 16, y = 0, w = 8, h = 4}}, animations = {float = {0, 1, 2, 2, 1, 1}}}),
-        ["snowball.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 16, h = 16}}},
-        ["snow_particle.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 5, h = 5}}},
-        ["background.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 800, h = 600}}},
-        ["eye.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 4, h = 4}}},
-        ["mouth.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 9, h = 4}}}
-    }
-)
+local sheets = Graphics2D.load_sheets(renderer, {["seagull.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 24, h = 24}, [1] = {x = 24, y = 0, w = 24, h = 24}, [2] = {x = 48, y = 0, w = 24, h = 24}, [3] = {x = 72, y = 0, w = 24, h = 24}}, animations = {fly = {0, 0, 2, 1, 1, 2}, die = {3}}}, ["player.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 27, h = 48}}}, ["feather.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 8, h = 4}, [1] = {x = 8, y = 0, w = 8, h = 4}, [2] = {x = 16, y = 0, w = 8, h = 4}}, animations = {float = {0, 0, 1, 2, 2, 1}}}, ["snowball.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 16, h = 16}}}, ["snow_particle.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 5, h = 5}}}, ["background.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 800, h = 600}}}, ["eye.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 4, h = 4}}}, ["mouth.bmp"] = {sprites = {[0] = {x = 0, y = 0, w = 9, h = 4}}}})
 local settings = {controls = {left = SDL.SDL_SCANCODE_LEFT, right = SDL.SDL_SCANCODE_RIGHT, fire = SDL.SDL_SCANCODE_SPACE}}
 local player_stats = {speed = 0.25}
 local player = {input = {left = 0, right = 0, fire = 0}, position = {x = 400, y = 300}, last_fire_time = 0, jump_velocity = nil}
-local count = 5
+local count = 5000
 local positions = {}
 do
     local i = 0
@@ -2478,29 +2466,33 @@ while true do
         ::____switch6_case_0::
         do
             do
-                __TS__ArrayForEach(
-                    Scripting.get_keys(settings.controls),
-                    function(____, key)
+                for ____, key in ipairs(
+                    Scripting.get_keys(settings.controls)
+                ) do
+                    do
                         if event.key.keysym.mod ~= settings.controls[key] then
-                            return
+                            goto __continue8
                         end
                         player.input[key] = time
                     end
-                )
+                    ::__continue8::
+                end
                 goto ____switch6_end
             end
         end
         ::____switch6_case_1::
         do
-            __TS__ArrayForEach(
-                Scripting.get_keys(settings.controls),
-                function(____, key)
+            for ____, key in ipairs(
+                Scripting.get_keys(settings.controls)
+            ) do
+                do
                     if event.key.keysym.mod ~= settings.controls[key] then
-                        return
+                        goto __continue10
                     end
                     player.input[key] = 0
                 end
-            )
+                ::__continue10::
+            end
             goto ____switch6_end
         end
         ::____switch6_case_2::
@@ -2532,27 +2524,21 @@ while true do
         ____obj[____index] = ____obj[____index] + ((direction * delta_time) * player_stats.speed)
     end
     do
-        local i = 0
-        while i < count do
-            Graphics2D.draw_sprite(
-                renderer,
-                __TS__ObjectAssign(
-                    {},
-                    Graphics2D.loop_animation({time = time, sheet = sheets["seagull.bmp"], animation = "fly"}),
-                    {position = positions[i + 1]}
-                )
-            )
-            i = i + 1
+        local ____ = Graphics2D.loop_animation({time = time, sheet = sheets["feather.bmp"], animation = "float"})
+        local sheet = ____.sheet
+        local sprite = ____.sprite
+        do
+            local i = 0
+            while i < count do
+                Graphics2D.draw_sprite(renderer, {sheet = sheet, sprite = sprite, position = positions[i + 1]})
+                i = i + 1
+            end
         end
     end
-    Graphics2D.draw_sprite(
-        renderer,
-        __TS__ObjectAssign(
-            {},
-            Graphics2D.loop_animation({time = time, sheet = sheets["feather.bmp"], animation = "float"}),
-            {position = mouse_position}
-        )
-    )
+    local ____ = Graphics2D.loop_animation({time = time, sheet = sheets["seagull.bmp"], animation = "fly"})
+    local sheet = ____.sheet
+    local sprite = ____.sprite
+    Graphics2D.draw_sprite(renderer, {sheet = sheet, sprite = sprite, position = mouse_position})
     Graphics2D.draw_sprite(renderer, {sheet = sheets["player.bmp"], sprite = 0, position = player.position})
     __TS__ArrayForEach(
         face,
@@ -2567,9 +2553,9 @@ while true do
     )
     sdl.SDL_RenderPresent(renderer)
     frames = frames + 1
-    if (frames % 500) == 0 then
+    if (frames % 100) == 0 then
         print(
-            (tostring(mouse_position.x) .. " ") .. tostring(mouse_position.y)
+            tostring((time - start_time) / frames)
         )
     end
 end

@@ -53,14 +53,14 @@ export namespace Graphics2D {
     }
 
     export function loop_animation<T extends Required<Sheet>>(params: { time: number, sheet: T, animation: keyof T["animations"] }) {
-        const sheet = params.sheet;
+        const { sheet } = params;
         const { animations } = sheet;
         type Anim = typeof animations;
-        const animation = animations?.[params.animation as keyof Anim];
-        const animation_index = Math.floor(params.time / 100) % animation.length;
+        const selected_animation = animations?.[params.animation as keyof Anim];
+        const animation_index = Math.floor(params.time / 100) % selected_animation.length;
         return {
-            ...params,
-            sprite: animation[animation_index],
+            sheet,
+            sprite: selected_animation[animation_index],
         }
     }
 }
