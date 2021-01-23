@@ -1,9 +1,14 @@
-import { SDL, sdl } from "./Lib.SDL";
+import { sdl } from "./Lib.SDL";
 import { External } from "./Util.FFI";
 import { renderer } from "./Game.Init";
 import { ffi } from "./Util.FFI";
 
 ffi.load("tensorflow");
+
+export function set_pixel_easy(renderer: External<"SDL_Renderer*">, x: number, y: number, r: number, g: number, b: number) {
+    sdl.SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+    sdl.SDL_RenderDrawPoint(renderer, x, y);
+}
 
 // 🧪 Generate simple images to classify using simple custom neural network
 const dimension = 16;
@@ -25,7 +30,6 @@ for (let y = 0; y < dimension; y++) {
     }
 }
 
-
 // sdl.SDL_RenderClear(renderer);
 // sdl.SDL_RenderPresent(renderer);
 
@@ -37,10 +41,5 @@ for (let y = 0; y < dimension; y++) {
     }
 }
 sdl.SDL_RenderPresent(renderer);
-
-export function set_pixel_easy(renderer: External<"SDL_Renderer*">, x: number, y: number, r: number, g: number, b: number) {
-    sdl.SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-    sdl.SDL_RenderDrawPoint(renderer, x, y);
-}
 
 sdl.SDL_Delay(3000);

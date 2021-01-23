@@ -4,9 +4,16 @@ import { ffi, Refs } from "./Util.FFI";
 import { Graphics2D } from "./Util.Graphics2D";
 import { Scripting } from "./Util.Scripting";
 
-print("Hey there!");
-
 let frames = 0;
+
+// ⚙ Aspects of the game tweakable for design or player comfort
+const settings = <const>{
+    controls: { left: SDL.SDL_SCANCODE_LEFT, right: SDL.SDL_SCANCODE_RIGHT, fire: SDL.SDL_SCANCODE_SPACE },
+};
+
+const player_stats = <const>{
+    speed: 0.25,
+};
 
 const sheets = Graphics2D.load_sheets(renderer, <const>{
     "seagull.bmp": {
@@ -51,14 +58,6 @@ const sheets = Graphics2D.load_sheets(renderer, <const>{
     },
 });
 
-// ⚙ Aspects of the game tweakable for design or player comfort
-const settings = <const>{
-    controls: { left: SDL.SDL_SCANCODE_LEFT, right: SDL.SDL_SCANCODE_RIGHT, fire: SDL.SDL_SCANCODE_SPACE },
-};
-
-const player_stats = <const>{
-    speed: 0.25,
-};
 
 // 🏃‍♀️ Main player character state, should remain fairly constant throughout gameplay
 const player = {
@@ -72,7 +71,7 @@ const player = {
     jump_velocity: undefined as Vec2 | undefined
 };
 
-const count = 5000;
+const count = 500;
 const positions = [];
 for (let i = 0; i < count; i++) {
     positions[i] = { x: Math.random() * 800, y: Math.random() * 600 };
@@ -128,6 +127,7 @@ while (true) {
             default: break;
         }
     }
+
     sdl.SDL_RenderClear(renderer);
     sdl.SDL_RenderCopy(renderer, sheets["background.bmp"].texture, null, null);
 
@@ -137,13 +137,13 @@ while (true) {
             if (value == 0) return 0;
             return value / Math.abs(value);
         }
-        const direction = sign(player.input.right - player.input.left);
-        player.position.x += direction * delta_time * player_stats.speed;
+        const direction = sign(player.input.left - player.input.right);
+        player.position.x += direction * player_stats.speed * delta_time;
     }
 
     // 🪶 Lots of feathers
     {
-        const { sheet, sprite } = Graphics2D.loop_animation({ time, sheet: sheets["feather.bmp"], animation: "float" });
+        const { sheet, sprite } = Graphics2D.loop_animation({ time, sheet: sheets["seagull.bmp"], animation: "fly" });
         for (let i = 0; i < count; i++) {
             Graphics2D.draw_sprite(renderer, {
                 sheet,
@@ -152,8 +152,8 @@ while (true) {
             });
         }
     }
-    // 🕊 Mouse follows bird ...
-    const { sheet, sprite } = Graphics2D.loop_animation({ time, sheet: sheets["seagull.bmp"], animation: "fly" });
+    // 🕊 Bird follows mouse
+    const { sheet, sprite } = Graphics2D.loop_animation({ time, sheet: sheets["feather.bmp"], animation: "float" });
     Graphics2D.draw_sprite(renderer, {
         sheet,
         sprite,
