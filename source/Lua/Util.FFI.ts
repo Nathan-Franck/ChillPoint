@@ -6,7 +6,7 @@ export const ffi = require("ffi") as {
     cdef: (this: void, header: string) => void,
     load: <T>(this: void, file: string) => T,
     string: (this: void, string: any) => string,
-    new: (this: void, type: string, args?: any) => any,
+    new: <Type extends string>(this: void, type: Type, args?: any) => External<`${Type}*`>,
     typeof: (this: void, type: string) => (this: void, ...args: any) => any,
     cast: (this: void, type: string, from: any) => any,
 };
