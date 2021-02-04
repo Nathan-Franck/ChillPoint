@@ -146,10 +146,8 @@ ffi.cdef(`
 
 export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library({
     file_name: "SDL2",
-    header: {
-        /**
-         *  This function initializes  the subsystems specified by \c flags
-         */
+    functions: {
+
         SDL_Init: {
             "output": "int",
             "params": {

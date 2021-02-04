@@ -213,10 +213,10 @@ async function display_parser() {
                     };
                 };
             } => statement != null);
-        return `{\n${statements.map(statement =>
+        return `{\nstructs:{}\nfunctions: {\n${statements.map(statement =>
             `${statement.comment || ""
             }\n${statement.function_name}: ${JSON.stringify(statement.guts, undefined, 4)
-            }`).join(",\n")}\n}`;
+            }`).join(",\n")}\n}\n}`;
     })();
 
     const text_areas = Object.values(HtmlBuilder.create_children(container, {
