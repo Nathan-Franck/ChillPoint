@@ -106,16 +106,20 @@ export namespace FFI {
         }
     };
 
-    export type HeaderFile = {
+    export type FunctionsDef = {
         readonly [function_name: string]: {
             readonly output: keyof BaseTypeLookup | string,
             readonly params: Record<string, NamedParameter>,
         }
     }
 
-    export type FunctionParams<T extends HeaderFile[string]> = TupleFromOrdered<FuncParams<T["params"]>, "type">;
+    export type StructsDef = {
+        readonly [struct_name: string]: Record<string, NamedParameter>
+    }
 
-    export type ExternInterface<H extends HeaderFile> = {
+    export type FunctionParams<T extends FunctionsDef[string]> = TupleFromOrdered<FuncParams<T["params"]>, "type">;
+
+    export type ExternInterface<H extends FunctionsDef> = {
         [key in keyof H]: (
             ...args: FunctionParams<H[key]>
         ) => FuncParam<H[key]["output"]>
@@ -129,7 +133,7 @@ export namespace FFI {
         return type.endsWith("*") ? "void*" : type;
     }
 
-    function multi_return_interface<T extends HeaderFile>(header: T, cdef_header: ExternInterface<T>) {
+    function multi_return_interface<T extends FunctionsDef>(header: T, cdef_header: ExternInterface<T>) {
         type NamedParams<T extends Ordered<NamedParameter>> = {
             [key in keyof T]: FuncParam<T[key]["type"]>
         };
@@ -161,7 +165,7 @@ export namespace FFI {
         });
     }
 
-    function generate_cdef_header(header: HeaderFile) {
+    function generate_cdef_header(header: FunctionsDef) {
         const result = Object.
             entries(header).
             map(([function_name, func]) => `${void_star_fallback(func.output)
@@ -175,21 +179,22 @@ export namespace FFI {
         return result;
     }
 
-    export function load_library<H extends HeaderFile, C>(args: {
+    export function load_library<Functions extends FunctionsDef, Structs extends StructsDef, C>(args: {
         file_name: string,
-        header: H,
+        functions: Functions,
+        structs: Structs
         values: C,
     }) {
-        const cdef_header = generate_cdef_header(args.header);
+        const cdef_header = generate_cdef_header(args.functions);
         ffi.cdef(cdef_header);
-        const extern_interface = ffi.load<ExternInterface<H>>(args.file_name);
+        const extern_interface = ffi.load<ExternInterface<Functions>>(args.file_name);
         return {
             types: extern_interface,
             values: {
                 ...args.values,
-                ...multi_return_interface(args.header, extern_interface),
+                ...multi_return_interface(args.functions, extern_interface),
             },
-            header: args.header,
+            header: args.functions,
         };
     }
 }

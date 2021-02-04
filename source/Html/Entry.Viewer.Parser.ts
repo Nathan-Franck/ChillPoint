@@ -1,5 +1,13 @@
 import { HtmlBuilder, Style } from "./Util.HtmlBuilder";
 
+type AsyncQueue<T> = {
+    readonly get_next_to_await: () => Promise<T>;
+}
+
+async function parser_test(thinger: AsyncQueue<string>) {
+    const result = await thinger.get_next_to_await();
+}
+
 async function display_parser() {
     HtmlBuilder.assign_to_element(document.body, {
         style: {
@@ -75,10 +83,11 @@ async function display_parser() {
         const comment_regex = /\/\*(\*(?!\/)|[^*])*\*\//g;
         {
             const defines = {} as Record<string, { args: string[], contents: string }>;
-            const macro_statements = text.split(/(?=#ifdef|#ifndef|#else|#endif|#define)/);
+            const macro_regex = /(#ifdef|#ifndef|#else|#endif|#define)/;
+            const macro_statements = text.split(macro_regex);
             while (macro_statements.length > 0) {
                 const statement = macro_statements.shift()!;
-                const type_match = statement.match(/#ifdef|#ifndef|#else|#endif|#define/);
+                const type_match = statement.match(macro_regex);
                 if (type_match == null || type_match?.length == 0) {
                     post_macro_text += statement;
                     continue;
@@ -93,8 +102,8 @@ async function display_parser() {
                 // If there's a newline before finding a backslash, then it's the end of the #define value
                 const { define_value, remainder } = (() => {
                     const define_value_components = statement.slice(
-                        define_key == null ? 0 : (statement.indexOf(define_key) + define_key.length )+
-                        (define_args_content == null ? 0 : define_args_content.length + 2),
+                        define_key == null ? 0 : (statement.indexOf(define_key) + define_key.length) +
+                            (define_args_content == null ? 0 : define_args_content.length + 2),
                         statement.length).split(`\r\n`);
                     const value_end = define_value_components.findIndex(comp => comp[comp.length - 1] != "\\");
                     return {
@@ -148,9 +157,81 @@ async function display_parser() {
             }
         }
 
+        type Func = {
+            function_name: string;
+            comment: string | undefined;
+            contents: {
+                output: string;
+                params: {
+                    [key: string]: {
+                        type: string;
+                        index: number;
+                    };
+                };
+            },
+        };
+        type Struct = {
+            struct_name: string;
+            comment: string | undefined;
+            members: {
+                [key: string]: {
+                    type: string;
+                    index: number;
+                };
+            };
+        }
+        const split_by_typedef = split_exclude_first(post_macro_text, "typedef");
+        const structs = split_by_typedef.
+            map((extern, index): Struct | undefined => {
+                const previous = index > 0 ? split_by_typedef[index - 1] : "";
+                const statement = extern.split(";")[0].replace(comment_regex, "");
+                const flattened = statement.split(`\r\n`).map(elem => elem.trim()).join('');
+                const ignored = flattened.split(/const/).
+                    map(elem => elem.trim()).
+                    filter(elem => elem.length > 0).
+                    join(' ');
+                const [outer, inner] = ignored.split(/\{|\}/);
+                const type_name = (word: string) => {
+                    const star_spaced = word.
+                        split("*").
+                        join("* ");
+                    const outer_elems = star_spaced.split(" ").map(elem => elem.trim()).filter(elem => elem.length > 0);
+                    if (outer_elems.length == 1) {
+                        return undefined;
+                    }
+                    const [name, ...types] = outer_elems.reverse();
+                    const type = types.reverse().join('');
+                    return { type, name };
+                }
+                const { name: struct_name } = type_name(outer)!;
+
+                const params = inner?.split(",").
+                    map(param => type_name(param)).
+                    reduce((params, param, index) => {
+                        if (param == null) return params;
+                        return {
+                            ...params,
+                            [param.name]: {
+                                type: param.type,
+                                index,
+                            },
+                        }
+                    }, {} as { [key: string]: { type: string, index: number } }) || [];
+
+                const comments = previous?.match(comment_regex);
+                const comment = comments == null ? undefined : comments[comments.length - 1];
+                const formatted_comment = Object.
+                    entries(comment_formatting).
+                    reduce((formatted, [from, to]) => formatted?.split(from).join(to), comment);
+                return {
+                    struct_name,
+                    comment: formatted_comment,
+                    members: params,
+                };
+            });
         const split_by_externs = split_exclude_first(post_macro_text, "extern");
-        const statements = split_by_externs.
-            map((extern, index) => {
+        const functions = split_by_externs.
+            map((extern, index): Func | undefined => {
                 try {
                     const previous = index > 0 ? split_by_externs[index - 1] : "";
                     const statement = extern.split(";")[0].replace(comment_regex, "");
@@ -196,27 +277,16 @@ async function display_parser() {
                     return {
                         function_name,
                         comment: formatted_comment,
-                        guts: { output, params },
+                        contents: { output, params },
                     };
                 } catch (e) { console.error(e); }
             }).
-            filter((statement): statement is {
-                function_name: string;
-                comment: string | undefined;
-                guts: {
-                    output: string;
-                    params: {
-                        [key: string]: {
-                            type: string;
-                            index: number;
-                        };
-                    };
-                };
-            } => statement != null);
-        return `{\nstructs:{}\nfunctions: {\n${statements.map(statement =>
-            `${statement.comment || ""
-            }\n${statement.function_name}: ${JSON.stringify(statement.guts, undefined, 4)
-            }`).join(",\n")}\n}\n}`;
+            filter((statement): statement is Func => statement != null);
+        return `{\nstructs:{\n${structs.map(struct => ``)
+            }\n}\nfunctions: {\n${functions.map(func =>
+                `${func.comment || ""
+                }\n${func.function_name}: ${JSON.stringify(func.contents, undefined, 4)
+                }`).join(",\n")}\n}\n}`;
     })();
 
     const text_areas = Object.values(HtmlBuilder.create_children(container, {

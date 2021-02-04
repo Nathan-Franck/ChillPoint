@@ -146,6 +146,7 @@ ffi.cdef(`
 
 export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library({
     file_name: "SDL2",
+    structs: {},
     functions: {
 
         SDL_Init: {
@@ -669,10 +670,10 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          *  Create a window with the specified position, dimensions, and flags.
          *
          *  @param title The title of the window, in UTF-8 encoding.
-         *  @param x     The x position of the window, ::SDL_WINDOWPOS_CENTERED, or
-         *               ::SDL_WINDOWPOS_UNDEFINED.
-         *  @param y     The y position of the window, ::SDL_WINDOWPOS_CENTERED, or
-         *               ::SDL_WINDOWPOS_UNDEFINED.
+         *  @param x     The x position of the window, ::SDL_WINDOWPOS_CENTERED_DISPLAY(0), or
+         *               ::SDL_WINDOWPOS_UNDEFINED_DISPLAY(0).
+         *  @param y     The y position of the window, ::SDL_WINDOWPOS_CENTERED_DISPLAY(0), or
+         *               ::SDL_WINDOWPOS_UNDEFINED_DISPLAY(0).
          *  @param w     The width of the window, in screen coordinates.
          *  @param h     The height of the window, in screen coordinates.
          *  @param flags The flags for the window, a mask of any of the following:
@@ -899,9 +900,9 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          *
          *  @param window   The window to reposition.
          *  @param x        The x coordinate of the window in screen coordinates, or
-         *                  ::SDL_WINDOWPOS_CENTERED or ::SDL_WINDOWPOS_UNDEFINED.
+         *                  ::SDL_WINDOWPOS_CENTERED_DISPLAY(0) or ::SDL_WINDOWPOS_UNDEFINED_DISPLAY(0).
          *  @param y        The y coordinate of the window in screen coordinates, or
-         *                  ::SDL_WINDOWPOS_CENTERED or ::SDL_WINDOWPOS_UNDEFINED.
+         *                  ::SDL_WINDOWPOS_CENTERED_DISPLAY(0) or ::SDL_WINDOWPOS_UNDEFINED_DISPLAY(0).
          *
          *  @remarks The window coordinate origin is the upper left of the display.
          *
@@ -4093,6 +4094,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
                 }
             }
         },
+
         SDL_CreateRGBSurfaceFrom: {
             "output": "SDL_Surface*",
             "params": {
@@ -4134,6 +4136,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
                 }
             }
         },
+
         SDL_CreateRGBSurfaceWithFormatFrom: {
             "output": "SDL_Surface*",
             "params": {
@@ -4163,6 +4166,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
                 }
             }
         },
+
         SDL_FreeSurface: {
             "output": "void",
             "params": {
@@ -4200,7 +4204,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          *  \c surface->format.  Once you are done accessing the surface, you should
          *  use SDL_UnlockSurface() to release it.
          *
-         *  Not all surfaces require locking.  If SDL_MUSTLOCK(surface) evaluates
+         *  Not all surfaces require locking.  If (((S)->flags & SDL_RLEACCEL) != 0)(surface) evaluates
          *  to 0, then you can read and write to the surface at any time, and the
          *  pixel format of the surface will not change.
          *
@@ -4312,7 +4316,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          *
          *  @returns 0 on success, or -1 if the surface is not valid
          *
-         *  You can pass SDL_RLEACCEL to enable RLE accelerated blits.
+         *  You can pass 0x00000002 to enable RLE accelerated blits.
          */
         SDL_SetColorKey: {
             "output": "int",
@@ -4589,7 +4593,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
          *  fast as possible.  If this function fails, it returns NULL.
          *
          *  The \c flags parameter is passed to SDL_CreateRGBSurface() and has those
-         *  semantics.  You can also pass ::SDL_RLEACCEL in the flags parameter and
+         *  semantics.  You can also pass ::0x00000002 in the flags parameter and
          *  SDL will try to RLE accelerate colorkey and alpha blits in the resulting
          *  surface.
          */
@@ -4610,6 +4614,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
                 }
             }
         },
+
         SDL_ConvertSurfaceFormat: {
             "output": "SDL_Surface*",
             "params": {
@@ -4696,6 +4701,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
                 }
             }
         },
+
         SDL_FillRects: {
             "output": "int",
             "params": {
@@ -4718,8 +4724,61 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
             }
         },
         /**
-         *  This is the public blit function, SDL_BlitSurface(), and it performs
-         *  rectangle validation and clipping before passing it to SDL_LowerBlit()
+         *  Performs a fast blit from the source surface to the destination surface.
+         *
+         *  This assumes that the source and destination rectangles are
+         *  the same size.  If either \c srcrect or \c dstrect are NULL, the entire
+         *  surface (\c src or \c dst) is copied.  The final blit rectangles are saved
+         *  in \c srcrect and \c dstrect after all clipping is performed.
+         *
+         *  @returns If the blit is successful, it returns 0, otherwise it returns -1.
+         *
+         *  The blit function should not be called on a locked surface.
+         *
+         *  The blit semantics for surfaces with and without blending and colorkey
+         *  are defined as follows:
+         *  \verbatim
+            RGBA->RGB:
+              Source surface blend mode set to SDL_BLENDMODE_BLEND:
+                alpha-blend (using the source alpha-channel and per-surface alpha)
+                SDL_SRCCOLORKEY ignored.
+              Source surface blend mode set to SDL_BLENDMODE_NONE:
+                copy RGB.
+                if SDL_SRCCOLORKEY set, only copy the pixels matching the
+                RGB values of the source color key, ignoring alpha in the
+                comparison.
+        
+            RGB->RGBA:
+              Source surface blend mode set to SDL_BLENDMODE_BLEND:
+                alpha-blend (using the source per-surface alpha)
+              Source surface blend mode set to SDL_BLENDMODE_NONE:
+                copy RGB, set destination alpha to source per-surface alpha value.
+              both:
+                if SDL_SRCCOLORKEY set, only copy the pixels matching the
+                source color key.
+        
+            RGBA->RGBA:
+              Source surface blend mode set to SDL_BLENDMODE_BLEND:
+                alpha-blend (using the source alpha-channel and per-surface alpha)
+                SDL_SRCCOLORKEY ignored.
+              Source surface blend mode set to SDL_BLENDMODE_NONE:
+                copy all of RGBA to the destination.
+                if SDL_SRCCOLORKEY set, only copy the pixels matching the
+                RGB values of the source color key, ignoring alpha in the
+                comparison.
+        
+            RGB->RGB:
+              Source surface blend mode set to SDL_BLENDMODE_BLEND:
+                alpha-blend (using the source per-surface alpha)
+              Source surface blend mode set to SDL_BLENDMODE_NONE:
+                copy RGB.
+              both:
+                if SDL_SRCCOLORKEY set, only copy the pixels matching the
+                source color key.
+            \endverbatim
+         *
+         *  You should call SDL_BlitSurface() unless you know exactly how SDL
+         *  blitting works internally and how to use the other blit functions.
          */
         SDL_UpperBlit: {
             "output": "int",
@@ -4794,10 +4853,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
                 }
             }
         },
-        /**
-         *  This is the public scaled blit function, SDL_BlitScaled(), and it performs
-         *  rectangle validation and clipping before passing it to SDL_LowerBlitScaled()
-         */
+
         SDL_UpperBlitScaled: {
             "output": "int",
             "params": {
@@ -4945,6 +5001,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
                 }
             }
         },
+
         SDL_HasEvents: {
             "output": "SDL_bool",
             "params": {
@@ -4973,6 +5030,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
                 }
             }
         },
+
         SDL_FlushEvents: {
             "output": "void",
             "params": {
@@ -5162,15 +5220,7 @@ export const { types: sdl, values: SDL, header: sdl_header } = FFI.load_library(
                 }
             }
         },
-        /**
-         *  This function allows you to set the state of processing certain events.
-         *   - If \c state is set to ::SDL_IGNORE, that event will be automatically
-         *     dropped from the event queue and will not be filtered.
-         *   - If \c state is set to ::SDL_ENABLE, that event will be processed
-         *     normally.
-         *   - If \c state is set to ::SDL_QUERY, SDL_EventState() will return the
-         *     current processing state of the specified event.
-         */
+        /* @{ */
         SDL_EventState: {
             "output": "Uint8",
             "params": {

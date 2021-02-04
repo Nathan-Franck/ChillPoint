@@ -8,6 +8,7 @@ export const { types: sdl_img, values: SDL_IMG } = FFI.load_library({
         IMG_INIT_WEBP: 0x00000008
     } as const,
     file_name: "SDL2_image",
+    structs: {},
     functions: {
         /* This function gets the version of the dynamically linked SDL_image library.
            it should NOT be used to fill a version structure, instead you should
