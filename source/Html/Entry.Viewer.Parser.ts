@@ -84,7 +84,7 @@ async function display_parser() {
         {
             const defines = {} as Record<string, { args: string[], contents: string }>;
             const macro_regex = /(#ifdef|#ifndef|#else|#endif|#define)/;
-            const macro_statements = text.split(macro_regex);
+            const macro_statements = text.split(/(?=#ifdef|#ifndef|#else|#endif|#define)/);
             while (macro_statements.length > 0) {
                 const statement = macro_statements.shift()!;
                 const type_match = statement.match(macro_regex);
@@ -157,6 +157,32 @@ async function display_parser() {
             }
         }
 
+        // 🏛 Structs
+        type Struct = {
+            struct_name: string;
+            comment: string | undefined;
+            members: {
+                [key: string]: {
+                    type: string;
+                    index: number;
+                };
+            };
+        }
+        const split_by_typedef = split_exclude_first(post_macro_text, "typedef");
+        const structs = split_by_typedef.
+            map((typedef, index): void => {
+                const no_newlines = typedef.split(/\s/).filter(entry => entry.length > 0).join(" ");
+                const no_comments = no_newlines.replace(comment_regex, "")
+                const struct_result = no_comments.trim().match(/struct(.*){(?<contents>.*)}(?<name>[^;]*);/);
+                console.log(result);
+                // return {
+                //     struct_name,
+                //     comment: formatted_comment,
+                //     members: params,
+                // };
+            });
+
+        // 🔧 Functions
         type Func = {
             function_name: string;
             comment: string | undefined;
@@ -170,65 +196,6 @@ async function display_parser() {
                 };
             },
         };
-        type Struct = {
-            struct_name: string;
-            comment: string | undefined;
-            members: {
-                [key: string]: {
-                    type: string;
-                    index: number;
-                };
-            };
-        }
-        const split_by_typedef = split_exclude_first(post_macro_text, "typedef");
-        const structs = split_by_typedef.
-            map((extern, index): Struct | undefined => {
-                const previous = index > 0 ? split_by_typedef[index - 1] : "";
-                const statement = extern.split(";")[0].replace(comment_regex, "");
-                const flattened = statement.split(`\r\n`).map(elem => elem.trim()).join('');
-                const ignored = flattened.split(/const/).
-                    map(elem => elem.trim()).
-                    filter(elem => elem.length > 0).
-                    join(' ');
-                const [outer, inner] = ignored.split(/\{|\}/);
-                const type_name = (word: string) => {
-                    const star_spaced = word.
-                        split("*").
-                        join("* ");
-                    const outer_elems = star_spaced.split(" ").map(elem => elem.trim()).filter(elem => elem.length > 0);
-                    if (outer_elems.length == 1) {
-                        return undefined;
-                    }
-                    const [name, ...types] = outer_elems.reverse();
-                    const type = types.reverse().join('');
-                    return { type, name };
-                }
-                const { name: struct_name } = type_name(outer)!;
-
-                const params = inner?.split(",").
-                    map(param => type_name(param)).
-                    reduce((params, param, index) => {
-                        if (param == null) return params;
-                        return {
-                            ...params,
-                            [param.name]: {
-                                type: param.type,
-                                index,
-                            },
-                        }
-                    }, {} as { [key: string]: { type: string, index: number } }) || [];
-
-                const comments = previous?.match(comment_regex);
-                const comment = comments == null ? undefined : comments[comments.length - 1];
-                const formatted_comment = Object.
-                    entries(comment_formatting).
-                    reduce((formatted, [from, to]) => formatted?.split(from).join(to), comment);
-                return {
-                    struct_name,
-                    comment: formatted_comment,
-                    members: params,
-                };
-            });
         const split_by_externs = split_exclude_first(post_macro_text, "extern");
         const functions = split_by_externs.
             map((extern, index): Func | undefined => {
