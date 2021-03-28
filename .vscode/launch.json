@@ -10,9 +10,9 @@
             }
         },
         {
-            "name": "Launch Chrome",
+            "name": "Launch Edge",
             "request": "launch",
-            "type": "pwa-chrome",
+            "type": "edge",
             "url": "http://127.0.0.1:5500/website/Viewer.Parser.html",
             "webRoot": "${workspaceFolder}/website"
         }

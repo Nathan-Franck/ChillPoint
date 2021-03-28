@@ -178,23 +178,15 @@ async function display_parser() {
                     const members = struct_result.groups.contents.split(";").
                         filter(member => member.length > 0).
                         flatMap(member => {
-                            const star_spaced = word.
-                                split("*").
-                                join("* ");
-                            const outer_elems = star_spaced.split(" ").map(elem => elem.trim()).filter(elem => elem.length > 0);
-                            if (outer_elems.length == 1) {
-                                return undefined;
-                            }
-                            const [name, ...types] = outer_elems.reverse();
-                            const type = types.reverse().join('');
-                            return { type, name };
+
+                            return { member };
                         }).
                         reduce((params, param, index) => {
                             if (param == null) return params;
                             return {
                                 ...params,
-                                [param.name]: {
-                                    type: param.type,
+                                [param.member]: {
+                                    type: "blah",
                                     index,
                                 },
                             }
