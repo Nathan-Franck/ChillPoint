@@ -157,6 +157,26 @@ async function display_parser() {
             }
         }
 
+        const type_name = (word: string) => {
+            const comma_spaced = word.
+                split(",");
+            const first = comma_spaced[0];
+            const star_spaced = first.
+                split("*").
+                join("* ");
+            const outer_elems = star_spaced.split(" ").map(elem => elem.trim()).filter(elem => elem.length > 0);
+            if (outer_elems.length == 1) {
+                return undefined;
+            }
+            const [name, ...types] = outer_elems.reverse();
+            const type = types.reverse().join(' ');
+            const others = comma_spaced.slice(1, comma_spaced.length).map(other => ({
+                name: other.trim(),
+                type,
+            }));
+            return [{ type, name }, ...others];
+        }
+
         // 🏛 Structs
         type Struct = {
             struct_name: string;
@@ -178,15 +198,23 @@ async function display_parser() {
                     const members = struct_result.groups.contents.split(";").
                         filter(member => member.length > 0).
                         flatMap(member => {
-
-                            return { member };
+                            const trimmed = member.trim();
+                            if (trimmed.length == 0) { return undefined; }
+                            const result = type_name(trimmed);
+                            if (result == null) { return undefined; }
+                            return result.map(res => ({
+                                type: res.type,
+                                name: res.name,
+                                member: trimmed,
+                            }));
                         }).
                         reduce((params, param, index) => {
                             if (param == null) return params;
                             return {
                                 ...params,
-                                [param.member]: {
-                                    type: "blah",
+                                [param.name]: {
+                                    member: param.member,
+                                    type: param.type,
                                     index,
                                 },
                             }
@@ -231,23 +259,12 @@ async function display_parser() {
                         join(' ');
                     const [outer, inner] = ignored.split(/\(|\)/);
 
-                    const type_name = (word: string) => {
-                        const star_spaced = word.
-                            split("*").
-                            join("* ");
-                        const outer_elems = star_spaced.split(" ").map(elem => elem.trim()).filter(elem => elem.length > 0);
-                        if (outer_elems.length == 1) {
-                            return undefined;
-                        }
-                        const [name, ...types] = outer_elems.reverse();
-                        const type = types.reverse().join('');
-                        return { type, name };
-                    }
-
-                    const { type: output, name: function_name } = type_name(outer)!;
+                    const result = type_name(outer)?.[0];
+                    if (result == null) { return undefined; }
+                    const { type: output, name: function_name } = result;
 
                     const params = inner?.split(",").
-                        map(param => type_name(param)).
+                        map(param => type_name(param)?.[0]).
                         reduce((params, param, index) => {
                             if (param == null) return params;
                             return {
@@ -274,7 +291,7 @@ async function display_parser() {
             }).
             filter((statement): statement is Func => statement != null);
         return `{\nstructs:{\n${structs.map(struct => `${struct.struct_name}: ${JSON.stringify(struct.members, undefined, 4)
-        }`).join(",\n")
+            }`).join(",\n")
             }\n},\nfunctions: {\n${functions.map(func =>
                 `${func.comment || ""
                 }\n${func.function_name}: ${JSON.stringify(func.contents, undefined, 4)
