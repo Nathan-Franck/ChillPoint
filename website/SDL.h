@@ -19,6 +19,9 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
+#define DECLSPEC
+#define SDLCALL
+
 /**
  *  \file SDL.h
  *

@@ -160,7 +160,6 @@ async function display_parser() {
         // 🏛 Structs
         type Struct = {
             struct_name: string;
-            comment: string | undefined;
             members: {
                 [key: string]: {
                     type: string;
@@ -170,17 +169,48 @@ async function display_parser() {
         }
         const split_by_typedef = split_exclude_first(post_macro_text, "typedef");
         const structs = split_by_typedef.
-            map((typedef, index): void => {
+            map((typedef, index) => {
                 const no_newlines = typedef.split(/\s/).filter(entry => entry.length > 0).join(" ");
                 const no_comments = no_newlines.replace(comment_regex, "")
                 const struct_result = no_comments.trim().match(/struct(.*){(?<contents>.*)}(?<name>[^;]*);/);
-                console.log(result);
+                console.log(struct_result);
+                if (struct_result != null && struct_result.groups != null) {
+                    const members = struct_result.groups.contents.split(";").
+                        filter(member => member.length > 0).
+                        flatMap(member => {
+                            const star_spaced = word.
+                                split("*").
+                                join("* ");
+                            const outer_elems = star_spaced.split(" ").map(elem => elem.trim()).filter(elem => elem.length > 0);
+                            if (outer_elems.length == 1) {
+                                return undefined;
+                            }
+                            const [name, ...types] = outer_elems.reverse();
+                            const type = types.reverse().join('');
+                            return { type, name };
+                        }).
+                        reduce((params, param, index) => {
+                            if (param == null) return params;
+                            return {
+                                ...params,
+                                [param.name]: {
+                                    type: param.type,
+                                    index,
+                                },
+                            }
+                        }, {} as { [key: string]: { type: string, index: number } }) || [];
+                    return {
+                        struct_name: struct_result.groups.name.trim(),
+                        members,
+                    }
+                }
+                return undefined;
                 // return {
                 //     struct_name,
                 //     comment: formatted_comment,
                 //     members: params,
                 // };
-            });
+            }).filter((struct): struct is Struct => struct != null);
 
         // 🔧 Functions
         type Func = {
@@ -208,6 +238,7 @@ async function display_parser() {
                         filter(elem => elem.length > 0).
                         join(' ');
                     const [outer, inner] = ignored.split(/\(|\)/);
+
                     const type_name = (word: string) => {
                         const star_spaced = word.
                             split("*").
@@ -220,6 +251,7 @@ async function display_parser() {
                         const type = types.reverse().join('');
                         return { type, name };
                     }
+
                     const { type: output, name: function_name } = type_name(outer)!;
 
                     const params = inner?.split(",").
@@ -249,8 +281,9 @@ async function display_parser() {
                 } catch (e) { console.error(e); }
             }).
             filter((statement): statement is Func => statement != null);
-        return `{\nstructs:{\n${structs.map(struct => ``)
-            }\n}\nfunctions: {\n${functions.map(func =>
+        return `{\nstructs:{\n${structs.map(struct => `${struct.struct_name}: ${JSON.stringify(struct.members, undefined, 4)
+        }`).join(",\n")
+            }\n},\nfunctions: {\n${functions.map(func =>
                 `${func.comment || ""
                 }\n${func.function_name}: ${JSON.stringify(func.contents, undefined, 4)
                 }`).join(",\n")}\n}\n}`;
