@@ -2577,7 +2577,7 @@ while true do
             end
             return value / math.abs(value)
         end
-        local direction = sign(player.input.left - player.input.right)
+        local direction = sign(player.input.right - player.input.left)
         local ____obj, ____index = player.position, "x"
         ____obj[____index] = ____obj[____index] + ((direction * player_stats.speed) * delta_time)
     end

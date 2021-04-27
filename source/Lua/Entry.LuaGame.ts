@@ -141,7 +141,7 @@ while (true) {
             if (value == 0) return 0;
             return value / Math.abs(value);
         }
-        const direction = sign(player.input.left - player.input.right);
+        const direction = sign(player.input.right - player.input.left);
         player.position.x += direction * player_stats.speed * delta_time;
     }
 
