@@ -1,7 +1,9 @@
 import { SDL, sdl } from "./Lib.SDL";
 import { External } from "./Util.FFI";
 import { renderer } from "./Game.Init";
+import { ffi } from "./Util.FFI";
 
+ffi.load("tensorflow");
 
 // 🧪 Generate simple images to classify using simple custom neural network
 const dimension = 16;

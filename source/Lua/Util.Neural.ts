@@ -9,7 +9,7 @@ export type ChildNeuron = BaseNeuron & {
 }
 
 // 🏁 Simple network that can generate a checker pattern, in either variation, depending on input
-const example: Network<any> = [{
+const example: Network<[ChildNeuron]> = [{
     input_weights: [{
         offset: 0,
         weight: 1,
@@ -21,11 +21,38 @@ const example: Network<any> = [{
     }, {
         x: 0,
         y: 1,
-        weight: 0,
+        weight: 1,
     }, {
         x: 1,
         y: 0,
-        weight: 0,
+        weight: 1,
+    }, {
+        x: 1,
+        y: 1,
+        weight: 1,
+    }]
+}, {
+    parent_weights: [{
+        x: 0,
+        y: 0,
+        weight: 1,
+    }],
+    input_weights: [{
+        offset: 0,
+        weight: 1,
+    }],
+    child_weights: [{
+        x: 0,
+        y: 0,
+        weight: 1,
+    }, {
+        x: 0,
+        y: 1,
+        weight: -1,
+    }, {
+        x: 1,
+        y: 0,
+        weight: -1,
     }, {
         x: 1,
         y: 1,

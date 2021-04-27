@@ -4351,10 +4351,13 @@ local ____Lib_2ESDL = require("Lib.SDL")
 local sdl = ____Lib_2ESDL.sdl
 local ____Game_2EInit = require("Game.Init")
 local renderer = ____Game_2EInit.renderer
+local ____Util_2EFFI = require("Util.FFI")
+local ffi = ____Util_2EFFI.ffi
 function ____exports.set_pixel_easy(renderer, x, y, r, g, b)
     sdl.SDL_SetRenderDrawColor(renderer, r, g, b, 255)
     sdl.SDL_RenderDrawPoint(renderer, x, y)
 end
+ffi.load("tensorflow")
 local dimension = 16
 local colors = 3
 local pixels = {}
@@ -4404,7 +4407,7 @@ return ____exports
 end,
 ["Util.Neural"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 local ____exports = {}
-local example = {{input_weights = {{offset = 0, weight = 1}}, child_weights = {{x = 0, y = 0, weight = 1}, {x = 0, y = 1, weight = 0}, {x = 1, y = 0, weight = 0}, {x = 1, y = 1, weight = 1}}}}
+local example = {{input_weights = {{offset = 0, weight = 1}}, child_weights = {{x = 0, y = 0, weight = 1}, {x = 0, y = 1, weight = 1}, {x = 1, y = 0, weight = 1}, {x = 1, y = 1, weight = 1}}}, {parent_weights = {{x = 0, y = 0, weight = 1}}, input_weights = {{offset = 0, weight = 1}}, child_weights = {{x = 0, y = 0, weight = 1}, {x = 0, y = 1, weight = -1}, {x = 1, y = 0, weight = -1}, {x = 1, y = 1, weight = 1}}}}
 function ____exports.generate(network)
 end
 return ____exports
@@ -4434,4 +4437,4 @@ end
 return ____exports
 end,
 }
-return require("Entry.NeuralTraining")
+return require("Entry.LuaGame")
