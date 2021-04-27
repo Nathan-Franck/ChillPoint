@@ -27,10 +27,11 @@ export namespace Graphics2D {
         return sheet;
     }
 
-    export function load_sheets<T extends { [key: string]: Pick<Sheet, "animations" | "sprites"> }>(
+    type Sheets = { [key: string]: Pick<Sheet, "animations" | "sprites"> };
+    export function load_sheets<T extends Sheets>(
         renderer: External<"SDL_Renderer*">,
-        sheet_inputs: T
-    ) {
+        sheet_inputs: T & Sheets
+    ): T {
         return Scripting.reduce_keys<T, {
             [key in keyof T]: T[key] & { texture: ReturnType<typeof load_texture> }
         }>(sheet_inputs, (sheets, image_path) => ({

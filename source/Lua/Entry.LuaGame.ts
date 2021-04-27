@@ -16,47 +16,38 @@ const player_stats = <const>{
     speed: 0.25,
 };
 
-const sheets = Graphics2D.load_sheets(renderer, <const>{
+const sprites = {
+    "seagull.bmp": [
+        { x: 0, y: 0, w: 24, h: 24 },
+        { x: 24, y: 0, w: 24, h: 24 },
+        { x: 48, y: 0, w: 24, h: 24 },
+        { x: 72, y: 0, w: 24, h: 24 }
+    ],
+    "player.bmp": [
+        { x: 0, y: 0, w: 27, h: 48 },
+    ],
+    "feather.bmp": [
+        { x: 0, y: 0, w: 8, h: 4 },
+        { x: 8, y: 0, w: 8, h: 4 },
+        { x: 16, y: 0, w: 8, h: 4 },
+    ],
+    "snowball.bmp": [{ x: 0, y: 0, w: 16, h: 16 }],
+    "snow_particle.bmp": [{ x: 0, y: 0, w: 5, h: 5 }],
+    "background.bmp": [{ x: 0, y: 0, w: 800, h: 600 }],
+    "eye.bmp": [{ x: 0, y: 0, w: 4, h: 4 }],
+    "mouth.bmp": [{ x: 0, y: 0, w: 9, h: 4 }],
+};
+
+const animations = {
     "seagull.bmp": {
-        sprites: [
-            { x: 0, y: 0, w: 24, h: 24 },
-            { x: 24, y: 0, w: 24, h: 24 },
-            { x: 48, y: 0, w: 24, h: 24 },
-            { x: 72, y: 0, w: 24, h: 24 }
-        ],
-        animations: {
-            fly: [0, 0, 2, 1, 1, 2],
-            die: [3],
-        },
+        fly: [0, 0, 2, 1, 1, 2],
+        die: [3],
     },
-    "player.bmp": {
-        sprites: [
-            { x: 0, y: 0, w: 27, h: 48 },
-        ],
-    },
-    "feather.bmp": {
-        sprites: [
-            { x: 0, y: 0, w: 8, h: 4 },
-            { x: 8, y: 0, w: 8, h: 4 },
-            { x: 16, y: 0, w: 8, h: 4 },
-        ],
-        animations: { float: [0, 0, 1, 2, 2, 1] }
-    },
-    "snowball.bmp": {
-        sprites: [{ x: 0, y: 0, w: 16, h: 16 }],
-    },
-    "snow_particle.bmp": {
-        sprites: [{ x: 0, y: 0, w: 5, h: 5 }],
-    },
-    "background.bmp": {
-        sprites: [{ x: 0, y: 0, w: 800, h: 600 }],
-    },
-    "eye.bmp": {
-        sprites: [{ x: 0, y: 0, w: 4, h: 4 }],
-    },
-    "mouth.bmp": {
-        sprites: [{ x: 0, y: 0, w: 9, h: 4 }],
-    },
+    "feather.bmp": { float: [0, 0, 1, 2, 2, 1] }
+}
+
+const sheets = Graphics2D.load_sheets(renderer, <const>{
+
 });
 
 
