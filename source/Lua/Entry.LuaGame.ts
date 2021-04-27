@@ -77,6 +77,22 @@ for (let i = 0; i < count; i++) {
     positions[i] = { x: Math.random() * 800, y: Math.random() * 600 };
 }
 
+function stringify(obj: any) {
+    if (typeof obj == "string") return `"${obj}"`;
+    if (typeof obj == "number") return `${obj}`;
+    let isArray = true;
+    const entries = Object.entries(obj);
+    const stringifiedValues: string[] = entries.map(([key, value]) => {
+        if (typeof key != "number") isArray = false;
+        return stringify(value);
+    });
+    if (isArray) return `[${stringifiedValues.join(", ")}]`;
+    return `{${stringifiedValues.map((value, index) => `"${entries[index][0]}": ${value}`).join(", ")}}`;
+}
+
+print(stringify({ hey: "ho", what: 123}));
+print(stringify(["ha", 123]));
+
 const face_position = { x: 400, y: 340 };
 type Vec2 = { x: number, y: number };
 const add = (a: Vec2, b: Vec2) => ({ x: a.x + b.x, y: a.y + b.y });
