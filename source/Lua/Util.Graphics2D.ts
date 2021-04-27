@@ -18,7 +18,7 @@ export namespace Graphics2D {
     type Sprite = { x: number, y: number, w: number, h: number };
 
     export type Sheet<SpriteKeys extends number = number> = {
-        readonly sprites: { readonly [key in SpriteKeys]: Sprite },
+        readonly sprites: { readonly [key in SpriteKeys]: Sprite } & ReadonlyArray<Sprite>,
         readonly texture: External<"SDL_Texture*"> | null,
         readonly animations?: { readonly [key: string]: ReadonlyArray<SpriteKeys> }
     };

@@ -18,44 +18,44 @@ const player_stats = <const>{
 
 const sheets = Graphics2D.load_sheets(renderer, <const>{
     "seagull.bmp": {
-        sprites: {
-            0: { x: 0, y: 0, w: 24, h: 24 },
-            1: { x: 24, y: 0, w: 24, h: 24 },
-            2: { x: 48, y: 0, w: 24, h: 24 },
-            3: { x: 72, y: 0, w: 24, h: 24 }
-        },
+        sprites: [
+            { x: 0, y: 0, w: 24, h: 24 },
+            { x: 24, y: 0, w: 24, h: 24 },
+            { x: 48, y: 0, w: 24, h: 24 },
+            { x: 72, y: 0, w: 24, h: 24 }
+        ],
         animations: {
             fly: [0, 0, 2, 1, 1, 2],
             die: [3],
         },
     },
     "player.bmp": {
-        sprites: {
-            0: { x: 0, y: 0, w: 27, h: 48 },
-        },
+        sprites: [
+            { x: 0, y: 0, w: 27, h: 48 },
+        ],
     },
     "feather.bmp": {
-        sprites: {
-            0: { x: 0, y: 0, w: 8, h: 4 },
-            1: { x: 8, y: 0, w: 8, h: 4 },
-            2: { x: 16, y: 0, w: 8, h: 4 },
-        },
+        sprites: [
+            { x: 0, y: 0, w: 8, h: 4 },
+            { x: 8, y: 0, w: 8, h: 4 },
+            { x: 16, y: 0, w: 8, h: 4 },
+        ],
         animations: { float: [0, 0, 1, 2, 2, 1] }
     },
     "snowball.bmp": {
-        sprites: { 0: { x: 0, y: 0, w: 16, h: 16 } },
+        sprites: [{ x: 0, y: 0, w: 16, h: 16 }],
     },
     "snow_particle.bmp": {
-        sprites: { 0: { x: 0, y: 0, w: 5, h: 5 } },
+        sprites: [{ x: 0, y: 0, w: 5, h: 5 }],
     },
     "background.bmp": {
-        sprites: { 0: { x: 0, y: 0, w: 800, h: 600 } },
+        sprites: [{ x: 0, y: 0, w: 800, h: 600 }],
     },
     "eye.bmp": {
-        sprites: { 0: { x: 0, y: 0, w: 4, h: 4 } },
+        sprites: [{ x: 0, y: 0, w: 4, h: 4 }],
     },
     "mouth.bmp": {
-        sprites: { 0: { x: 0, y: 0, w: 9, h: 4 } },
+        sprites: [{ x: 0, y: 0, w: 9, h: 4 }],
     },
 });
 
