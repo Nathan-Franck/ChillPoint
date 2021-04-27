@@ -3,6 +3,7 @@ import { sdl, SDL } from "./Lib.SDL";
 import { ffi, Refs } from "./Util.FFI";
 import { Graphics2D } from "./Util.Graphics2D";
 import { Scripting } from "./Util.Scripting";
+import { JSON } from "./JSON";
 
 let frames = 0;
 
@@ -77,21 +78,8 @@ for (let i = 0; i < count; i++) {
     positions[i] = { x: Math.random() * 800, y: Math.random() * 600 };
 }
 
-function stringify(obj: any) {
-    if (typeof obj == "string") return `"${obj}"`;
-    if (typeof obj == "number") return `${obj}`;
-    let isArray = true;
-    const entries = Object.entries(obj);
-    const stringifiedValues: string[] = entries.map(([key, value]) => {
-        if (typeof key != "number") isArray = false;
-        return stringify(value);
-    });
-    if (isArray) return `[${stringifiedValues.join(", ")}]`;
-    return `{${stringifiedValues.map((value, index) => `"${entries[index][0]}": ${value}`).join(", ")}}`;
-}
-
-print(stringify({ hey: "ho", what: 123}));
-print(stringify(["ha", 123]));
+print(JSON.stringify({ hey: "ho", what: 123 }));
+print(JSON.stringify(["ha", 123]));
 
 const face_position = { x: 400, y: 340 };
 type Vec2 = { x: number, y: number };
@@ -183,11 +171,13 @@ while (true) {
         position: player.position,
     });
 
-    face.forEach(item => Graphics2D.draw_sprite(renderer, {
-        sheet: sheets[item.sprite],
-        sprite: 0,
-        position: add(face_position, item.position),
-    }));
+    face.forEach(item => {
+        Graphics2D.draw_sprite(renderer, {
+            sheet: sheets[item.sprite],
+            sprite: 0,
+            position: add(face_position, item.position),
+        })
+    });
 
     sdl.SDL_RenderPresent(renderer);
 

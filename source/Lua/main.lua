@@ -2408,6 +2408,56 @@ do
 end
 return ____exports
 end,
+["JSON"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+require("lualib_bundle");
+local ____exports = {}
+____exports.JSON = {}
+local JSON = ____exports.JSON
+do
+    function JSON.stringify(obj)
+        local _type = __TS__TypeOf(obj)
+        if _type == "string" then
+            return ("\"" .. tostring(obj)) .. "\""
+        end
+        if _type == "number" then
+            return tostring(obj)
+        end
+        if _type == "cdata" then
+            return "{}"
+        end
+        local isArray = true
+        local entries = __TS__ObjectEntries(obj)
+        local stringifiedValues = __TS__ArrayMap(
+            entries,
+            function(____, ____bindingPattern0)
+                local key
+                key = ____bindingPattern0[1]
+                local value
+                value = ____bindingPattern0[2]
+                if type(key) ~= "number" then
+                    isArray = false
+                end
+                return JSON.stringify(value)
+            end
+        )
+        if isArray then
+            return ("[" .. tostring(
+                table.concat(stringifiedValues, ", " or ",")
+            )) .. "]"
+        end
+        return ("{" .. tostring(
+            table.concat(
+                __TS__ArrayMap(
+                    stringifiedValues,
+                    function(____, value, index) return (("\"" .. tostring(entries[index + 1][1])) .. "\": ") .. tostring(value) end
+                ),
+                ", " or ","
+            )
+        )) .. "}"
+    end
+end
+return ____exports
+end,
 ["Entry.LuaGame"] = function() --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
 require("lualib_bundle");
 local ____exports = {}
@@ -2423,6 +2473,8 @@ local ____Util_2EGraphics2D = require("Util.Graphics2D")
 local Graphics2D = ____Util_2EGraphics2D.Graphics2D
 local ____Util_2EScripting = require("Util.Scripting")
 local Scripting = ____Util_2EScripting.Scripting
+local ____JSON = require("JSON")
+local JSON = ____JSON.JSON
 local frames = 0
 local settings = {controls = {left = SDL.SDL_SCANCODE_LEFT, right = SDL.SDL_SCANCODE_RIGHT, fire = SDL.SDL_SCANCODE_SPACE}}
 local player_stats = {speed = 0.25}
@@ -2440,48 +2492,11 @@ do
         i = i + 1
     end
 end
-local function stringify(obj)
-    if type(obj) == "string" then
-        return ("\"" .. tostring(obj)) .. "\""
-    end
-    if type(obj) == "number" then
-        return tostring(obj)
-    end
-    local isArray = true
-    local entries = __TS__ObjectEntries(obj)
-    local stringifiedValues = __TS__ArrayMap(
-        entries,
-        function(____, ____bindingPattern0)
-            local key
-            key = ____bindingPattern0[1]
-            local value
-            value = ____bindingPattern0[2]
-            if type(key) ~= "number" then
-                isArray = false
-            end
-            return stringify(value)
-        end
-    )
-    if isArray then
-        return ("[" .. tostring(
-            table.concat(stringifiedValues, ", " or ",")
-        )) .. "]"
-    end
-    return ("{" .. tostring(
-        table.concat(
-            __TS__ArrayMap(
-                stringifiedValues,
-                function(____, value, index) return (("\"" .. tostring(entries[index + 1][1])) .. "\": ") .. tostring(value) end
-            ),
-            ", " or ","
-        )
-    )) .. "}"
-end
 print(
-    stringify({hey = "ho", what = 123})
+    JSON.stringify({hey = "ho", what = 123})
 )
 print(
-    stringify({"ha", 123})
+    JSON.stringify({"ha", 123})
 )
 local face_position = {x = 400, y = 340}
 local function add(a, b)
@@ -2497,16 +2512,16 @@ while true do
     local delta_time = next_time - time
     time = sdl.SDL_GetTicks()
     while sdl.SDL_PollEvent(event) > 0 do
-        local ____switch13 = event.type
-        if ____switch13 == SDL.SDL_KEYDOWN then
-            goto ____switch13_case_0
-        elseif ____switch13 == SDL.SDL_KEYUP then
-            goto ____switch13_case_1
-        elseif ____switch13 == SDL.SDL_MOUSEMOTION then
-            goto ____switch13_case_2
+        local ____switch6 = event.type
+        if ____switch6 == SDL.SDL_KEYDOWN then
+            goto ____switch6_case_0
+        elseif ____switch6 == SDL.SDL_KEYUP then
+            goto ____switch6_case_1
+        elseif ____switch6 == SDL.SDL_MOUSEMOTION then
+            goto ____switch6_case_2
         end
-        goto ____switch13_case_default
-        ::____switch13_case_0::
+        goto ____switch6_case_default
+        ::____switch6_case_0::
         do
             do
                 for ____, key in ipairs(
@@ -2514,44 +2529,44 @@ while true do
                 ) do
                     do
                         if event.key.keysym.mod ~= settings.controls[key] then
-                            goto __continue15
+                            goto __continue8
                         end
                         player.input[key] = time
                     end
-                    ::__continue15::
+                    ::__continue8::
                 end
-                goto ____switch13_end
+                goto ____switch6_end
             end
         end
-        ::____switch13_case_1::
+        ::____switch6_case_1::
         do
             for ____, key in ipairs(
                 Scripting.get_keys(settings.controls)
             ) do
                 do
                     if event.key.keysym.mod ~= settings.controls[key] then
-                        goto __continue17
+                        goto __continue10
                     end
                     player.input[key] = 0
                 end
-                ::__continue17::
+                ::__continue10::
             end
-            goto ____switch13_end
+            goto ____switch6_end
         end
-        ::____switch13_case_2::
+        ::____switch6_case_2::
         do
             do
                 local refs = Refs.create({x = "int", y = "int"})
                 local button_state = SDL.SDL_GetMouseState(refs)
                 mouse_position = Refs.result(refs)
-                goto ____switch13_end
+                goto ____switch6_end
             end
         end
-        ::____switch13_case_default::
+        ::____switch6_case_default::
         do
-            goto ____switch13_end
+            goto ____switch6_end
         end
-        ::____switch13_end::
+        ::____switch6_end::
     end
     sdl.SDL_RenderClear(renderer)
     sdl.SDL_RenderCopy(renderer, sheets["background.bmp"].texture, nil, nil)
@@ -2585,14 +2600,16 @@ while true do
     Graphics2D.draw_sprite(renderer, {sheet = sheets["player.bmp"], sprite = 0, position = player.position})
     __TS__ArrayForEach(
         face,
-        function(____, item) return Graphics2D.draw_sprite(
-            renderer,
-            {
-                sheet = sheets[item.sprite],
-                sprite = 0,
-                position = add(face_position, item.position)
-            }
-        ) end
+        function(____, item)
+            Graphics2D.draw_sprite(
+                renderer,
+                {
+                    sheet = sheets[item.sprite],
+                    sprite = 0,
+                    position = add(face_position, item.position)
+                }
+            )
+        end
     )
     sdl.SDL_RenderPresent(renderer)
     frames = frames + 1
