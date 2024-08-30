@@ -8,7 +8,7 @@ export type AllowedKeys<Base, Condition> =
 
 
 export namespace Scripting {
-	export function get_keys<T>(obj: T): (keyof T)[] {
+	export function get_keys<T extends object>(obj: T): (keyof T)[] {
 		return Object.keys(obj) as (keyof T)[];
 	}
     export function key_value_to_object<Key extends string | number, Value>(keys: readonly Key[], key_to_value: (key: Key) => Value) {
