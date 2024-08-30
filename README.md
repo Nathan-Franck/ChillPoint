@@ -2,6 +2,8 @@
 
 My personal playground while experimenting with Typescript and Web-technologies.
 
+Hosted [Here](https://nathan-franck.github.io/ChillPoint/)
+
 ![Chillpoint Showcase](https://raw.githubusercontent.com/TacticalDan/ChillPoint/master/Chillpoint%20Showcase.png)
 
 ## Tools/Features in Development
