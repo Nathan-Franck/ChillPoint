@@ -2,11 +2,12 @@
 
 My personal playground while experimenting with Typescript and Web-technologies.
 
+## Mouse Accuracy Minigame
 Hosted [Here](https://nathan-franck.github.io/ChillPoint/)
 
-![Chillpoint Showcase](https://raw.githubusercontent.com/TacticalDan/ChillPoint/master/Chillpoint%20Showcase.png)
-
 ## Tools/Features in Development
+
+![Chillpoint Showcase](https://raw.githubusercontent.com/TacticalDan/ChillPoint/master/Chillpoint%20Showcase.png)
 
 ### Util.Shader.ts
 Automates a lot of the drudgery of creating new shaders using WebGL, clever typing minimizes mistakes when declaring

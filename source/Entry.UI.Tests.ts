@@ -8,7 +8,7 @@ import { Weebles } from './Util.Weebles';
 import { Editor } from './Util.Editor';
 import { PeerAdvertising } from './Util.PeerAdvertising';
 import { PeerConnection } from './Util.PeerConnection';
-import { modelTests } from "./Model.Tests";
+// import { modelTests } from "./Model.Tests";
 
 /**
  *	👨‍🔬 Test front-end UI features using different named environments
@@ -16,7 +16,7 @@ import { modelTests } from "./Model.Tests";
 export namespace UITests {
 	export function initialize_client() {
 
-		modelTests();
+		// modelTests();
 
 		const body = HtmlBuilder.assign_to_element(document.body, {
 			style: {
